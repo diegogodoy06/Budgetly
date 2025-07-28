@@ -14,7 +14,6 @@ import Register from '@/pages/Register';
 import Accounts from '@/pages/Accounts';
 import CreditCards from '@/pages/CreditCards';
 import Transactions from '@/pages/Transactions';
-import Categories from '@/pages/Categories';
 import Budgets from '@/pages/Budgets';
 import Reports from '@/pages/Reports';
 import Profile from '@/pages/Profile';
@@ -84,13 +83,6 @@ const AppRoutes: React.FC = () => {
         <ProtectedRoute>
           <Layout>
             <Transactions />
-          </Layout>
-        </ProtectedRoute>
-      } />
-      <Route path="/categories" element={
-        <ProtectedRoute>
-          <Layout>
-            <Categories />
           </Layout>
         </ProtectedRoute>
       } />

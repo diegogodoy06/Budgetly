@@ -32,7 +32,6 @@ const navigation: NavigationItem[] = [
   { name: 'Carteiras', href: '/accounts', icon: BanknotesIcon },
   { name: 'Cartão de Crédito', href: '/credit-cards', icon: CreditCardIcon },
   { name: 'Movimentações', href: '/transactions', icon: CreditCardIcon },
-  { name: 'Categorias', href: '/categories', icon: TagIcon },
   { name: 'Orçamentos', href: '/budgets', icon: ChartBarIcon },
   { name: 'Relatórios', href: '/reports', icon: DocumentTextIcon },
   { 
