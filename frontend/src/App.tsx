@@ -19,6 +19,8 @@ import Budgets from '@/pages/Budgets';
 import Reports from '@/pages/Reports';
 import Profile from '@/pages/Profile';
 import Settings from '@/pages/Settings';
+import CategoriesManagement from '@/pages/CategoriesManagement';
+import CostCentersManagement from '@/pages/CostCentersManagement';
 
 // Protected Route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -117,6 +119,20 @@ const AppRoutes: React.FC = () => {
         <ProtectedRoute>
           <Layout>
             <Settings />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/settings/categories" element={
+        <ProtectedRoute>
+          <Layout>
+            <CategoriesManagement />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/settings/cost-centers" element={
+        <ProtectedRoute>
+          <Layout>
+            <CostCentersManagement />
           </Layout>
         </ProtectedRoute>
       } />

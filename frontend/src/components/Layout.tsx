@@ -11,18 +11,38 @@ import {
   Bars3Icon,
   XMarkIcon,
   ArrowRightOnRectangleIcon,
+  ChevronRightIcon,
+  BuildingOfficeIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
 
-const navigation = [
+interface NavigationItem {
+  name: string;
+  href?: string;
+  icon: any;
+  children?: {
+    name: string;
+    href: string;
+    icon: any;
+  }[];
+}
+
+const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Carteiras', href: '/accounts', icon: BanknotesIcon },
   { name: 'Cartão de Crédito', href: '/credit-cards', icon: CreditCardIcon },
-  { name: 'Transações', href: '/transactions', icon: CreditCardIcon },
+  { name: 'Movimentações', href: '/transactions', icon: CreditCardIcon },
   { name: 'Categorias', href: '/categories', icon: TagIcon },
   { name: 'Orçamentos', href: '/budgets', icon: ChartBarIcon },
   { name: 'Relatórios', href: '/reports', icon: DocumentTextIcon },
-  { name: 'Configurações', href: '/settings', icon: CogIcon },
+  { 
+    name: 'Configurações', 
+    icon: CogIcon,
+    children: [
+      { name: 'Categorias', href: '/settings/categories', icon: TagIcon },
+      { name: 'Centros de Custo', href: '/settings/cost-centers', icon: BuildingOfficeIcon },
+    ]
+  },
 ];
 
 interface LayoutProps {
@@ -31,6 +51,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -42,6 +63,97 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
     }
+  };
+
+  const toggleExpanded = (itemName: string) => {
+    setExpandedItems(prev => 
+      prev.includes(itemName) 
+        ? prev.filter(name => name !== itemName)
+        : [...prev, itemName]
+    );
+  };
+
+  const isItemActive = (item: NavigationItem) => {
+    if (item.href) {
+      return location.pathname === item.href;
+    }
+    if (item.children) {
+      return item.children.some(child => location.pathname === child.href);
+    }
+    return false;
+  };
+
+  const renderNavigationItem = (item: NavigationItem) => {
+    const isActive = isItemActive(item);
+    const isExpanded = expandedItems.includes(item.name);
+
+    if (item.children) {
+      return (
+        <div key={item.name}>
+          <button
+            onClick={() => toggleExpanded(item.name)}
+            className={`${
+              isActive
+                ? 'bg-primary-100 text-primary-900'
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+            } group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md`}
+          >
+            <item.icon
+              className={`${
+                isActive ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500'
+              } mr-3 flex-shrink-0 h-6 w-6`}
+            />
+            {item.name}
+            <ChevronRightIcon
+              className={`ml-auto h-4 w-4 transform transition-transform duration-200 ${
+                isExpanded ? 'rotate-90' : ''
+              }`}
+            />
+          </button>
+          {isExpanded && (
+            <div className="ml-8 mt-1 space-y-1">
+              {item.children.map((child) => (
+                <Link
+                  key={child.name}
+                  to={child.href}
+                  className={`${
+                    location.pathname === child.href
+                      ? 'bg-primary-100 text-primary-900'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                >
+                  <child.icon
+                    className={`${
+                      location.pathname === child.href ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500'
+                    } mr-3 flex-shrink-0 h-5 w-5`}
+                  />
+                  {child.name}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        key={item.name}
+        to={item.href!}
+        className={`${
+          isActive
+            ? 'bg-primary-100 text-primary-900'
+            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+        } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+      >
+        <item.icon
+          className={`${
+            isActive ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500'
+          } mr-3 flex-shrink-0 h-6 w-6`}
+        />
+        {item.name}
+      </Link>
+    );
   };
 
   return (
@@ -64,27 +176,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <h1 className="text-xl font-bold text-primary-600">Budgetly</h1>
             </div>
             <nav className="mt-5 px-2 space-y-1">
-              {navigation.map((item) => {
-                const isActive = location.pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`${
-                      isActive
-                        ? 'bg-primary-100 text-primary-900'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
-                  >
-                    <item.icon
-                      className={`${
-                        isActive ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500'
-                      } mr-3 flex-shrink-0 h-6 w-6`}
-                    />
-                    {item.name}
-                  </Link>
-                );
-              })}
+              {navigation.map((item) => renderNavigationItem(item))}
             </nav>
           </div>
           <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
@@ -113,27 +205,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <h1 className="text-xl font-bold text-primary-600">Budgetly</h1>
               </div>
               <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
-                {navigation.map((item) => {
-                  const isActive = location.pathname === item.href;
-                  return (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className={`${
-                        isActive
-                          ? 'bg-primary-100 text-primary-900'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
-                    >
-                      <item.icon
-                        className={`${
-                          isActive ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500'
-                        } mr-3 flex-shrink-0 h-6 w-6`}
-                      />
-                      {item.name}
-                    </Link>
-                  );
-                })}
+                {navigation.map((item) => renderNavigationItem(item))}
               </nav>
             </div>
             <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
