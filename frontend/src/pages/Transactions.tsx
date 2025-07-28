@@ -8,7 +8,8 @@ import {
   CalendarIcon,
   WalletIcon,
   TagIcon,
-  BuildingOfficeIcon
+  BuildingOfficeIcon,
+  PencilIcon
 } from '@heroicons/react/24/outline';
 
 // Mock data para carteiras (temporário)
@@ -45,9 +46,24 @@ interface Movimentacao {
   status: 'pago' | 'pendente' | 'vencido';
 }
 
+interface MovimentacaoForm {
+  descricao: string;
+  valor: string;
+  dataPagamento: string;
+  dataVencimento: string;
+  categoria: string;
+  conta: string;
+  centroCusto: string;
+  tipo: 'entrada' | 'saida' | 'conta-receber' | 'conta-pagar';
+  recorrente: boolean;
+  formaPagamento: string;
+}
+
 const Transactions: React.FC = () => {
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState<TipoMovimentacao>('todas');
+  const [mostrarPopup, setMostrarPopup] = useState(false);
+  const [movimentacaoEditando, setMovimentacaoEditando] = useState<Movimentacao | null>(null);
   
   const [filtros, setFiltros] = useState<Filtros>({
     descricao: '',
@@ -58,6 +74,19 @@ const Transactions: React.FC = () => {
     carteiras: [],
     categorias: [],
     centrosCusto: []
+  });
+
+  const [formData, setFormData] = useState<MovimentacaoForm>({
+    descricao: '',
+    valor: '',
+    dataPagamento: '',
+    dataVencimento: '',
+    categoria: '',
+    conta: '',
+    centroCusto: '',
+    tipo: 'saida',
+    recorrente: false,
+    formaPagamento: ''
   });
 
   // Mock data para movimentações
@@ -148,15 +177,6 @@ const Transactions: React.FC = () => {
     return new Date(data).toLocaleDateString('pt-BR');
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pago': return 'text-green-600';
-      case 'pendente': return 'text-yellow-600';
-      case 'vencido': return 'text-red-600';
-      default: return 'text-gray-600';
-    }
-  };
-
   const getStatusBg = (status: string) => {
     switch (status) {
       case 'pago': return 'bg-green-100';
@@ -164,6 +184,51 @@ const Transactions: React.FC = () => {
       case 'vencido': return 'bg-red-100';
       default: return 'bg-gray-100';
     }
+  };
+
+  const abrirPopupAdicionar = () => {
+    setMovimentacaoEditando(null);
+    setFormData({
+      descricao: '',
+      valor: '',
+      dataPagamento: '',
+      dataVencimento: '',
+      categoria: '',
+      conta: '',
+      centroCusto: '',
+      tipo: 'saida',
+      recorrente: false,
+      formaPagamento: ''
+    });
+    setMostrarPopup(true);
+  };
+
+  const abrirPopupEditar = (movimentacao: Movimentacao) => {
+    setMovimentacaoEditando(movimentacao);
+    setFormData({
+      descricao: movimentacao.descricao,
+      valor: Math.abs(movimentacao.valor).toString(),
+      dataPagamento: movimentacao.dataPagamento,
+      dataVencimento: movimentacao.dataVencimento,
+      categoria: movimentacao.categoria,
+      conta: movimentacao.conta,
+      centroCusto: movimentacao.centroCusto,
+      tipo: movimentacao.tipo,
+      recorrente: false,
+      formaPagamento: ''
+    });
+    setMostrarPopup(true);
+  };
+
+  const fecharPopup = () => {
+    setMostrarPopup(false);
+    setMovimentacaoEditando(null);
+  };
+
+  const salvarMovimentacao = () => {
+    console.log('Salvar movimentação:', formData);
+    // Aqui implementaria a lógica de salvar
+    fecharPopup();
   };
 
   const limparFiltros = () => {
@@ -186,31 +251,26 @@ const Transactions: React.FC = () => {
     { 
       id: 'todas' as TipoMovimentacao, 
       nome: 'Todas', 
-      count: movimentacoes.length,
       valor: movimentacoes.reduce((acc, mov) => acc + mov.valor, 0)
     },
     { 
       id: 'entradas' as TipoMovimentacao, 
       nome: 'Entradas', 
-      count: movimentacoes.filter(m => m.tipo === 'entrada').length,
       valor: movimentacoes.filter(m => m.tipo === 'entrada').reduce((acc, mov) => acc + mov.valor, 0)
     },
     { 
       id: 'saidas' as TipoMovimentacao, 
       nome: 'Saídas', 
-      count: movimentacoes.filter(m => m.tipo === 'saida').length,
       valor: movimentacoes.filter(m => m.tipo === 'saida').reduce((acc, mov) => acc + mov.valor, 0)
     },
     { 
       id: 'contas-receber' as TipoMovimentacao, 
       nome: 'Contas a Receber', 
-      count: movimentacoes.filter(m => m.tipo === 'conta-receber').length,
       valor: movimentacoes.filter(m => m.tipo === 'conta-receber').reduce((acc, mov) => acc + mov.valor, 0)
     },
     { 
       id: 'contas-pagar' as TipoMovimentacao, 
       nome: 'Contas a Pagar', 
-      count: movimentacoes.filter(m => m.tipo === 'conta-pagar').length,
       valor: movimentacoes.filter(m => m.tipo === 'conta-pagar').reduce((acc, mov) => acc + mov.valor, 0)
     }
   ];
@@ -255,6 +315,7 @@ const Transactions: React.FC = () => {
           </button>
           <button
             type="button"
+            onClick={abrirPopupAdicionar}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
           >
             <PlusIcon className="h-5 w-5 mr-2" />
@@ -282,9 +343,6 @@ const Transactions: React.FC = () => {
                   >
                     <div className="text-center">
                       <div className="font-semibold">{aba.nome}</div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {aba.count} {aba.count === 1 ? 'item' : 'itens'}
-                      </div>
                       <div className={`text-sm font-medium mt-1 ${
                         aba.valor >= 0 ? 'text-green-600' : 'text-red-600'
                       }`}>
@@ -320,6 +378,9 @@ const Transactions: React.FC = () => {
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Valor
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ações
                     </th>
                   </tr>
                 </thead>
@@ -359,6 +420,15 @@ const Transactions: React.FC = () => {
                         }`}>
                           {formatarMoeda(movimentacao.valor)}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                        <button
+                          onClick={() => abrirPopupEditar(movimentacao)}
+                          className="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50"
+                          title="Editar movimentação"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -520,6 +590,214 @@ const Transactions: React.FC = () => {
             className="fixed inset-0 bg-black bg-opacity-25 z-30"
             onClick={() => setMostrarFiltros(false)}
           />
+        )}
+
+        {/* Popup Modal */}
+        {mostrarPopup && (
+          <>
+            {/* Backdrop com blur */}
+            <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" onClick={fecharPopup} />
+            
+            {/* Modal */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                {/* Header */}
+                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {movimentacaoEditando ? 'Editar Movimentação' : 'Nova Movimentação'}
+                  </h3>
+                  <button
+                    onClick={fecharPopup}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <XMarkIcon className="h-6 w-6" />
+                  </button>
+                </div>
+
+                {/* Formulário */}
+                <div className="p-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Descrição */}
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Descrição
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.descricao}
+                        onChange={(e) => setFormData(prev => ({ ...prev, descricao: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Digite a descrição da movimentação"
+                      />
+                    </div>
+
+                    {/* Tipo */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Tipo
+                      </label>
+                      <select
+                        value={formData.tipo}
+                        onChange={(e) => setFormData(prev => ({ ...prev, tipo: e.target.value as any }))}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="entrada">Entrada</option>
+                        <option value="saida">Saída</option>
+                        <option value="conta-receber">Conta a Receber</option>
+                        <option value="conta-pagar">Conta a Pagar</option>
+                      </select>
+                    </div>
+
+                    {/* Valor */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Valor
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.valor}
+                        onChange={(e) => setFormData(prev => ({ ...prev, valor: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="0,00"
+                      />
+                    </div>
+
+                    {/* Data de Pagamento */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Data de Pagamento
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.dataPagamento}
+                        onChange={(e) => setFormData(prev => ({ ...prev, dataPagamento: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    {/* Data de Vencimento */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Data de Vencimento
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.dataVencimento}
+                        onChange={(e) => setFormData(prev => ({ ...prev, dataVencimento: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    {/* Conta */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Conta
+                      </label>
+                      <select
+                        value={formData.conta}
+                        onChange={(e) => setFormData(prev => ({ ...prev, conta: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Selecione uma conta</option>
+                        {carteirasMock.map((carteira) => (
+                          <option key={carteira.id} value={carteira.nome}>
+                            {carteira.nome}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Categoria */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Categoria
+                      </label>
+                      <select
+                        value={formData.categoria}
+                        onChange={(e) => setFormData(prev => ({ ...prev, categoria: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Selecione uma categoria</option>
+                        <option value="Alimentação">Alimentação</option>
+                        <option value="Transporte">Transporte</option>
+                        <option value="Moradia">Moradia</option>
+                        <option value="Saúde">Saúde</option>
+                        <option value="Educação">Educação</option>
+                        <option value="Salário">Salário</option>
+                        <option value="Serviços">Serviços</option>
+                        <option value="Cartão de Crédito">Cartão de Crédito</option>
+                      </select>
+                    </div>
+
+                    {/* Centro de Custo */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Centro de Custo
+                      </label>
+                      <select
+                        value={formData.centroCusto}
+                        onChange={(e) => setFormData(prev => ({ ...prev, centroCusto: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Selecione um centro de custo</option>
+                        <option value="Pessoal">Pessoal</option>
+                        <option value="Trabalho">Trabalho</option>
+                        <option value="Família">Família</option>
+                      </select>
+                    </div>
+
+                    {/* Forma de Pagamento */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Forma de Pagamento
+                      </label>
+                      <select
+                        value={formData.formaPagamento}
+                        onChange={(e) => setFormData(prev => ({ ...prev, formaPagamento: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Selecione uma forma</option>
+                        <option value="dinheiro">Dinheiro</option>
+                        <option value="cartao-debito">Cartão de Débito</option>
+                        <option value="cartao-credito">Cartão de Crédito</option>
+                        <option value="pix">PIX</option>
+                        <option value="transferencia">Transferência</option>
+                      </select>
+                    </div>
+
+                    {/* Transação Recorrente */}
+                    <div className="col-span-2">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={formData.recorrente}
+                          onChange={(e) => setFormData(prev => ({ ...prev, recorrente: e.target.checked }))}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">Transação recorrente</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                  <button
+                    onClick={fecharPopup}
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={salvarMovimentacao}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                  >
+                    {movimentacaoEditando ? 'Salvar' : 'Adicionar'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
