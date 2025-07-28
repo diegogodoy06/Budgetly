@@ -2,21 +2,23 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { ConfiguracoesProvider } from '@/contexts/ConfiguracoesContext';
 
 // Layout components
 import Layout from '@/components/Layout';
-import AuthLayout from '@/components/AuthLayout';
 
 // Pages
 import Dashboard from '@/pages/Dashboard';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import Accounts from '@/pages/Accounts';
+import CreditCards from '@/pages/CreditCards';
 import Transactions from '@/pages/Transactions';
 import Categories from '@/pages/Categories';
 import Budgets from '@/pages/Budgets';
 import Reports from '@/pages/Reports';
 import Profile from '@/pages/Profile';
+import Settings from '@/pages/Settings';
 
 // Protected Route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -69,6 +71,13 @@ const AppRoutes: React.FC = () => {
           </Layout>
         </ProtectedRoute>
       } />
+      <Route path="/credit-cards" element={
+        <ProtectedRoute>
+          <Layout>
+            <CreditCards />
+          </Layout>
+        </ProtectedRoute>
+      } />
       <Route path="/transactions" element={
         <ProtectedRoute>
           <Layout>
@@ -104,6 +113,13 @@ const AppRoutes: React.FC = () => {
           </Layout>
         </ProtectedRoute>
       } />
+      <Route path="/settings" element={
+        <ProtectedRoute>
+          <Layout>
+            <Settings />
+          </Layout>
+        </ProtectedRoute>
+      } />
 
       {/* Default redirect */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -115,31 +131,33 @@ const AppRoutes: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <Router>
-        <div className="App">
-          <AppRoutes />
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
-              success: {
+      <ConfiguracoesProvider>
+        <Router>
+          <div className="App">
+            <AppRoutes />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
                 style: {
-                  background: '#10b981',
+                  background: '#363636',
+                  color: '#fff',
                 },
-              },
-              error: {
-                style: {
-                  background: '#ef4444',
+                success: {
+                  style: {
+                    background: '#10b981',
+                  },
                 },
-              },
-            }}
-          />
-        </div>
-      </Router>
+                error: {
+                  style: {
+                    background: '#ef4444',
+                  },
+                },
+              }}
+            />
+          </div>
+        </Router>
+      </ConfiguracoesProvider>
     </AuthProvider>
   );
 };

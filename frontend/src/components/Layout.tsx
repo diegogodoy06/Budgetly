@@ -7,7 +7,7 @@ import {
   TagIcon,
   ChartBarIcon,
   DocumentTextIcon,
-  UserIcon,
+  CogIcon,
   Bars3Icon,
   XMarkIcon,
   ArrowRightOnRectangleIcon,
@@ -16,12 +16,13 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-  { name: 'Contas', href: '/accounts', icon: BanknotesIcon },
+  { name: 'Carteiras', href: '/accounts', icon: BanknotesIcon },
+  { name: 'Cartão de Crédito', href: '/credit-cards', icon: CreditCardIcon },
   { name: 'Transações', href: '/transactions', icon: CreditCardIcon },
   { name: 'Categorias', href: '/categories', icon: TagIcon },
   { name: 'Orçamentos', href: '/budgets', icon: ChartBarIcon },
   { name: 'Relatórios', href: '/reports', icon: DocumentTextIcon },
-  { name: 'Perfil', href: '/profile', icon: UserIcon },
+  { name: 'Configurações', href: '/settings', icon: CogIcon },
 ];
 
 interface LayoutProps {
