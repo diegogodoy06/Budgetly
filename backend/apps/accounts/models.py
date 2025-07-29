@@ -6,6 +6,8 @@ from decimal import Decimal
 class User(AbstractUser):
     """Modelo personalizado de usuário"""
     email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=30, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -18,49 +20,93 @@ class User(AbstractUser):
 
 class AccountType(models.TextChoices):
     """Tipos de conta"""
-    CHECKING = 'checking', 'Conta Corrente'
-    SAVINGS = 'savings', 'Poupança'
-    WALLET = 'wallet', 'Carteira'
-    CREDIT_CARD = 'credit_card', 'Cartão de Crédito'
+    CONTA_BANCARIA = 'conta-bancaria', 'Conta Bancária'
+    CONTA_INVESTIMENTO = 'conta-investimento', 'Conta de Investimento'
+    CRIPTOMOEDA = 'criptomoeda', 'Criptomoeda'
+    COFRE = 'cofre', 'Cofre'
+    CARTAO_PREPAGO = 'cartao-prepago', 'Cartão Pré-pago'
 
 
 class Account(models.Model):
-    """Modelo para contas financeiras"""
+    """Modelo para carteiras/contas financeiras"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='accounts')
-    name = models.CharField(max_length=100)
-    account_type = models.CharField(max_length=20, choices=AccountType.choices)
-    initial_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    current_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    
-    # Campos específicos para cartão de crédito
-    credit_limit = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    closing_day = models.IntegerField(null=True, blank=True, help_text="Dia do fechamento da fatura (1-31)")
-    due_day = models.IntegerField(null=True, blank=True, help_text="Dia do vencimento da fatura (1-31)")
+    nome = models.CharField(max_length=100)
+    tipo = models.CharField(max_length=20, choices=AccountType.choices)
+    banco = models.CharField(max_length=100, blank=True, null=True)
+    codigo_banco = models.CharField(max_length=3, blank=True, null=True, help_text="Código de 3 dígitos do banco")
+    saldo_inicial = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    saldo_atual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    eh_conta = models.BooleanField(default=True)
+    cor = models.CharField(max_length=20, default='bg-blue-500')
+    icone = models.CharField(max_length=20, default='bank')
     
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['name']
-        unique_together = ['user', 'name']
+        ordering = ['nome']
+        unique_together = ['user', 'nome']
 
     def __str__(self):
-        return f"{self.name} ({self.get_account_type_display()})"
+        return f"{self.nome} ({self.get_tipo_display()})"
 
-    def save(self, *args, **kwargs):
-        if self.pk is None:  # Novo objeto
-            self.current_balance = self.initial_balance
-        super().save(*args, **kwargs)
+
+class CreditCardBrand(models.TextChoices):
+    """Bandeiras de cartão de crédito"""
+    VISA = 'Visa', 'Visa'
+    MASTERCARD = 'Mastercard', 'Mastercard'
+    ELO = 'Elo', 'Elo'
+    AMERICAN_EXPRESS = 'American Express', 'American Express'
+    HIPERCARD = 'Hipercard', 'Hipercard'
+    DINERS_CLUB = 'Diners Club', 'Diners Club'
+    DISCOVER = 'Discover', 'Discover'
+    JCB = 'JCB', 'JCB'
+    UNIONPAY = 'UnionPay', 'UnionPay'
+    CABAL = 'Cabal', 'Cabal'
+    AURA = 'Aura', 'Aura'
+    BANRICOMPRAS = 'Banricompras', 'Banricompras'
+
+
+class CreditCard(models.Model):
+    """Modelo para cartões de crédito"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='credit_cards')
+    nome = models.CharField(max_length=100)
+    bandeira = models.CharField(max_length=20, choices=CreditCardBrand.choices)
+    ultimos_4_digitos = models.CharField(max_length=4, help_text="Últimos 4 dígitos do cartão")
+    dia_vencimento = models.IntegerField(help_text="Dia do vencimento da fatura (1-31)")
+    dia_fechamento = models.IntegerField(help_text="Dia do fechamento da fatura (1-31)")
+    limite = models.DecimalField(max_digits=12, decimal_places=2)
+    saldo_atual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    cor = models.CharField(max_length=20, default='bg-blue-600')
+    
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['nome']
+        unique_together = ['user', 'nome']
+
+    def __str__(self):
+        return f"{self.nome} ({self.bandeira} ****{self.ultimos_4_digitos})"
 
     @property
-    def available_credit(self):
-        """Retorna o crédito disponível para cartões de crédito"""
-        if self.account_type == AccountType.CREDIT_CARD and self.credit_limit:
-            return self.credit_limit + self.current_balance  # current_balance é negativo para cartão
-        return None
+    def disponivel(self):
+        """Retorna o valor disponível no cartão"""
+        return self.limite - self.saldo_atual
+
+    @property
+    def percentual_usado(self):
+        """Retorna o percentual do limite usado"""
+        if self.limite > 0:
+            return (self.saldo_atual / self.limite) * 100
+        return 0
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
     def update_balance(self, amount):
-        """Atualiza o saldo da conta"""
-        self.current_balance += Decimal(str(amount))
-        self.save(update_fields=['current_balance', 'updated_at'])
+        """Atualiza o saldo atual do cartão"""
+        self.saldo_atual += Decimal(str(amount))
+        self.save(update_fields=['saldo_atual', 'updated_at'])

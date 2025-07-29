@@ -18,9 +18,34 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.shortcuts import redirect
+from django.http import JsonResponse
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
+
+def home_view(request):
+    """View para a página inicial - redireciona para API docs ou retorna informações da API"""
+    if request.META.get('HTTP_ACCEPT', '').startswith('application/json'):
+        return JsonResponse({
+            'message': 'Budgetly API',
+            'version': '1.0',
+            'docs': request.build_absolute_uri('/api/docs/'),
+            'admin': request.build_absolute_uri('/admin/'),
+            'endpoints': {
+                'auth': request.build_absolute_uri('/api/auth/'),
+                'accounts': request.build_absolute_uri('/api/accounts/'),
+                'transactions': request.build_absolute_uri('/api/transactions/'),
+                'categories': request.build_absolute_uri('/api/categories/'),
+                'budgets': request.build_absolute_uri('/api/budgets/'),
+                'reports': request.build_absolute_uri('/api/reports/'),
+            }
+        })
+    return redirect('/api/docs/')
+
 urlpatterns = [
+    # Página inicial
+    path('', home_view, name='home'),
+    
     path('admin/', admin.site.urls),
     
     # API URLs

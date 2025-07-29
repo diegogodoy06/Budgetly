@@ -10,210 +10,185 @@ User = get_user_model()
 
 class TransactionType(models.TextChoices):
     """Tipos de transação"""
-    INCOME = 'income', 'Entrada'
-    EXPENSE = 'expense', 'Saída'
-    TRANSFER = 'transfer', 'Transferência'
+    ENTRADA = 'entrada', 'Entrada'
+    SAIDA = 'saida', 'Saída'
+    TRANSFERENCIA = 'transferencia', 'Transferência'
 
 
 class RecurrenceType(models.TextChoices):
     """Tipos de recorrência"""
-    NONE = 'none', 'Nenhuma'
-    MONTHLY = 'monthly', 'Mensal'
+    NENHUMA = 'nenhuma', 'Nenhuma'
+    DIARIA = 'diaria', 'Diária'
+    SEMANAL = 'semanal', 'Semanal'
+    MENSAL = 'mensal', 'Mensal'
+    ANUAL = 'anual', 'Anual'
 
 
 class Transaction(models.Model):
     """Modelo para transações financeiras"""
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
-    account = models.ForeignKey('accounts.Account', on_delete=models.CASCADE, related_name='transactions')
+    
+    # Contas envolvidas
+    account = models.ForeignKey('accounts.Account', on_delete=models.CASCADE, 
+                               related_name='transactions_from', verbose_name="Conta de origem")
     to_account = models.ForeignKey('accounts.Account', on_delete=models.CASCADE, 
-                                   related_name='transfer_transactions', null=True, blank=True)
+                                  related_name='transactions_to', null=True, blank=True,
+                                  verbose_name="Conta de destino")
+    credit_card = models.ForeignKey('accounts.CreditCard', on_delete=models.CASCADE,
+                                   related_name='transactions', null=True, blank=True,
+                                   verbose_name="Cartão de crédito")
     
-    transaction_type = models.CharField(max_length=10, choices=TransactionType.choices)
-    amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
-    description = models.CharField(max_length=255)
-    notes = models.TextField(blank=True)
-    date = models.DateField()
+    # Dados básicos
+    tipo = models.CharField(max_length=15, choices=TransactionType.choices)
+    valor = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
+    descricao = models.CharField(max_length=255)
+    observacoes = models.TextField(blank=True)
+    data = models.DateField()
     
+    # Categorização
     category = models.ForeignKey('categories.Category', on_delete=models.SET_NULL, 
                                 null=True, blank=True, related_name='transactions')
+    cost_center = models.ForeignKey('categories.CostCenter', on_delete=models.SET_NULL,
+                                   null=True, blank=True, related_name='transactions')
     tags = models.ManyToManyField('categories.Tag', blank=True, related_name='transactions')
     
-    # Campos para parcelamento
-    installments = models.IntegerField(default=1, validators=[MinValueValidator(1)])
-    installment_number = models.IntegerField(default=1, validators=[MinValueValidator(1)])
-    parent_transaction = models.ForeignKey('self', on_delete=models.CASCADE, 
-                                          null=True, blank=True, related_name='child_transactions')
+    # Parcelamento
+    total_parcelas = models.IntegerField(default=1, validators=[MinValueValidator(1)])
+    numero_parcela = models.IntegerField(default=1, validators=[MinValueValidator(1)])
+    transacao_pai = models.ForeignKey('self', on_delete=models.CASCADE, 
+                                     null=True, blank=True, related_name='parcelas')
     
-    # Campos para recorrência
-    recurrence_type = models.CharField(max_length=10, choices=RecurrenceType.choices, default=RecurrenceType.NONE)
-    recurrence_end_date = models.DateField(null=True, blank=True)
+    # Recorrência
+    tipo_recorrencia = models.CharField(max_length=10, choices=RecurrenceType.choices, 
+                                       default=RecurrenceType.NENHUMA)
+    data_fim_recorrencia = models.DateField(null=True, blank=True)
     
-    is_processed = models.BooleanField(default=False, help_text="Indica se a transação já foi processada")
+    # Status
+    confirmada = models.BooleanField(default=True, help_text="Se a transação foi confirmada/processada")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-date', '-created_at']
+        ordering = ['-data', '-created_at']
+        verbose_name = 'Transação'
+        verbose_name_plural = 'Transações'
 
     def __str__(self):
-        return f"{self.description} - {self.amount} ({self.date})"
-
-    def save(self, *args, **kwargs):
-        is_new = self.pk is None
-        super().save(*args, **kwargs)
-        
-        if is_new and not self.is_processed:
-            self.process_transaction()
-
-    def process_transaction(self):
-        """Processa a transação, atualizando os saldos das contas"""
-        if self.is_processed:
-            return
-        
-        if self.transaction_type == TransactionType.INCOME:
-            self.account.update_balance(self.amount)
-        elif self.transaction_type == TransactionType.EXPENSE:
-            self.account.update_balance(-self.amount)
-        elif self.transaction_type == TransactionType.TRANSFER and self.to_account:
-            self.account.update_balance(-self.amount)
-            self.to_account.update_balance(self.amount)
-        
-        self.is_processed = True
-        self.save(update_fields=['is_processed'])
-
-    def create_installments(self):
-        """Cria as parcelas restantes da transação"""
-        if self.installments <= 1:
-            return
-        
-        for i in range(2, self.installments + 1):
-            next_date = self.get_next_installment_date(i)
-            Transaction.objects.create(
-                user=self.user,
-                account=self.account,
-                to_account=self.to_account,
-                transaction_type=self.transaction_type,
-                amount=self.amount,
-                description=f"{self.description} ({i}/{self.installments})",
-                notes=self.notes,
-                date=next_date,
-                category=self.category,
-                installments=self.installments,
-                installment_number=i,
-                parent_transaction=self,
-                recurrence_type=self.recurrence_type
-            )
-
-    def get_next_installment_date(self, installment_number):
-        """Calcula a data da próxima parcela"""
-        months_to_add = installment_number - 1
-        year = self.date.year
-        month = self.date.month + months_to_add
-        
-        while month > 12:
-            month -= 12
-            year += 1
-        
-        # Ajusta para o último dia do mês se necessário
-        last_day = calendar.monthrange(year, month)[1]
-        day = min(self.date.day, last_day)
-        
-        return date(year, month, day)
-
-    def create_recurrence(self):
-        """Cria transações recorrentes"""
-        if self.recurrence_type == RecurrenceType.NONE:
-            return
-        
-        current_date = self.date
-        while True:
-            if self.recurrence_type == RecurrenceType.MONTHLY:
-                next_month = current_date.month + 1 if current_date.month < 12 else 1
-                next_year = current_date.year if current_date.month < 12 else current_date.year + 1
-                last_day = calendar.monthrange(next_year, next_month)[1]
-                next_day = min(current_date.day, last_day)
-                current_date = date(next_year, next_month, next_day)
-            
-            if self.recurrence_end_date and current_date > self.recurrence_end_date:
-                break
-            
-            Transaction.objects.create(
-                user=self.user,
-                account=self.account,
-                to_account=self.to_account,
-                transaction_type=self.transaction_type,
-                amount=self.amount,
-                description=self.description,
-                notes=self.notes,
-                date=current_date,
-                category=self.category,
-                recurrence_type=self.recurrence_type,
-                recurrence_end_date=self.recurrence_end_date,
-                parent_transaction=self
-            )
-
-
-class CreditCardBill(models.Model):
-    """Modelo para faturas de cartão de crédito"""
-    BILL_STATUS = [
-        ('open', 'Aberta'),
-        ('closed', 'Fechada'),
-        ('paid', 'Paga'),
-        ('overdue', 'Vencida'),
-    ]
-    
-    account = models.ForeignKey('accounts.Account', on_delete=models.CASCADE, related_name='bills')
-    month = models.IntegerField()
-    year = models.IntegerField()
-    closing_date = models.DateField()
-    due_date = models.DateField()
-    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    paid_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    status = models.CharField(max_length=10, choices=BILL_STATUS, default='open')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-year', '-month']
-        unique_together = ['account', 'month', 'year']
-
-    def __str__(self):
-        return f"Fatura {self.account.name} - {self.month:02d}/{self.year}"
+        return f"{self.descricao} - R$ {self.valor} ({self.data})"
 
     @property
-    def remaining_amount(self):
+    def valor_formatado(self):
+        """Retorna o valor formatado em reais"""
+        return f"R$ {self.valor:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+
+    @property
+    def is_parcelada(self):
+        """Verifica se a transação é parcelada"""
+        return self.total_parcelas > 1
+
+    @property
+    def is_recorrente(self):
+        """Verifica se a transação é recorrente"""
+        return self.tipo_recorrencia != RecurrenceType.NENHUMA
+
+
+class CreditCardInvoice(models.Model):
+    """Modelo para faturas de cartão de crédito"""
+    STATUS_CHOICES = [
+        ('aberta', 'Aberta'),
+        ('fechada', 'Fechada'),
+        ('paga', 'Paga'),
+        ('vencida', 'Vencida'),
+    ]
+    
+    credit_card = models.ForeignKey('accounts.CreditCard', on_delete=models.CASCADE, 
+                                   related_name='invoices')
+    mes = models.IntegerField()
+    ano = models.IntegerField()
+    data_fechamento = models.DateField()
+    data_vencimento = models.DateField()
+    valor_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    valor_pago = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='aberta')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-ano', '-mes']
+        unique_together = ['credit_card', 'mes', 'ano']
+        verbose_name = 'Fatura do Cartão'
+        verbose_name_plural = 'Faturas do Cartão'
+
+    def __str__(self):
+        return f"Fatura {self.credit_card.nome} - {self.mes:02d}/{self.ano}"
+
+    @property
+    def valor_restante(self):
         """Valor restante a ser pago"""
-        return self.total_amount - self.paid_amount
+        return self.valor_total - self.valor_pago
 
-    def close_bill(self):
-        """Fecha a fatura e calcula o total"""
-        transactions = Transaction.objects.filter(
-            account=self.account,
-            transaction_type=TransactionType.EXPENSE,
-            date__month=self.month,
-            date__year=self.year
+    @property
+    def valor_total_formatado(self):
+        """Retorna o valor total formatado em reais"""
+        return f"R$ {self.valor_total:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+
+    def fechar_fatura(self):
+        """Fecha a fatura calculando o total das transações"""
+        transacoes = Transaction.objects.filter(
+            credit_card=self.credit_card,
+            tipo=TransactionType.SAIDA,
+            data__month=self.mes,
+            data__year=self.ano,
+            confirmada=True
         )
-        self.total_amount = sum(t.amount for t in transactions)
-        self.status = 'closed'
+        self.valor_total = sum(t.valor for t in transacoes)
+        self.status = 'fechada'
         self.save()
 
-    def pay_bill(self, amount, from_account):
+    def pagar_fatura(self, valor, conta_origem):
         """Registra o pagamento da fatura"""
-        if amount > self.remaining_amount:
-            amount = self.remaining_amount
+        if valor > self.valor_restante:
+            valor = self.valor_restante
         
-        # Cria transação de transferência
+        # Cria transação de pagamento
         Transaction.objects.create(
-            user=self.account.user,
-            account=from_account,
-            to_account=self.account,
-            transaction_type=TransactionType.TRANSFER,
-            amount=amount,
-            description=f"Pagamento fatura {self.account.name} {self.month:02d}/{self.year}",
-            date=date.today()
+            user=self.credit_card.user,
+            account=conta_origem,
+            tipo=TransactionType.SAIDA,
+            valor=valor,
+            descricao=f"Pagamento fatura {self.credit_card.nome} {self.mes:02d}/{self.ano}",
+            data=date.today(),
+            confirmada=True
         )
         
-        self.paid_amount += amount
-        if self.paid_amount >= self.total_amount:
-            self.status = 'paid'
+        self.valor_pago += valor
+        if self.valor_pago >= self.valor_total:
+            self.status = 'paga'
         self.save()
+
+
+class ImportData(models.Model):
+    """Modelo para controle de importação de extratos"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='imports')
+    account = models.ForeignKey('accounts.Account', on_delete=models.CASCADE, 
+                               related_name='imports')
+    arquivo_nome = models.CharField(max_length=255)
+    data_importacao = models.DateTimeField(auto_now_add=True)
+    total_registros = models.IntegerField(default=0)
+    registros_processados = models.IntegerField(default=0)
+    registros_erro = models.IntegerField(default=0)
+    status = models.CharField(max_length=20, choices=[
+        ('processando', 'Processando'),
+        ('concluido', 'Concluído'),
+        ('erro', 'Erro'),
+    ], default='processando')
+    observacoes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-data_importacao']
+        verbose_name = 'Importação'
+        verbose_name_plural = 'Importações'
+
+    def __str__(self):
+        return f"Importação {self.arquivo_nome} - {self.data_importacao}"

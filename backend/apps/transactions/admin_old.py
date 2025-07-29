@@ -69,3 +69,22 @@ class ImportDataAdmin(admin.ModelAdmin):
             'fields': ('total_registros', 'registros_processados', 'registros_erro', 'status', 'observacoes')
         }),
     )
+            'classes': ('collapse',)
+        }),
+        ('Recorrência', {
+            'fields': ('recurrence_type', 'recurrence_end_date'),
+            'classes': ('collapse',)
+        }),
+        ('Controle', {
+            'fields': ('is_processed', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+
+@admin.register(CreditCardBill)
+class CreditCardBillAdmin(admin.ModelAdmin):
+    list_display = ('account', 'month', 'year', 'total_amount', 'paid_amount', 'status', 'due_date')
+    list_filter = ('status', 'year', 'month')
+    search_fields = ('account__name', 'account__user__email')
+    readonly_fields = ('created_at', 'updated_at', 'remaining_amount')
