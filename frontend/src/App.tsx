@@ -1,8 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { ConfiguracoesProvider } from '@/contexts/ConfiguracoesContext';
+import { ProtectedRoute as ProtectedRouteComponent, GuestRoute } from '@/components/ProtectedRoute';
 
 // Layout components
 import Layout from '@/components/Layout';
@@ -21,112 +22,91 @@ import Settings from '@/pages/Settings';
 import CategoriesManagement from '@/pages/CategoriesManagement';
 import CostCentersManagement from '@/pages/CostCentersManagement';
 
-// Protected Route component
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
-};
-
 const AppRoutes: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
-
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" replace />} />
-      <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" replace />} />
+      <Route path="/login" element={
+        <GuestRoute>
+          <Login />
+        </GuestRoute>
+      } />
+      <Route path="/register" element={
+        <GuestRoute>
+          <Register />
+        </GuestRoute>
+      } />
 
       {/* Protected routes */}
       <Route path="/dashboard" element={
-        <ProtectedRoute>
+        <ProtectedRouteComponent>
           <Layout>
             <Dashboard />
           </Layout>
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       } />
       <Route path="/accounts" element={
-        <ProtectedRoute>
+        <ProtectedRouteComponent>
           <Layout>
             <Accounts />
           </Layout>
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       } />
       <Route path="/credit-cards" element={
-        <ProtectedRoute>
+        <ProtectedRouteComponent>
           <Layout>
             <CreditCards />
           </Layout>
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       } />
       <Route path="/transactions" element={
-        <ProtectedRoute>
+        <ProtectedRouteComponent>
           <Layout>
             <Transactions />
           </Layout>
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       } />
       <Route path="/budgets" element={
-        <ProtectedRoute>
+        <ProtectedRouteComponent>
           <Layout>
             <Budgets />
           </Layout>
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       } />
       <Route path="/reports" element={
-        <ProtectedRoute>
+        <ProtectedRouteComponent>
           <Layout>
             <Reports />
           </Layout>
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       } />
       <Route path="/profile" element={
-        <ProtectedRoute>
+        <ProtectedRouteComponent>
           <Layout>
             <Profile />
           </Layout>
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       } />
       <Route path="/settings" element={
-        <ProtectedRoute>
+        <ProtectedRouteComponent>
           <Layout>
             <Settings />
           </Layout>
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       } />
       <Route path="/settings/categories" element={
-        <ProtectedRoute>
+        <ProtectedRouteComponent>
           <Layout>
             <CategoriesManagement />
           </Layout>
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       } />
       <Route path="/settings/cost-centers" element={
-        <ProtectedRoute>
+        <ProtectedRouteComponent>
           <Layout>
             <CostCentersManagement />
           </Layout>
-        </ProtectedRoute>
+        </ProtectedRouteComponent>
       } />
 
       {/* Default redirect */}

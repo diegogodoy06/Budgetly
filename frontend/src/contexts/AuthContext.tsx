@@ -24,15 +24,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const savedToken = localStorage.getItem('token');
-    const savedUser = localStorage.getItem('user');
+  // Função para limpar dados de autenticação
+  const clearAuthData = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+  };
 
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-    }
-    setIsLoading(false);
+  // Função para salvar dados de autenticação
+  const setAuthData = (userData: User, authToken: string) => {
+    setUser(userData);
+    setToken(authToken);
+    localStorage.setItem('token', authToken);
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
+
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const savedToken = localStorage.getItem('token');
+        const savedUser = localStorage.getItem('user');
+
+        if (savedToken && savedUser) {
+          // Verifica se o token ainda é válido fazendo uma requisição ao perfil
+          try {
+            const userProfile = await authAPI.getProfile();
+            setToken(savedToken);
+            setUser(userProfile);
+          } catch (error) {
+            // Token inválido, limpa os dados
+            clearAuthData();
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao inicializar autenticação:', error);
+        clearAuthData();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   const login = async (data: LoginRequest) => {
@@ -40,11 +74,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       const response = await authAPI.login(data);
       
-      setUser(response.user);
-      setToken(response.token);
-      
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      setAuthData(response.user, response.token);
       
       toast.success(response.message || 'Login realizado com sucesso!');
     } catch (error: any) {
@@ -61,11 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       const response = await authAPI.register(data);
       
-      setUser(response.user);
-      setToken(response.token);
-      
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      setAuthData(response.user, response.token);
       
       toast.success(response.message || 'Conta criada com sucesso!');
     } catch (error: any) {
@@ -83,10 +109,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       // Ignore logout errors
     } finally {
-      setUser(null);
-      setToken(null);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      clearAuthData();
       toast.success('Logout realizado com sucesso!');
     }
   };

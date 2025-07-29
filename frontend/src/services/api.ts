@@ -1,7 +1,8 @@
 import axios from 'axios';
 import type { 
   User, Account, Transaction, Category, Tag, Budget, CreditCardBill,
-  LoginRequest, RegisterRequest, AuthResponse, ApiResponse, DashboardData
+  LoginRequest, RegisterRequest, AuthResponse, ApiResponse, DashboardData,
+  CreditCard, CreditCardFormData
 } from '@/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -15,23 +16,34 @@ const api = axios.create({
 });
 
 // Request interceptor to add auth token
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Token ${token}`;
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Token ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Se o erro for 401 (Unauthorized), faz logout
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      
+      // Só redireciona se não estiver já na página de login
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
+
     return Promise.reject(error);
   }
 );
@@ -70,6 +82,27 @@ export const accountsAPI = {
   
   getBalances: (): Promise<Account[]> =>
     api.get('/api/accounts/balances/').then(res => res.data),
+};
+
+// Credit Cards API
+export const creditCardsAPI = {
+  getAll: (): Promise<CreditCard[]> =>
+    api.get('/api/accounts/credit-cards/').then(res => res.data.results || res.data),
+  
+  getById: (id: number): Promise<CreditCard> =>
+    api.get(`/api/accounts/credit-cards/${id}/`).then(res => res.data),
+  
+  create: (data: CreditCardFormData): Promise<CreditCard> =>
+    api.post('/api/accounts/credit-cards/', data).then(res => res.data),
+  
+  update: (id: number, data: Partial<CreditCardFormData>): Promise<CreditCard> =>
+    api.patch(`/api/accounts/credit-cards/${id}/`, data).then(res => res.data),
+  
+  delete: (id: number): Promise<void> =>
+    api.delete(`/api/accounts/credit-cards/${id}/`).then(res => res.data),
+  
+  getBalances: (): Promise<CreditCard[]> =>
+    api.get('/api/accounts/credit-cards/balances/').then(res => res.data),
 };
 
 // Transactions API

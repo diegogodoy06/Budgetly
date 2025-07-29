@@ -9,18 +9,71 @@ export interface User {
 
 export interface Account {
   id: number;
-  name: string;
-  account_type: 'checking' | 'savings' | 'wallet' | 'credit_card';
-  account_type_display: string;
-  initial_balance: string;
-  current_balance: string;
-  credit_limit?: string;
-  closing_day?: number;
-  due_day?: number;
-  available_credit?: string;
+  nome: string;
+  tipo: 'conta-bancaria' | 'conta-investimento' | 'criptomoeda' | 'cofre' | 'cartao-prepago';
+  banco?: string;
+  codigo_banco?: string;
+  saldo_inicial: string;
+  saldo_atual: string;
+  eh_conta: boolean;
+  cor: string;
+  icone: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface AccountFormData {
+  nome: string;
+  tipo: 'conta-bancaria' | 'conta-investimento' | 'criptomoeda' | 'cofre' | 'cartao-prepago';
+  banco?: string;
+  codigo_banco?: string;
+  saldo_inicial: number;
+  eh_conta: boolean;
+  cor: string;
+  icone: string;
+}
+
+export interface CreditCard {
+  id: number;
+  nome: string;
+  bandeira: CreditCardBrand;
+  bandeira_display: string;
+  ultimos_4_digitos: string;
+  dia_vencimento: number;
+  dia_fechamento: number;
+  limite: string;
+  saldo_atual: string;
+  disponivel: string;
+  percentual_usado: number;
+  cor: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type CreditCardBrand = 
+  | 'Visa'
+  | 'Mastercard'
+  | 'American Express'
+  | 'Elo'
+  | 'Hipercard'
+  | 'Diners Club'
+  | 'Discover'
+  | 'JCB'
+  | 'UnionPay'
+  | 'Cabal'
+  | 'Aura'
+  | 'Banricompras';
+
+export interface CreditCardFormData {
+  nome: string;
+  bandeira: CreditCardBrand;
+  ultimos_4_digitos: string;
+  dia_vencimento: number;
+  dia_fechamento: number;
+  limite: number;
+  cor: string;
 }
 
 export interface Category {

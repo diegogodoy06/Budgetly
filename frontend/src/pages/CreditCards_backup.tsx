@@ -12,18 +12,18 @@ import toast from 'react-hot-toast';
 import { useConfiguracoes } from '@/contexts/ConfiguracoesContext';
 
 const CREDIT_CARD_BRANDS: { value: CreditCardBrand; label: string; cor: string; logo: string }[] = [
-  { value: 'Visa', label: 'Visa', cor: 'bg-blue-600', logo: '/src/assets/images/card-brands/visa.png' },
-  { value: 'Mastercard', label: 'Mastercard', cor: 'bg-red-600', logo: '/src/assets/images/card-brands/mastercard.png' },
-  { value: 'American Express', label: 'American Express', cor: 'bg-green-600', logo: '/src/assets/images/card-brands/amex.png' },
-  { value: 'Elo', label: 'Elo', cor: 'bg-yellow-600', logo: '/src/assets/images/card-brands/elo.png' },
-  { value: 'Hipercard', label: 'Hipercard', cor: 'bg-orange-600', logo: '/src/assets/images/card-brands/hipercard.png' },
-  { value: 'Diners Club', label: 'Diners Club', cor: 'bg-gray-600', logo: '/src/assets/images/card-brands/diners.png' },
-  { value: 'Discover', label: 'Discover', cor: 'bg-purple-600', logo: '/src/assets/images/card-brands/discover.png' },
-  { value: 'JCB', label: 'JCB', cor: 'bg-indigo-600', logo: '/src/assets/images/card-brands/jcb.png' },
-  { value: 'UnionPay', label: 'UnionPay', cor: 'bg-pink-600', logo: '/src/assets/images/card-brands/unionpay.png' },
-  { value: 'Cabal', label: 'Cabal', cor: 'bg-teal-600', logo: '/src/assets/images/card-brands/cabal.png' },
-  { value: 'Aura', label: 'Aura', cor: 'bg-cyan-600', logo: '/src/assets/images/card-brands/aura.webp' },
-  { value: 'Banricompras', label: 'Banricompras', cor: 'bg-lime-600', logo: '/src/assets/images/card-brands/banricompras.png' }
+  { value: 'Visa', label: 'Visa', cor: 'bg-blue-600', logo: '💳' },
+  { value: 'Mastercard', label: 'Mastercard', cor: 'bg-red-600', logo: '🔴' },
+  { value: 'American Express', label: 'American Express', cor: 'bg-green-600', logo: '💚' },
+  { value: 'Elo', label: 'Elo', cor: 'bg-yellow-600', logo: '🟡' },
+  { value: 'Hipercard', label: 'Hipercard', cor: 'bg-orange-600', logo: '🟠' },
+  { value: 'Diners Club', label: 'Diners Club', cor: 'bg-gray-600', logo: '⚪' },
+  { value: 'Discover', label: 'Discover', cor: 'bg-purple-600', logo: '🟣' },
+  { value: 'JCB', label: 'JCB', cor: 'bg-indigo-600', logo: '🔵' },
+  { value: 'UnionPay', label: 'UnionPay', cor: 'bg-pink-600', logo: '🌸' },
+  { value: 'Cabal', label: 'Cabal', cor: 'bg-teal-600', logo: '🟢' },
+  { value: 'Aura', label: 'Aura', cor: 'bg-cyan-600', logo: '�' },
+  { value: 'Banricompras', label: 'Banricompras', cor: 'bg-lime-600', logo: '🏪' }
 ];
 
 interface Transacao {
@@ -41,25 +41,6 @@ interface Transacao {
 const CreditCards: React.FC = () => {
   // Usar o contexto global para categorias e centros de custo
   const { categoriasAtivas, centrosCustoAtivos } = useConfiguracoes();
-
-  // Funções para formatação de moeda
-  const formatCurrencyInput = (value: number): string => {
-    return value.toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  };
-
-  const handleLimiteChange = (value: string) => {
-    // Remove tudo que não é número
-    const numbersOnly = value.replace(/\D/g, '');
-    
-    // Converte para centavos (divide por 100)
-    const valueInCents = parseInt(numbersOnly) || 0;
-    const finalValue = valueInCents / 100;
-    
-    setFormData({...formData, limite: finalValue});
-  };
 
   const [cartoes, setCartoes] = useState<CreditCard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -233,19 +214,7 @@ const CreditCards: React.FC = () => {
 
   const getBandeiraLogo = (bandeira: CreditCardBrand) => {
     const bandeiraInfo = CREDIT_CARD_BRANDS.find(b => b.value === bandeira);
-    const logoPath = bandeiraInfo?.logo || '/src/assets/images/card-brands/visa.png';
-    return (
-      <img 
-        src={logoPath} 
-        alt={bandeira} 
-        className="h-6 w-auto object-contain"
-        onError={(e) => {
-          // Fallback para emoji se a imagem não carregar
-          e.currentTarget.style.display = 'none';
-          e.currentTarget.nextElementSibling?.setAttribute('style', 'display: inline');
-        }}
-      />
-    );
+    return bandeiraInfo?.logo || '💳';
   };
 
   const getTransacoesDoMes = (cartaoId: number, anoMes: string) => {
@@ -343,25 +312,6 @@ const CreditCards: React.FC = () => {
     }
   }, [menuAcoesAberto]);
 
-  // Controlar scroll da página quando modal estiver aberto
-  useEffect(() => {
-    if (mostrarModal || mostrarModalTransacao) {
-      // Bloquear scroll completamente
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-    } else {
-      // Restaurar scroll
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    }
-    
-    // Cleanup function para restaurar o scroll quando o componente for desmontado
-    return () => {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    };
-  }, [mostrarModal, mostrarModalTransacao]);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -400,21 +350,21 @@ const CreditCards: React.FC = () => {
           <div 
             key={cartao.id} 
             onClick={() => setCartaoSelecionado(cartao.id)}
-            className={`relative cursor-pointer transform transition-all duration-500 ease-out hover:scale-[1.02] ${
+            className={`relative cursor-pointer transform transition-all duration-200 hover:scale-102 ${
               cartaoSelecionado === cartao.id ? 'scale-105' : ''
             }`}
           >
             {/* Card visual do cartão - altura reduzida */}
-            <div className={`relative rounded-xl p-4 text-white shadow-lg min-h-[140px] flex flex-col justify-between overflow-hidden transition-all duration-700 ease-in-out ${
+            <div className={`relative rounded-xl p-4 text-white shadow-lg min-h-[140px] flex flex-col justify-between overflow-hidden transition-all duration-300 ${
               cartaoSelecionado === cartao.id 
-                ? `${cartao.cor} shadow-2xl` 
+                ? `${cartao.cor} shadow-xl` 
                 : 'bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700'
             }`}>
               {/* Background pattern - só aparece no cartão selecionado */}
               {cartaoSelecionado === cartao.id && (
-                <div className="absolute inset-0 opacity-10 animate-in fade-in duration-700">
-                  <div className="absolute top-2 right-2 w-12 h-12 rounded-full border-2 border-white animate-pulse"></div>
-                  <div className="absolute top-4 right-4 w-8 h-8 rounded-full border-2 border-white animate-pulse delay-150"></div>
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-2 right-2 w-12 h-12 rounded-full border-2 border-white"></div>
+                  <div className="absolute top-4 right-4 w-8 h-8 rounded-full border-2 border-white"></div>
                 </div>
               )}
               
@@ -427,7 +377,7 @@ const CreditCards: React.FC = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     {/* Logo da bandeira */}
-                    <div className="flex items-center">{getBandeiraLogo(cartao.bandeira)}</div>
+                    <div className="text-lg">{getBandeiraLogo(cartao.bandeira)}</div>
                     <div className="flex space-x-1">
                       <button
                         onClick={(e) => {
@@ -471,7 +421,7 @@ const CreditCards: React.FC = () => {
               
               {/* Indicador de seleção - agora mais discreto */}
               {cartaoSelecionado === cartao.id && (
-                <div className="absolute top-2 left-2 w-2 h-2 bg-white rounded-full shadow-md animate-in zoom-in duration-500 animate-pulse"></div>
+                <div className="absolute top-2 left-2 w-2 h-2 bg-white rounded-full shadow-md"></div>
               )}
             </div>
             
@@ -485,7 +435,7 @@ const CreditCards: React.FC = () => {
               <div className="mt-1">
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
                   <div 
-                    className={`h-1.5 rounded-full transition-all duration-1000 ease-out ${
+                    className={`h-1.5 rounded-full transition-all ${
                       cartaoSelecionado === cartao.id 
                         ? 'bg-gradient-to-r from-green-400 to-red-500' 
                         : 'bg-gray-400'
@@ -493,7 +443,7 @@ const CreditCards: React.FC = () => {
                     style={{ width: `${cartao.percentual_usado}%` }}
                   ></div>
                 </div>
-                <p className="text-xs text-gray-500 mt-0.5 text-center transition-all duration-500">
+                <p className="text-xs text-gray-500 mt-0.5 text-center">
                   {cartao.percentual_usado.toFixed(1)}% usado
                 </p>
               </div>
@@ -697,16 +647,8 @@ const CreditCards: React.FC = () => {
 
       {/* Modal de Cartão */}
       {mostrarModal && (
-        <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] animate-in fade-in duration-200"
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              handleCloseModal();
-            }
-          }}
-        >
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full animate-in slide-in-from-bottom-4 zoom-in-95 duration-300">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">
@@ -805,16 +747,24 @@ const CreditCards: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Limite
                   </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2 text-gray-500">R$</span>
-                    <input
-                      type="text"
-                      value={formatCurrencyInput(formData.limite)}
-                      onChange={(e) => handleLimiteChange(e.target.value)}
-                      placeholder="0,00"
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      required
-                    />
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.limite}
+                    onChange={(e) => setFormData({...formData, limite: parseFloat(e.target.value)})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    required
+                  />
+                </div>
+
+                {/* Preview da cor baseada na bandeira */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Cor do Cartão (automática)
+                  </label>
+                  <div className={`w-full h-12 rounded-md ${getBandeiraCor(formData.bandeira)} flex items-center justify-center text-white font-medium`}>
+                    {getBandeiraLogo(formData.bandeira)} {formData.bandeira}
                   </div>
                 </div>
 
@@ -841,16 +791,8 @@ const CreditCards: React.FC = () => {
 
       {/* Modal de Transação (placeholder por enquanto) */}
       {mostrarModalTransacao && (
-        <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] animate-in fade-in duration-200"
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setMostrarModalTransacao(false);
-            }
-          }}
-        >
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full animate-in slide-in-from-bottom-4 zoom-in-95 duration-300 p-6">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Nova Transação</h2>
               <button

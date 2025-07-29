@@ -3,10 +3,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import login
-from .models import Account
+from .models import Account, CreditCard
 from .serializers import (
     UserRegistrationSerializer, UserSerializer, LoginSerializer,
-    AccountSerializer, AccountBalanceSerializer
+    AccountSerializer, AccountBalanceSerializer,
+    CreditCardSerializer, CreditCardBalanceSerializer
 )
 
 
@@ -88,3 +89,32 @@ class AccountBalanceView(generics.ListAPIView):
 
     def get_queryset(self):
         return Account.objects.filter(user=self.request.user, is_active=True)
+
+
+class CreditCardListCreateView(generics.ListCreateAPIView):
+    serializer_class = CreditCardSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return CreditCard.objects.filter(user=self.request.user, is_active=True)
+
+
+class CreditCardDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CreditCardSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return CreditCard.objects.filter(user=self.request.user)
+
+    def perform_destroy(self, instance):
+        # Soft delete
+        instance.is_active = False
+        instance.save()
+
+
+class CreditCardBalanceView(generics.ListAPIView):
+    serializer_class = CreditCardBalanceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return CreditCard.objects.filter(user=self.request.user, is_active=True)

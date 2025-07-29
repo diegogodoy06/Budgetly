@@ -9,88 +9,31 @@ import {
   XMarkIcon,
   PencilIcon,
   TrashIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
+import { useAccounts } from '../hooks/useAccounts';
+import { Account, AccountFormData } from '../types';
 import { bancosBrasileiros } from '../data/bancos';
 import { BancoLogo } from '../utils/assets';
 
-interface Carteira {
-  id: number;
-  nome: string;
-  tipo: 'conta-bancaria' | 'conta-investimento' | 'criptomoeda' | 'cofre' | 'cartao-prepago';
-  banco?: string;
-  codigoBanco?: string; // Código de 3 dígitos do banco
-  saldoInicial: number;
-  saldoAtual: number;
-  ehConta: boolean;
-  cor: string;
-  icone: string;
-}
-
 const Accounts: React.FC = () => {
-  const [carteiras, setCarteiras] = useState<Carteira[]>([
-    {
-      id: 1,
-      nome: 'Conta Principal BB',
-      tipo: 'conta-bancaria',
-      banco: 'Banco do Brasil S.A.',
-      codigoBanco: '001',
-      saldoInicial: 5000,
-      saldoAtual: 7500,
-      ehConta: true,
-      cor: 'bg-yellow-500',
-      icone: 'bank'
-    },
-    {
-      id: 2,
-      nome: 'Poupança Santander',
-      tipo: 'conta-bancaria',
-      banco: 'Banco Santander (Brasil) S.A.',
-      codigoBanco: '033',
-      saldoInicial: 10000,
-      saldoAtual: 12300,
-      ehConta: true,
-      cor: 'bg-red-500',
-      icone: 'bank'
-    },
-    {
-      id: 3,
-      nome: 'Bitcoin Wallet',
-      tipo: 'criptomoeda',
-      saldoInicial: 2000,
-      saldoAtual: 3500,
-      ehConta: false,
-      cor: 'bg-orange-500',
-      icone: 'crypto'
-    },
-    {
-      id: 4,
-      nome: 'Cofre Casa',
-      tipo: 'cofre',
-      saldoInicial: 500,
-      saldoAtual: 750,
-      ehConta: false,
-      cor: 'bg-gray-700',
-      icone: 'safe'
-    }
-  ]);
-
+  const { accounts, loading, error, createAccount, updateAccount, deleteAccount } = useAccounts();
+  
   const [mostrarModal, setMostrarModal] = useState(false);
-  const [carteiraEditando, setCarteiraEditando] = useState<Carteira | null>(null);
-  const [novaCarteira, setNovaCarteira] = useState<{
-    nome: string;
-    tipo: 'conta-bancaria' | 'conta-investimento' | 'criptomoeda' | 'cofre' | 'cartao-prepago';
-    banco: string;
-    codigoBanco: string;
-    saldoInicial: number;
-    ehConta: boolean;
-  }>({
+  const [carteiraEditando, setCarteiraEditando] = useState<Account | null>(null);
+  const [carteiraParaDeletar, setCarteiraParaDeletar] = useState<Account | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  
+  const [novaCarteira, setNovaCarteira] = useState<AccountFormData>({
     nome: '',
     tipo: 'conta-bancaria',
     banco: '',
-    codigoBanco: '',
-    saldoInicial: 0,
-    ehConta: false // Desmarcado por padrão
+    codigo_banco: '',
+    saldo_inicial: 0,
+    eh_conta: false,
+    cor: 'bg-blue-500',
+    icone: 'bank'
   });
 
   const [etapaModal, setEtapaModal] = useState<'tipo' | 'detalhes'>('tipo');
@@ -134,6 +77,21 @@ const Accounts: React.FC = () => {
     }
   };
 
+  const getIconePorTipo = (tipo: string) => {
+    switch (tipo) {
+      case 'conta-bancaria': 
+      case 'conta-investimento': 
+        return 'bank';
+      case 'criptomoeda': 
+        return 'crypto';
+      case 'cofre': 
+      case 'cartao-prepago': 
+        return 'safe';
+      default: 
+        return 'bank';
+    }
+  };
+
   const getCorPorTipo = (tipo: string) => {
     switch (tipo) {
       case 'conta-bancaria': return 'bg-blue-500';
@@ -152,72 +110,66 @@ const Accounts: React.FC = () => {
     }).format(value);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (carteiraEditando) {
-      // Editar carteira existente
-      setCarteiras(prev => prev.map(carteira => 
-        carteira.id === carteiraEditando.id 
-          ? {
-              ...carteira,
-              nome: novaCarteira.nome,
-              tipo: novaCarteira.tipo,
-              banco: novaCarteira.banco,
-              codigoBanco: novaCarteira.codigoBanco,
-              saldoInicial: novaCarteira.saldoInicial,
-              ehConta: novaCarteira.ehConta,
-              cor: getCorPorTipo(novaCarteira.tipo)
-            }
-          : carteira
-      ));
-    } else {
-      // Adicionar nova carteira
-      const nova: Carteira = {
-        id: Date.now(),
-        nome: novaCarteira.nome,
-        tipo: novaCarteira.tipo,
-        banco: novaCarteira.banco,
-        codigoBanco: novaCarteira.codigoBanco,
-        saldoInicial: novaCarteira.saldoInicial,
-        saldoAtual: novaCarteira.saldoInicial,
-        ehConta: novaCarteira.ehConta,
-        cor: getCorPorTipo(novaCarteira.tipo),
-        icone: novaCarteira.tipo === 'conta-bancaria' || novaCarteira.tipo === 'conta-investimento' ? 'bank' : 
-               novaCarteira.tipo === 'criptomoeda' ? 'crypto' : 'safe'
-      };
-      setCarteiras(prev => [...prev, nova]);
+    if (!novaCarteira.nome.trim()) {
+      alert('Nome é obrigatório');
+      return;
     }
 
-    // Reset form
-    setNovaCarteira({
-      nome: '',
-      tipo: 'conta-bancaria',
-      banco: '',
-      codigoBanco: '',
-      saldoInicial: 0,
-      ehConta: false
-    });
-    resetModal();
+    try {
+      setSubmitting(true);
+      
+      if (carteiraEditando) {
+        // Editar conta existente
+        await updateAccount(carteiraEditando.id, {
+          ...novaCarteira,
+          cor: getCorPorTipo(novaCarteira.tipo),
+          icone: getIconePorTipo(novaCarteira.tipo)
+        });
+      } else {
+        // Criar nova conta
+        await createAccount({
+          ...novaCarteira,
+          cor: getCorPorTipo(novaCarteira.tipo),
+          icone: getIconePorTipo(novaCarteira.tipo)
+        });
+      }
+
+      resetModal();
+    } catch (error) {
+      // Erro já tratado no hook useAccounts
+      console.error('Erro ao salvar conta:', error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleEditar = (carteira: Carteira) => {
-    setCarteiraEditando(carteira);
+  const handleEditar = (account: Account) => {
+    setCarteiraEditando(account);
     setNovaCarteira({
-      nome: carteira.nome,
-      tipo: carteira.tipo,
-      banco: carteira.banco || '',
-      codigoBanco: carteira.codigoBanco || '',
-      saldoInicial: carteira.saldoInicial,
-      ehConta: carteira.ehConta
+      nome: account.nome,
+      tipo: account.tipo,
+      banco: account.banco || '',
+      codigo_banco: account.codigo_banco || '',
+      saldo_inicial: parseFloat(account.saldo_inicial),
+      eh_conta: account.eh_conta,
+      cor: account.cor,
+      icone: account.icone
     });
     setEtapaModal('detalhes'); // Pula direto para detalhes quando editando
     setMostrarModal(true);
   };
 
-  const handleExcluir = (id: number) => {
-    if (confirm('Tem certeza que deseja excluir esta carteira?')) {
-      setCarteiras(prev => prev.filter(carteira => carteira.id !== id));
+  const handleExcluir = async (account: Account) => {
+    if (confirm(`Tem certeza que deseja excluir a conta "${account.nome}"?`)) {
+      try {
+        await deleteAccount(account.id);
+      } catch (error) {
+        // Erro já tratado no hook useAccounts
+        console.error('Erro ao excluir conta:', error);
+      }
     }
   };
 
@@ -243,9 +195,11 @@ const Accounts: React.FC = () => {
       nome: '', 
       tipo: 'conta-bancaria', 
       banco: '', 
-      codigoBanco: '', 
-      saldoInicial: 0, 
-      ehConta: false 
+      codigo_banco: '', 
+      saldo_inicial: 0, 
+      eh_conta: false,
+      cor: 'bg-blue-500',
+      icone: 'bank'
     });
   };
 
@@ -253,8 +207,29 @@ const Accounts: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="md:flex md:items-center md:justify-between">
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">Carregando contas...</span>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mr-2" />
+            <p className="text-red-800">{error}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Content - só mostra se não está carregando */}
+      {!loading && (
+        <>
+          {/* Header */}
+          <div className="md:flex md:items-center md:justify-between">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
             Carteiras
@@ -286,10 +261,10 @@ const Accounts: React.FC = () => {
             </div>
             <div className="text-right">
               <p className="text-3xl font-bold">
-                {formatCurrency(carteiras.reduce((total, carteira) => total + carteira.saldoAtual, 0))}
+                {formatCurrency(accounts.reduce((total, account) => total + parseFloat(account.saldo_atual), 0))}
               </p>
               <p className="text-sm opacity-90">
-                {carteiras.length} {carteiras.length === 1 ? 'carteira' : 'carteiras'}
+                {accounts.length} {accounts.length === 1 ? 'conta' : 'contas'}
               </p>
             </div>
           </div>
@@ -300,12 +275,12 @@ const Accounts: React.FC = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Resumo por Tipo de Conta</h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {tiposCarteira.map((tipo) => {
-              // Filtrar carteiras por tipo e somar valores
-              const carteirasPorTipo = carteiras.filter(carteira => carteira.tipo === tipo.value);
-              const totalPorTipo = carteirasPorTipo.reduce((total, carteira) => total + carteira.saldoAtual, 0);
-              const quantidadePorTipo = carteirasPorTipo.length;
+              // Filtrar contas por tipo e somar valores
+              const contasPorTipo = accounts.filter(account => account.tipo === tipo.value);
+              const totalPorTipo = contasPorTipo.reduce((total, account) => total + parseFloat(account.saldo_atual), 0);
+              const quantidadePorTipo = contasPorTipo.length;
               
-              // Só mostra o card se houver carteiras desse tipo
+              // Só mostra o card se houver contas desse tipo
               if (quantidadePorTipo === 0) return null;
 
               const IconComponent = tipo.icon;
@@ -337,23 +312,23 @@ const Accounts: React.FC = () => {
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Gerenciar Carteiras</h3>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {carteiras.map((carteira) => {
-              const IconComponent = getIcon(carteira.icone);
-              const corBanco = getCorBanco(carteira.codigoBanco);
+            {accounts.map((account) => {
+              const IconComponent = getIcon(account.icone);
+              const corBanco = getCorBanco(account.codigo_banco);
               
               return (
-                <div key={carteira.id} className="group relative">
+                <div key={account.id} className="group relative">
                   {/* Card com gradiente baseado no banco */}
                   <div className={`bg-gradient-to-br ${corBanco} rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}>
                     
                     {/* Header do card */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-3">
-                        {carteira.codigoBanco ? (
+                        {account.codigo_banco ? (
                           <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
                             <BancoLogo 
-                              codigoBanco={carteira.codigoBanco} 
-                              nomeBanco={carteira.banco}
+                              codigoBanco={account.codigo_banco} 
+                              nomeBanco={account.banco}
                               className="w-8 h-8 rounded-full"
                             />
                           </div>
@@ -367,13 +342,13 @@ const Accounts: React.FC = () => {
                       {/* Botões de ação */}
                       <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
-                          onClick={() => handleEditar(carteira)}
+                          onClick={() => handleEditar(account)}
                           className="p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-all"
                         >
                           <PencilIcon className="h-4 w-4 text-white" />
                         </button>
                         <button
-                          onClick={() => handleExcluir(carteira.id)}
+                          onClick={() => handleExcluir(account)}
                           className="p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-all"
                         >
                           <TrashIcon className="h-4 w-4 text-white" />
@@ -384,18 +359,18 @@ const Accounts: React.FC = () => {
                     {/* Informações da conta */}
                     <div className="space-y-2">
                       <h3 className="text-lg font-semibold text-white truncate">
-                        {carteira.nome}
+                        {account.nome}
                       </h3>
                       
                       <div className="flex items-center space-x-2 text-white text-opacity-80">
                         <span className="text-sm capitalize">
-                          {carteira.tipo.replace('-', ' ')}
+                          {account.tipo.replace('-', ' ')}
                         </span>
-                        {carteira.banco && (
+                        {account.banco && (
                           <>
                             <span className="text-xs">•</span>
                             <span className="text-sm truncate">
-                              {carteira.banco.replace(' S.A.', '').replace(' BANCO MÚLTIPLO', '')}
+                              {account.banco.replace(' S.A.', '').replace(' BANCO MÚLTIPLO', '')}
                             </span>
                           </>
                         )}
@@ -406,14 +381,14 @@ const Accounts: React.FC = () => {
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-white text-opacity-80">Saldo Atual</span>
                           <span className="text-xl font-bold text-white">
-                            {formatCurrency(carteira.saldoAtual)}
+                            {formatCurrency(parseFloat(account.saldo_atual))}
                           </span>
                         </div>
                       </div>
                     </div>
                     
                     {/* Indicador de conta */}
-                    {carteira.ehConta && (
+                    {account.eh_conta && (
                       <div className="absolute top-4 right-4">
                         <div className="w-2 h-2 bg-white rounded-full opacity-60"></div>
                       </div>
@@ -459,7 +434,7 @@ const Accounts: React.FC = () => {
                           key={tipo.value}
                           type="button"
                           onClick={() => {
-                            setNovaCarteira(prev => ({ ...prev, tipo: tipo.value as any, banco: '', codigoBanco: '' }));
+                            setNovaCarteira(prev => ({ ...prev, tipo: tipo.value as any, banco: '', codigo_banco: '' }));
                             setEtapaModal('detalhes');
                           }}
                           className="flex items-center p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all group"
@@ -564,7 +539,7 @@ const Accounts: React.FC = () => {
                       <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-md bg-white">
                         {bancosFiltrados.length > 0 ? (
                           bancosFiltrados.slice(0, 50).map((banco) => {
-                            const isSelected = novaCarteira.codigoBanco === banco.codigo;
+                            const isSelected = novaCarteira.codigo_banco === banco.codigo;
                             
                             return (
                               <button
@@ -573,7 +548,7 @@ const Accounts: React.FC = () => {
                                 onClick={() => {
                                   setNovaCarteira(prev => ({ 
                                     ...prev, 
-                                    codigoBanco: banco.codigo,
+                                    codigo_banco: banco.codigo,
                                     banco: banco.nome
                                   }));
                                   setFiltroBanco('');
@@ -611,22 +586,22 @@ const Accounts: React.FC = () => {
                       </div>
                       
                       {/* Banco selecionado */}
-                      {novaCarteira.codigoBanco && (
+                      {novaCarteira.codigo_banco && (
                         <div className="mt-3 p-2 bg-blue-50 rounded-md flex items-center space-x-3 border border-blue-200">
                           <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm border">
                             <BancoLogo 
-                              codigoBanco={novaCarteira.codigoBanco} 
+                              codigoBanco={novaCarteira.codigo_banco} 
                               nomeBanco={novaCarteira.banco}
                               className="w-4 h-4"
                             />
                           </div>
                           <div className="flex-1">
                             <div className="text-sm font-medium text-gray-900">{novaCarteira.banco}</div>
-                            <div className="text-xs text-gray-500">{novaCarteira.codigoBanco}</div>
+                            <div className="text-xs text-gray-500">{novaCarteira.codigo_banco}</div>
                           </div>
                           <button
                             type="button"
-                            onClick={() => setNovaCarteira(prev => ({ ...prev, codigoBanco: '', banco: '' }))}
+                            onClick={() => setNovaCarteira(prev => ({ ...prev, codigo_banco: '', banco: '' }))}
                             className="text-gray-400 hover:text-gray-600"
                           >
                             <XMarkIcon className="h-4 w-4" />
@@ -661,8 +636,8 @@ const Accounts: React.FC = () => {
                       <input
                         type="number"
                         step="0.01"
-                        value={novaCarteira.saldoInicial}
-                        onChange={(e) => setNovaCarteira(prev => ({ ...prev, saldoInicial: parseFloat(e.target.value) || 0 }))}
+                        value={novaCarteira.saldo_inicial}
+                        onChange={(e) => setNovaCarteira(prev => ({ ...prev, saldo_inicial: parseFloat(e.target.value) || 0 }))}
                         placeholder="0,00"
                         className="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
@@ -682,14 +657,14 @@ const Accounts: React.FC = () => {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setNovaCarteira(prev => ({ ...prev, ehConta: !prev.ehConta }))}
+                      onClick={() => setNovaCarteira(prev => ({ ...prev, eh_conta: !prev.eh_conta }))}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                        novaCarteira.ehConta ? 'bg-blue-600' : 'bg-gray-200'
+                        novaCarteira.eh_conta ? 'bg-blue-600' : 'bg-gray-200'
                       }`}
                     >
                       <span
                         className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          novaCarteira.ehConta ? 'translate-x-6' : 'translate-x-1'
+                          novaCarteira.eh_conta ? 'translate-x-6' : 'translate-x-1'
                         }`}
                       />
                     </button>
@@ -718,9 +693,17 @@ const Accounts: React.FC = () => {
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        disabled={submitting}
+                        className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {carteiraEditando ? 'SALVAR' : 'CRIAR'}
+                        {submitting ? (
+                          <div className="flex items-center">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            {carteiraEditando ? 'SALVANDO...' : 'CRIANDO...'}
+                          </div>
+                        ) : (
+                          carteiraEditando ? 'SALVAR' : 'CRIAR'
+                        )}
                       </button>
                     </div>
                   </div>
@@ -729,6 +712,8 @@ const Accounts: React.FC = () => {
             </form>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
