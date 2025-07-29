@@ -5,7 +5,7 @@ from .models import Category, Tag
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ('id', 'name', 'description', 'color', 'is_active', 'created_at', 'updated_at')
+        fields = ('id', 'nome', 'descricao', 'cor', 'icone', 'nivel_importancia', 'considerar_dashboard', 'is_active', 'created_at', 'updated_at')
         read_only_fields = ('id', 'created_at', 'updated_at')
 
     def create(self, validated_data):
@@ -16,7 +16,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ('id', 'name', 'created_at')
+        fields = ('id', 'nome', 'cor', 'created_at')
         read_only_fields = ('id', 'created_at')
 
     def create(self, validated_data):
@@ -29,7 +29,7 @@ class CategoryWithTransactionCountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ('id', 'name', 'description', 'color', 'transaction_count')
+        fields = ('id', 'nome', 'descricao', 'cor', 'transaction_count')
 
     def get_transaction_count(self, obj):
         return obj.transactions.count()

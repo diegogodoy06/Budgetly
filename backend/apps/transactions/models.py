@@ -30,7 +30,8 @@ class Transaction(models.Model):
     
     # Contas envolvidas
     account = models.ForeignKey('accounts.Account', on_delete=models.CASCADE, 
-                               related_name='transactions_from', verbose_name="Conta de origem")
+                               related_name='transactions_from', null=True, blank=True,
+                               verbose_name="Conta de origem")
     to_account = models.ForeignKey('accounts.Account', on_delete=models.CASCADE, 
                                   related_name='transactions_to', null=True, blank=True,
                                   verbose_name="Conta de destino")
@@ -75,6 +76,18 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.descricao} - R$ {self.valor} ({self.data})"
+
+    def clean(self):
+        """Validação personalizada do modelo"""
+        from django.core.exceptions import ValidationError
+        
+        # Pelo menos account ou credit_card deve ser preenchido
+        if not self.account and not self.credit_card:
+            raise ValidationError("Deve ser especificada uma conta ou cartão de crédito.")
+        
+        # Não pode ter account e credit_card ao mesmo tempo
+        if self.account and self.credit_card:
+            raise ValidationError("Não é possível especificar conta e cartão de crédito ao mesmo tempo.")
 
     @property
     def valor_formatado(self):

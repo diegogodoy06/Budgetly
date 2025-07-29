@@ -6,10 +6,9 @@ import {
   PencilIcon,
   TrashIcon
 } from '@heroicons/react/24/outline';
-import { creditCardsAPI } from '@/services/api';
-import type { CreditCard, CreditCardFormData, CreditCardBrand } from '@/types';
+import { creditCardsAPI, transactionsAPI } from '@/services/api';
+import type { CreditCard, CreditCardFormData, CreditCardBrand, Transaction } from '@/types';
 import toast from 'react-hot-toast';
-import { useConfiguracoes } from '@/contexts/ConfiguracoesContext';
 
 const CREDIT_CARD_BRANDS: { value: CreditCardBrand; label: string; cor: string; logo: string }[] = [
   { value: 'Visa', label: 'Visa', cor: 'bg-blue-600', logo: '/src/assets/images/card-brands/visa.png' },
@@ -26,21 +25,7 @@ const CREDIT_CARD_BRANDS: { value: CreditCardBrand; label: string; cor: string; 
   { value: 'Banricompras', label: 'Banricompras', cor: 'bg-lime-600', logo: '/src/assets/images/card-brands/banricompras.png' }
 ];
 
-interface Transacao {
-  id: number;
-  cartaoId: number;
-  descricao: string;
-  valor: number;
-  data: string;
-  categoria: string;
-  parcelas?: number;
-  parcelaAtual?: number;
-  centroCusto?: string;
-}
-
 const CreditCards: React.FC = () => {
-  // Usar o contexto global para categorias e centros de custo
-  const { categoriasAtivas, centrosCustoAtivos } = useConfiguracoes();
 
   // Funções para formatação de moeda
   const formatCurrencyInput = (value: number): string => {
@@ -74,15 +59,11 @@ const CreditCards: React.FC = () => {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarModalTransacao, setMostrarModalTransacao] = useState(false);
   const [menuAcoesAberto, setMenuAcoesAberto] = useState<number | null>(null);
-  const [transacaoEditando, setTransacaoEditando] = useState<Transacao | null>(null);
   const [cartaoEditando, setCartaoEditando] = useState<CreditCard | null>(null);
 
-  // Dados mock para transações (até implementarmos a API de transações)
-  const [transacoes, setTransacoes] = useState<Transacao[]>([
-    { id: 1, cartaoId: 1, descricao: 'Supermercado Extra', valor: 280.50, data: '2025-07-25', categoria: 'Alimentação', centroCusto: 'Pessoal' },
-    { id: 2, cartaoId: 1, descricao: 'Netflix', valor: 32.90, data: '2025-07-20', categoria: 'Entretenimento', centroCusto: 'Pessoal' },
-    { id: 3, cartaoId: 1, descricao: 'Posto Ipiranga', valor: 120.00, data: '2025-07-18', categoria: 'Combustível' },
-  ]);
+  // Transações carregadas da API
+  const [transacoes, setTransacoes] = useState<Transaction[]>([]);
+  const [carregandoTransacoes, setCarregandoTransacoes] = useState(false);
 
   const [formData, setFormData] = useState<CreditCardFormData>({
     nome: '',
@@ -118,6 +99,13 @@ const CreditCards: React.FC = () => {
     }
   }, [cartoes]);
 
+  // Carregar transações quando cartão for selecionado
+  useEffect(() => {
+    if (cartaoSelecionado) {
+      carregarTransacoes(cartaoSelecionado);
+    }
+  }, [cartaoSelecionado]);
+
   // Atualizar cor automaticamente quando bandeira mudar
   useEffect(() => {
     setFormData(prev => ({
@@ -136,6 +124,19 @@ const CreditCards: React.FC = () => {
       toast.error('Erro ao carregar cartões de crédito');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const carregarTransacoes = async (cartaoId: number) => {
+    try {
+      setCarregandoTransacoes(true);
+      const data = await transactionsAPI.getByCreditCard(cartaoId);
+      setTransacoes(data);
+    } catch (error) {
+      console.error('Erro ao carregar transações:', error);
+      toast.error('Erro ao carregar transações do cartão');
+    } finally {
+      setCarregandoTransacoes(false);
     }
   };
 
@@ -250,7 +251,7 @@ const CreditCards: React.FC = () => {
 
   const getTransacoesDoMes = (cartaoId: number, anoMes: string) => {
     return transacoes.filter(t => {
-      if (t.cartaoId !== cartaoId) return false;
+      if (t.credit_card !== cartaoId) return false;
       const dataTransacao = new Date(t.data);
       const anoMesTransacao = `${dataTransacao.getFullYear()}-${String(dataTransacao.getMonth() + 1).padStart(2, '0')}`;
       return anoMesTransacao === anoMes;
@@ -289,7 +290,7 @@ const CreditCards: React.FC = () => {
   };
 
   const getValorFatura = (cartaoId: number, anoMes: string) => {
-    return getTransacoesDoMes(cartaoId, anoMes).reduce((total, t) => total + t.valor, 0);
+    return getTransacoesDoMes(cartaoId, anoMes).reduce((total, t) => total + parseFloat(t.valor), 0);
   };
 
   const isFaturaFechada = (cartaoId: number, anoMes: string) => {
@@ -317,12 +318,6 @@ const CreditCards: React.FC = () => {
     setMenuAcoesAberto(menuAcoesAberto === transacaoId ? null : transacaoId);
   };
 
-  const handleEditarTransacao = (transacao: Transacao) => {
-    setTransacaoEditando(transacao);
-    setMostrarModalTransacao(true);
-    setMenuAcoesAberto(null);
-  };
-
   const handleExcluirTransacao = (transacaoId: number) => {
     if (confirm('Tem certeza que deseja excluir esta transação?')) {
       setTransacoes(transacoes.filter(t => t.id !== transacaoId));
@@ -333,7 +328,7 @@ const CreditCards: React.FC = () => {
 
   // Fechar menu ao clicar fora
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (_event: MouseEvent) => {
       setMenuAcoesAberto(null);
     };
     
@@ -611,8 +606,24 @@ const CreditCards: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {getTransacoesDoMes(cartaoSelecionado, mesSelecionado).map((transacao) => (
-                      <tr key={transacao.id} className="hover:bg-gray-50">
+                    {carregandoTransacoes ? (
+                      <tr>
+                        <td colSpan={6} className="px-3 py-8 text-center">
+                          <div className="flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+                            <span className="ml-2 text-sm text-gray-500">Carregando transações...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : getTransacoesDoMes(cartaoSelecionado, mesSelecionado).length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-3 py-8 text-center text-sm text-gray-500">
+                          Nenhuma transação encontrada para este período
+                        </td>
+                      </tr>
+                    ) : (
+                      getTransacoesDoMes(cartaoSelecionado, mesSelecionado).map((transacao) => (
+                        <tr key={transacao.id} className="hover:bg-gray-50">
                         <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-700">
                           {new Date(transacao.data).toLocaleDateString('pt-BR')}
                         </td>
@@ -620,22 +631,22 @@ const CreditCards: React.FC = () => {
                           <div>
                             <p className="font-normal">{transacao.descricao}</p>
                             <p className="text-xs text-blue-600 bg-blue-100 rounded-full px-2 py-1 inline-block mt-1">
-                              {transacao.categoria}
+                              {transacao.category_name || 'Sem categoria'}
                             </p>
                           </div>
                         </td>
                         <td className="px-3 py-2 whitespace-nowrap text-xs">
                           <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs">
-                            {transacao.centroCusto || 'Geral'}
+                            Geral
                           </span>
                         </td>
                         <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500 text-center">
-                          {transacao.parcelas ? `${transacao.parcelaAtual || 1}/${transacao.parcelas}` : '-'}
+                          {transacao.total_parcelas > 1 ? `${transacao.numero_parcela}/${transacao.total_parcelas}` : '-'}
                         </td>
                         <td className="px-3 py-2 whitespace-nowrap text-xs font-normal text-right">
                           <div className="flex items-center justify-end">
                             <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs mr-2 flex items-center">
-                              ● R$ {transacao.valor.toFixed(2).replace('.', ',')}
+                              ● R$ {parseFloat(transacao.valor).toFixed(2).replace('.', ',')}
                             </span>
                           </div>
                         </td>
@@ -654,14 +665,6 @@ const CreditCards: React.FC = () => {
                             <div className="absolute right-0 top-10 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
                               <div className="py-1" role="menu">
                                 <button
-                                  onClick={() => handleEditarTransacao(transacao)}
-                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                  role="menuitem"
-                                >
-                                  <PencilIcon className="h-4 w-4 mr-2 inline" />
-                                  Editar
-                                </button>
-                                <button
                                   onClick={() => handleExcluirTransacao(transacao.id)}
                                   className="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50"
                                   role="menuitem"
@@ -674,7 +677,8 @@ const CreditCards: React.FC = () => {
                           )}
                         </td>
                       </tr>
-                    ))}
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -697,42 +701,45 @@ const CreditCards: React.FC = () => {
 
       {/* Modal de Cartão */}
       {mostrarModal && (
-        <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] animate-in fade-in duration-200"
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              handleCloseModal();
-            }
-          }}
-        >
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full animate-in slide-in-from-bottom-4 zoom-in-95 duration-300">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">
+        <>
+          {/* Backdrop com blur */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" 
+            onClick={handleCloseModal}
+          />
+          
+          {/* Modal */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
+                <h2 className="text-xl font-semibold text-gray-900">
                   {cartaoEditando ? 'Editar Cartão' : 'Novo Cartão'}
                 </h2>
                 <button
                   onClick={handleCloseModal}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <XMarkIcon className="h-6 w-6" />
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nome do Cartão
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.nome}
-                    onChange={(e) => setFormData({...formData, nome: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    required
-                  />
-                </div>
+              {/* Formulário - Container com scroll */}
+              <div className="flex-1 overflow-y-auto">
+                <form id="credit-card-form" onSubmit={handleSubmit} className="p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Nome do Cartão
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.nome}
+                        onChange={(e) => setFormData({...formData, nome: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        required
+                      />
+                    </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -817,62 +824,219 @@ const CreditCards: React.FC = () => {
                     />
                   </div>
                 </div>
+                  </div>
+                </form>
+              </div>
 
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={handleCloseModal}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              {/* Botões - Fixos na parte inferior */}
+              <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  form="credit-card-form"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                >
+                  {cartaoEditando ? 'Atualizar' : 'Criar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}      {/* Modal de Nova Transação */}
+      {mostrarModalTransacao && (
+        <>
+          {/* Backdrop com blur */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" 
+            onClick={() => setMostrarModalTransacao(false)}
+          />
+          
+          {/* Modal */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
+                <h2 className="text-xl font-semibold text-gray-900">Nova Transação</h2>
+                <button
+                  onClick={() => setMostrarModalTransacao(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+              
+              {/* Formulário - Container com scroll */}
+              <div className="flex-1 overflow-y-auto">
+                <form id="transaction-form" onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                const transactionData = {
+                  credit_card: cartaoSelecionado,
+                  tipo: 'saida' as const,
+                  valor: novaTransacao.valor,
+                  descricao: novaTransacao.descricao,
+                  observacoes: '',
+                  data: novaTransacao.dataCompra,
+                  category: novaTransacao.categoria ? parseInt(novaTransacao.categoria) : undefined,
+                  total_parcelas: 1,
+                  tipo_recorrencia: novaTransacao.recorrente ? novaTransacao.tipoRecorrencia : 'nenhuma' as const
+                };
+
+                await transactionsAPI.create(transactionData);
+                
+                // Recarregar transações
+                if (cartaoSelecionado) {
+                  carregarTransacoes(cartaoSelecionado);
+                }
+                
+                setMostrarModalTransacao(false);
+                setNovaTransacao({
+                  carteiraId: 0,
+                  tipoCarteira: 'cartao-credito',
+                  descricao: '',
+                  valor: 0,
+                  dataCompra: new Date().toISOString().split('T')[0],
+                  dataVencimento: '',
+                  categoria: '',
+                  recorrente: false,
+                  tipoRecorrencia: 'mensal',
+                  centroCusto: ''
+                });
+                
+                toast.success('Transação adicionada com sucesso!');
+              } catch (error) {
+                console.error('Erro ao criar transação:', error);
+                toast.error('Erro ao criar transação');
+              }
+            }} className="p-6">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Descrição */}
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Descrição
+                  </label>
+                  <input
+                    type="text"
+                    value={novaTransacao.descricao}
+                    onChange={(e) => setNovaTransacao(prev => ({ ...prev, descricao: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Ex: Supermercado, Combustível..."
+                    required
+                  />
+                </div>
+
+                {/* Valor */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Valor (R$)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={novaTransacao.valor}
+                    onChange={(e) => setNovaTransacao(prev => ({ ...prev, valor: parseFloat(e.target.value) || 0 }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="0,00"
+                    required
+                  />
+                </div>
+
+                {/* Data */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Data da Compra
+                  </label>
+                  <input
+                    type="date"
+                    value={novaTransacao.dataCompra}
+                    onChange={(e) => setNovaTransacao(prev => ({ ...prev, dataCompra: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                {/* Categoria */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Categoria
+                  </label>
+                  <select
+                    value={novaTransacao.categoria}
+                    onChange={(e) => setNovaTransacao(prev => ({ ...prev, categoria: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
-                  >
-                    {cartaoEditando ? 'Atualizar' : 'Criar'}
-                  </button>
+                    <option value="">Selecione uma categoria</option>
+                    <option value="1">Alimentação</option>
+                    <option value="2">Transporte</option>
+                    <option value="3">Moradia</option>
+                    <option value="4">Saúde</option>
+                    <option value="5">Entretenimento</option>
+                    <option value="6">Compras Online</option>
+                    <option value="7">Combustível</option>
+                    <option value="8">Outros</option>
+                  </select>
+                </div>
+
+                {/* Recorrente */}
+                <div className="col-span-2">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={novaTransacao.recorrente}
+                      onChange={(e) => setNovaTransacao(prev => ({ ...prev, recorrente: e.target.checked }))}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Transação recorrente</span>
+                  </label>
+                </div>
+
+                {/* Tipo de Recorrência - só aparece se for recorrente */}
+                {novaTransacao.recorrente && (
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tipo de Recorrência
+                    </label>
+                    <select
+                      value={novaTransacao.tipoRecorrencia}
+                      onChange={(e) => setNovaTransacao(prev => ({ ...prev, tipoRecorrencia: e.target.value as any }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="semanal">Semanal</option>
+                      <option value="mensal">Mensal</option>
+                      <option value="anual">Anual</option>
+                    </select>
+                  </div>
+                  )}
                 </div>
               </form>
-            </div>
-          </div>
-        </div>
-      )}
+              </div>
 
-      {/* Modal de Transação (placeholder por enquanto) */}
-      {mostrarModalTransacao && (
-        <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] animate-in fade-in duration-200"
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setMostrarModalTransacao(false);
-            }
-          }}
-        >
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full animate-in slide-in-from-bottom-4 zoom-in-95 duration-300 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Nova Transação</h2>
-              <button
-                onClick={() => setMostrarModalTransacao(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <XMarkIcon className="h-6 w-6" />
-              </button>
-            </div>
-            <p className="text-gray-600">
-              Modal de transação será implementado quando a API de transações estiver pronta.
-            </p>
-            <div className="mt-4">
-              <button
-                onClick={() => setMostrarModalTransacao(false)}
-                className="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-              >
-                Fechar
-              </button>
+              {/* Botões - Fixos na parte inferior */}
+              <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setMostrarModalTransacao(false)}
+                  className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  form="transaction-form"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                >
+                  Adicionar Transação
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

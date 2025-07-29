@@ -51,10 +51,10 @@ urlpatterns = [
     # API URLs
     path('api/auth/', include('apps.accounts.urls')),
     path('api/accounts/', include('apps.accounts.urls')),
-    path('api/', include('apps.transactions.urls')),
-    path('api/', include('apps.categories.urls')),
-    path('api/', include('apps.budgets.urls')),
-    path('api/', include('apps.reports.urls')),
+    path('api/transactions/', include('apps.transactions.urls')),
+    path('api/categories/', include('apps.categories.urls')),
+    path('api/budgets/', include('apps.budgets.urls')),
+    path('api/reports/', include('apps.reports.urls')),
     
     # API Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

@@ -1,11 +1,11 @@
 import axios from 'axios';
 import type { 
   User, Account, Transaction, Category, Tag, Budget, CreditCardBill,
-  LoginRequest, RegisterRequest, AuthResponse, ApiResponse, DashboardData,
+  LoginRequest, RegisterRequest, AuthResponse, DashboardData,
   CreditCard, CreditCardFormData
 } from '@/types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
 
 // Create axios instance
 const api = axios.create({
@@ -107,23 +107,31 @@ export const creditCardsAPI = {
 
 // Transactions API
 export const transactionsAPI = {
-  getAll: (params?: any): Promise<ApiResponse<Transaction>> =>
-    api.get('/api/transactions/', { params }).then(res => res.data),
+  getAll: (params?: any): Promise<Transaction[]> =>
+    api.get('/api/transactions/', { params }).then(res => res.data.results || res.data),
   
   getById: (id: number): Promise<Transaction> =>
     api.get(`/api/transactions/${id}/`).then(res => res.data),
   
-  create: (data: Partial<Transaction>): Promise<Transaction> =>
+  create: (data: any): Promise<Transaction> =>
     api.post('/api/transactions/', data).then(res => res.data),
   
-  update: (id: number, data: Partial<Transaction>): Promise<Transaction> =>
-    api.patch(`/api/transactions/${id}/`, data).then(res => res.data),
+  update: (id: number, data: any): Promise<Transaction> =>
+    api.put(`/api/transactions/${id}/`, data).then(res => res.data),
   
   delete: (id: number): Promise<void> =>
     api.delete(`/api/transactions/${id}/`).then(res => res.data),
   
-  getSummary: (params?: any): Promise<any> =>
+  getByCreditCard: (creditCardId: number, params?: any): Promise<Transaction[]> =>
+    api.get('/api/transactions/', { 
+      params: { credit_card: creditCardId, ...params } 
+    }).then(res => res.data.results || res.data),
+  
+  summary: (params?: any): Promise<any> =>
     api.get('/api/transactions/summary/', { params }).then(res => res.data),
+  
+  byCategory: (params?: any): Promise<any> =>
+    api.get('/api/transactions/by-category/', { params }).then(res => res.data),
 };
 
 // Categories API

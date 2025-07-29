@@ -78,9 +78,12 @@ export interface CreditCardFormData {
 
 export interface Category {
   id: number;
-  name: string;
-  description: string;
-  color: string;
+  nome: string;
+  descricao: string;
+  cor: string;
+  icone: string;
+  nivel_importancia: 'essencial' | 'necessario' | 'superfluo';
+  considerar_dashboard: boolean;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -88,34 +91,56 @@ export interface Category {
 
 export interface Tag {
   id: number;
-  name: string;
+  nome: string;
+  cor: string;
   created_at: string;
 }
 
 export interface Transaction {
   id: number;
+  user: number;
   account: number;
   account_name: string;
   to_account?: number;
   to_account_name?: string;
-  transaction_type: 'income' | 'expense' | 'transfer';
-  transaction_type_display: string;
-  amount: string;
-  description: string;
-  notes: string;
-  date: string;
+  credit_card?: number;
+  tipo: 'entrada' | 'saida' | 'transferencia';
+  valor: string;
+  valor_formatado: string;
+  descricao: string;
+  observacoes: string;
+  data: string;
   category?: number;
   category_name?: string;
+  cost_center?: number;
   tags: number[];
-  tags_data: Tag[];
-  installments: number;
-  installment_number: number;
-  parent_transaction?: number;
-  recurrence_type: 'none' | 'monthly';
-  recurrence_end_date?: string;
-  is_processed: boolean;
+  tags_list: string[];
+  total_parcelas: number;
+  numero_parcela: number;
+  transacao_pai?: number;
+  tipo_recorrencia: 'nenhuma' | 'diaria' | 'semanal' | 'mensal' | 'anual';
+  data_fim_recorrencia?: string;
+  confirmada: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface TransactionFormData {
+  account: number;
+  to_account?: number;
+  credit_card?: number;
+  tipo: 'entrada' | 'saida' | 'transferencia';
+  valor: number;
+  descricao: string;
+  observacoes?: string;
+  data: string;
+  category?: number;
+  cost_center?: number;
+  tags?: number[];
+  total_parcelas: number;
+  tipo_recorrencia: 'nenhuma' | 'diaria' | 'semanal' | 'mensal' | 'anual';
+  data_fim_recorrencia?: string;
+  confirmada: boolean;
 }
 
 export interface Budget {
