@@ -85,8 +85,26 @@ export interface Category {
   nivel_importancia: 'essencial' | 'necessario' | 'superfluo';
   considerar_dashboard: boolean;
   is_active: boolean;
+  
+  // Campos hierárquicos
+  parent?: number;
+  parent_name?: string;
+  children_count?: number;
+  is_parent?: boolean;
+  children?: Category[];  // Para exibição em árvore
+  
   created_at: string;
   updated_at: string;
+}
+
+// Interface para seleção hierárquica em dropdowns
+export interface CategoryOption {
+  id: number;
+  nome: string;
+  nome_completo: string;
+  parent_id?: number;
+  is_subcategory: boolean;
+  cor: string;
 }
 
 export interface Tag {

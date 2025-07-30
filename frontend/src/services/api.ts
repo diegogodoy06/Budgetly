@@ -150,6 +150,23 @@ export const categoriesAPI = {
   
   delete: (id: number): Promise<void> =>
     api.delete(`/api/categories/${id}/`).then(res => res.data),
+
+  // Novos endpoints para categorias hierárquicas
+  getHierarchy: (): Promise<Category[]> =>
+    api.get('/api/categories/hierarchy/').then(res => res.data),
+  
+  getFlatList: (): Promise<any[]> =>
+    api.get('/api/categories/flat-list/').then(res => res.data),
+  
+  getMainCategories: (): Promise<Category[]> =>
+    api.get('/api/categories/?level=main').then(res => res.data.results || res.data),
+  
+  getSubCategories: (parentId?: number): Promise<Category[]> => {
+    const url = parentId 
+      ? `/api/categories/?parent=${parentId}`
+      : '/api/categories/?level=sub';
+    return api.get(url).then(res => res.data.results || res.data);
+  },
 };
 
 // Tags API

@@ -38,25 +38,87 @@ Sistema completo de controle financeiro pessoal com funcionalidades avançadas d
   - Validações e tratamento de erros
   - **Estimativa:** 8 pontos | **Assignee:** @frontend-dev
 
-- [ ] **FB-003** - Integrar cartões de crédito com API
+- [x] **FB-003** - Integrar cartões de crédito com API ✅
   - Consumir endpoints de cartões (`/api/credit-cards/`)
   - CRUD completo de cartões no frontend
   - Gestão de limites e faturas
   - Interface para bandeiras e vencimentos
   - **Estimativa:** 8 pontos | **Assignee:** @frontend-dev
 
-- [ ] **FB-004** - Integrar transações com API
+- [x] **FB-004** - Integrar transações com API ✅
   - Listar transações com filtros e paginação
   - Formulário de criação/edição de transações
   - Suporte a parcelamento no frontend
   - Associação com contas e cartões
   - **Estimativa:** 13 pontos | **Assignee:** @frontend-dev
 
-- [ ] **FB-005** - Integrar categorias e centros de custo
-  - CRUD de categorias no frontend
-  - Seleção de categorias em transações
-  - Gestão de centros de custo
+- [x] **FB-005** - Implementar sistema de categorias hierárquicas ✅
+  - Refatorar modelo Category para suportar subcategorias
+  - Migração de dados existentes
+  - CRUD de categorias e subcategorias no frontend
+  - Atualizar todas as referências nas transações
+  - Interface hierárquica com dropdown aninhado
+  - **Estimativa:** 13 pontos | **Assignee:** @fullstack-dev
+
+#### 🗂️ Sistema de Categorias Hierárquicas (Detalhado)
+
+- [x] **CAT-001** - Refatoração do modelo Category (Backend) ✅
+  - Adicionar campo `parent` (ForeignKey self-referencial)
+  - Manter compatibilidade com dados existentes
+  - Métodos para árvore de categorias (get_children, get_ancestors)
+  - Validação para evitar loops infinitos
+  - **Estimativa:** 5 pontos | **Assignee:** @backend-dev
+
+- [x] **CAT-002** - Migração de dados existentes ✅
+  - Script para converter categorias atuais em principais
+  - Criação de subcategorias pré-definidas por categoria
+  - Backup de dados antes da migração
+  - **Estimativa:** 3 pontos | **Assignee:** @backend-dev
+
+- [x] **CAT-003** - API para categorias hierárquicas ✅
+  - Endpoint para listar categorias em árvore
+  - Serializer aninhado para parent/children
+  - Filtros por nível (principais, subcategorias)
+  - **Estimativa:** 3 pontos | **Assignee:** @backend-dev
+
+- [x] **CAT-004** - Interface de gestão de categorias (Frontend) ✅
+  - Página para CRUD de categorias principais
+  - Interface para CRUD de subcategorias
+  - Drag & drop para reorganizar hierarquia
   - **Estimativa:** 8 pontos | **Assignee:** @frontend-dev
+
+- [x] **CAT-005** - Seletor hierárquico em transações ✅
+  - Dropdown aninhado categoria > subcategoria
+  - Busca por nome em categorias e subcategorias
+  - Exibição hierárquica na listagem de transações
+  - **Estimativa:** 5 pontos | **Assignee:** @frontend-dev
+
+#### 🏷️ Exemplos de Categorias Pré-definidas
+```
+📍 Alimentação
+  ├── 🥖 Padaria
+  ├── ☕ Cafeteria
+  ├── 🚚 Delivery
+  ├── 🍽️ Restaurante
+  └── 🛒 Supermercado
+
+💻 Assinaturas
+  ├── 🎮 Jogos
+  ├── 📺 Streaming
+  ├── 📱 Aplicativos
+  └── ☁️ Cloud/Software
+
+🚗 Transporte
+  ├── ⛽ Combustível
+  ├── 🚌 Transporte Público
+  ├── 🚗 Uber/Taxi
+  └── 🛠️ Manutenção
+
+📱 Telefonia
+  ├── 📞 Celular
+  ├── 🌐 Internet
+  └── 📺 TV a Cabo
+```
 
 #### 🛠️ APIs Essenciais Backend
 - [ ] **BE-001** - Implementar ViewSets completos para todas as entidades

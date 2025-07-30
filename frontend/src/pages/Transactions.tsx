@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { transactionsAPI, accountsAPI, categoriesAPI, creditCardsAPI } from '@/services/api';
 import type { Transaction, Account, Category, CreditCard } from '@/types';
+import CategorySelector from '@/components/CategorySelector';
 import toast from 'react-hot-toast';
 
 interface Filtros {
@@ -189,6 +190,16 @@ const Transactions: React.FC = () => {
         </span>
       </div>
     );
+  };
+
+  const getCategoriaDisplay = (transaction: Transaction) => {
+    if (!transaction.category_name) {
+      return 'Sem categoria';
+    }
+
+    // Se tiver informação de categoria pai (future enhancement)
+    // Por enquanto, apenas exibe o nome da categoria
+    return transaction.category_name;
   };
 
   const abrirPopupAdicionar = () => {
@@ -436,7 +447,7 @@ const Transactions: React.FC = () => {
                         <td className="px-6 py-4 text-sm text-gray-900">
                           <div>
                             <div className="font-medium">{transaction.descricao}</div>
-                            <div className="text-gray-500 text-xs">{transaction.category_name || 'Sem categoria'}</div>
+                            <div className="text-gray-500 text-xs">{getCategoriaDisplay(transaction)}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -783,18 +794,13 @@ const Transactions: React.FC = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Categoria
                       </label>
-                      <select
-                        value={formData.category || ''}
-                        onChange={(e) => setFormData(prev => ({ ...prev, category: parseInt(e.target.value) || undefined }))}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">Selecione uma categoria</option>
-                        {categories.map((category) => (
-                          <option key={category.id} value={category.id}>
-                            {category.nome}
-                          </option>
-                        ))}
-                      </select>
+                      <CategorySelector
+                        value={formData.category}
+                        onChange={(categoryId) => setFormData(prev => ({ ...prev, category: categoryId }))}
+                        placeholder="Selecione uma categoria"
+                        showHierarchy={true}
+                        className="w-full"
+                      />
                     </div>
 
                     {/* Parcelas */}
