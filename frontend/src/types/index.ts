@@ -4,6 +4,8 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
+  phone?: string;
+  avatar?: string;
   date_joined: string;
 }
 
@@ -122,15 +124,16 @@ export interface Transaction {
   to_account?: number;
   to_account_name?: string;
   credit_card?: number;
+  credit_card_name?: string;
   tipo: 'entrada' | 'saida' | 'transferencia';
   valor: string;
   valor_formatado: string;
   descricao: string;
-  observacoes: string;
   data: string;
   category?: number;
   category_name?: string;
-  cost_center?: number;
+  beneficiario?: number;
+  beneficiario_name?: string;
   tags: number[];
   tags_list: string[];
   total_parcelas: number;
@@ -150,7 +153,6 @@ export interface TransactionFormData {
   tipo: 'entrada' | 'saida' | 'transferencia';
   valor: number;
   descricao: string;
-  observacoes?: string;
   data: string;
   category?: number;
   cost_center?: number;
@@ -194,6 +196,30 @@ export interface CreditCardBill {
   updated_at: string;
 }
 
+export interface CreditCardInvoice {
+  id: number;
+  credit_card: number;
+  credit_card_name?: string;
+  mes: number;
+  ano: number;
+  data_fechamento: string;
+  data_vencimento: string;
+  valor_total: string;
+  valor_pago: string;
+  valor_restante: string;
+  status: 'aberta' | 'fechada' | 'paga' | 'vencida';
+  status_display?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvoiceValidation {
+  valid: boolean;
+  message?: string;
+  suggested_date?: string;
+  invoice_status?: 'aberta' | 'fechada' | 'paga' | 'vencida';
+}
+
 export interface DashboardData {
   total_accounts: number;
   total_balance: string;
@@ -233,5 +259,9 @@ export interface RegisterRequest {
 export interface AuthResponse {
   user: User;
   token: string;
+  refresh?: string;
   message: string;
 }
+
+// Beneficiaries
+export * from './beneficiary';

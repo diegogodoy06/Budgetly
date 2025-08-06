@@ -1,0 +1,5586 @@
+openapi: 3.0.3
+info:
+  title: Budgetly API
+  version: 1.0.0
+  description: Sistema de Controle Financeiro Pessoal
+paths:
+  /api/accounts/accounts/:
+    get:
+      operationId: api_accounts_accounts_list
+      description: ViewSet para gerenciar contas financeiras
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAccountList'
+          description: ''
+    post:
+      operationId: api_accounts_accounts_create
+      description: ViewSet para gerenciar contas financeiras
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Account'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Account'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+  /api/accounts/accounts/{id}/:
+    get:
+      operationId: api_accounts_accounts_retrieve
+      description: ViewSet para gerenciar contas financeiras
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+    put:
+      operationId: api_accounts_accounts_update
+      description: ViewSet para gerenciar contas financeiras
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Account'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Account'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+    patch:
+      operationId: api_accounts_accounts_partial_update
+      description: ViewSet para gerenciar contas financeiras
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAccount'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAccount'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAccount'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+    delete:
+      operationId: api_accounts_accounts_destroy
+      description: ViewSet para gerenciar contas financeiras
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/accounts/accounts/{id}/update_balance/:
+    post:
+      operationId: api_accounts_accounts_update_balance_create
+      description: Atualiza o saldo da conta
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Account'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Account'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+  /api/accounts/change-password/:
+    post:
+      operationId: api_accounts_change_password_create
+      description: View para alterar senha do usuário
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangePassword'
+          description: ''
+  /api/accounts/credit-cards/:
+    get:
+      operationId: api_accounts_credit_cards_list
+      description: ViewSet para gerenciar cartões de crédito
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCreditCardList'
+          description: ''
+    post:
+      operationId: api_accounts_credit_cards_create
+      description: ViewSet para gerenciar cartões de crédito
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+  /api/accounts/credit-cards/{id}/:
+    get:
+      operationId: api_accounts_credit_cards_retrieve
+      description: ViewSet para gerenciar cartões de crédito
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+    put:
+      operationId: api_accounts_credit_cards_update
+      description: ViewSet para gerenciar cartões de crédito
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+    patch:
+      operationId: api_accounts_credit_cards_partial_update
+      description: ViewSet para gerenciar cartões de crédito
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCreditCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCreditCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCreditCard'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+    delete:
+      operationId: api_accounts_credit_cards_destroy
+      description: ViewSet para gerenciar cartões de crédito
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/accounts/credit-cards/{id}/invoice_preview/:
+    get:
+      operationId: api_accounts_credit_cards_invoice_preview_retrieve
+      description: Preview da próxima fatura do cartão
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+  /api/accounts/credit-cards/{id}/invoices/:
+    get:
+      operationId: api_accounts_credit_cards_invoices_retrieve
+      description: Lista faturas do cartão
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+  /api/accounts/credit-cards/{id}/update_balance/:
+    post:
+      operationId: api_accounts_credit_cards_update_balance_create
+      description: Atualiza o saldo utilizado do cartão
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+  /api/accounts/credit-cards/{id}/validate_date/:
+    post:
+      operationId: api_accounts_credit_cards_validate_date_create
+      description: Valida se uma data pode ser usada para transação
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+  /api/accounts/login/:
+    post:
+      operationId: api_accounts_login_create
+      description: Login view que retorna JWT no formato esperado pelo frontend
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/accounts/profile/:
+    get:
+      operationId: api_accounts_profile_retrieve
+      description: Perfil do usuário logado
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: api_accounts_profile_update
+      description: Perfil do usuário logado
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: api_accounts_profile_partial_update
+      description: Perfil do usuário logado
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/accounts/register/:
+    post:
+      operationId: api_accounts_register_create
+      description: Registro de novos usuários
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegistration'
+          description: ''
+  /api/accounts/token/refresh/:
+    post:
+      operationId: api_accounts_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/accounts/workspaces/:
+    get:
+      operationId: api_accounts_workspaces_list
+      description: ViewSet para gerenciamento de workspaces
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedWorkspaceList'
+          description: ''
+    post:
+      operationId: api_accounts_workspaces_create
+      description: ViewSet para gerenciamento de workspaces
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+  /api/accounts/workspaces/{id}/:
+    get:
+      operationId: api_accounts_workspaces_retrieve
+      description: ViewSet para gerenciamento de workspaces
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+    put:
+      operationId: api_accounts_workspaces_update
+      description: ViewSet para gerenciamento de workspaces
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+    patch:
+      operationId: api_accounts_workspaces_partial_update
+      description: ViewSet para gerenciamento de workspaces
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspace'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspace'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspace'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+    delete:
+      operationId: api_accounts_workspaces_destroy
+      description: Desativar workspace (soft delete)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/accounts/workspaces/{id}/invite_member/:
+    post:
+      operationId: api_accounts_workspaces_invite_member_create
+      description: Convida um membro para o workspace
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+  /api/accounts/workspaces/{id}/leave/:
+    post:
+      operationId: api_accounts_workspaces_leave_create
+      description: Sair do workspace
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+  /api/accounts/workspaces/{id}/members/:
+    get:
+      operationId: api_accounts_workspaces_members_retrieve
+      description: Lista todos os membros do workspace
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+  /api/accounts/workspaces/{id}/members/{member_id}/:
+    patch:
+      operationId: api_accounts_workspaces_members_partial_update
+      description: Atualiza papel de um membro do workspace
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      - in: path
+        name: member_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspace'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspace'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspace'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+    delete:
+      operationId: api_accounts_workspaces_members_destroy
+      description: Remove um membro do workspace
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      - in: path
+        name: member_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auth/accounts/:
+    get:
+      operationId: api_auth_accounts_list
+      description: ViewSet para gerenciar contas financeiras
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAccountList'
+          description: ''
+    post:
+      operationId: api_auth_accounts_create
+      description: ViewSet para gerenciar contas financeiras
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Account'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Account'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+  /api/auth/accounts/{id}/:
+    get:
+      operationId: api_auth_accounts_retrieve
+      description: ViewSet para gerenciar contas financeiras
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+    put:
+      operationId: api_auth_accounts_update
+      description: ViewSet para gerenciar contas financeiras
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Account'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Account'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+    patch:
+      operationId: api_auth_accounts_partial_update
+      description: ViewSet para gerenciar contas financeiras
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAccount'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAccount'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAccount'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+    delete:
+      operationId: api_auth_accounts_destroy
+      description: ViewSet para gerenciar contas financeiras
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auth/accounts/{id}/update_balance/:
+    post:
+      operationId: api_auth_accounts_update_balance_create
+      description: Atualiza o saldo da conta
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this account.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Account'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Account'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+  /api/auth/change-password/:
+    post:
+      operationId: api_auth_change_password_create
+      description: View para alterar senha do usuário
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangePassword'
+          description: ''
+  /api/auth/credit-cards/:
+    get:
+      operationId: api_auth_credit_cards_list
+      description: ViewSet para gerenciar cartões de crédito
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCreditCardList'
+          description: ''
+    post:
+      operationId: api_auth_credit_cards_create
+      description: ViewSet para gerenciar cartões de crédito
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+  /api/auth/credit-cards/{id}/:
+    get:
+      operationId: api_auth_credit_cards_retrieve
+      description: ViewSet para gerenciar cartões de crédito
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+    put:
+      operationId: api_auth_credit_cards_update
+      description: ViewSet para gerenciar cartões de crédito
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+    patch:
+      operationId: api_auth_credit_cards_partial_update
+      description: ViewSet para gerenciar cartões de crédito
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCreditCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCreditCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCreditCard'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+    delete:
+      operationId: api_auth_credit_cards_destroy
+      description: ViewSet para gerenciar cartões de crédito
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auth/credit-cards/{id}/invoice_preview/:
+    get:
+      operationId: api_auth_credit_cards_invoice_preview_retrieve
+      description: Preview da próxima fatura do cartão
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+  /api/auth/credit-cards/{id}/invoices/:
+    get:
+      operationId: api_auth_credit_cards_invoices_retrieve
+      description: Lista faturas do cartão
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+  /api/auth/credit-cards/{id}/update_balance/:
+    post:
+      operationId: api_auth_credit_cards_update_balance_create
+      description: Atualiza o saldo utilizado do cartão
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+  /api/auth/credit-cards/{id}/validate_date/:
+    post:
+      operationId: api_auth_credit_cards_validate_date_create
+      description: Valida se uma data pode ser usada para transação
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this credit card.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreditCard'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCard'
+          description: ''
+  /api/auth/login/:
+    post:
+      operationId: api_auth_login_create
+      description: Login view que retorna JWT no formato esperado pelo frontend
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/auth/profile/:
+    get:
+      operationId: api_auth_profile_retrieve
+      description: Perfil do usuário logado
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: api_auth_profile_update
+      description: Perfil do usuário logado
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: api_auth_profile_partial_update
+      description: Perfil do usuário logado
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/auth/register/:
+    post:
+      operationId: api_auth_register_create
+      description: Registro de novos usuários
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegistration'
+          description: ''
+  /api/auth/token/refresh/:
+    post:
+      operationId: api_auth_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/auth/workspaces/:
+    get:
+      operationId: api_auth_workspaces_list
+      description: ViewSet para gerenciamento de workspaces
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedWorkspaceList'
+          description: ''
+    post:
+      operationId: api_auth_workspaces_create
+      description: ViewSet para gerenciamento de workspaces
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+  /api/auth/workspaces/{id}/:
+    get:
+      operationId: api_auth_workspaces_retrieve
+      description: ViewSet para gerenciamento de workspaces
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+    put:
+      operationId: api_auth_workspaces_update
+      description: ViewSet para gerenciamento de workspaces
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+    patch:
+      operationId: api_auth_workspaces_partial_update
+      description: ViewSet para gerenciamento de workspaces
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspace'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspace'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspace'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+    delete:
+      operationId: api_auth_workspaces_destroy
+      description: Desativar workspace (soft delete)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auth/workspaces/{id}/invite_member/:
+    post:
+      operationId: api_auth_workspaces_invite_member_create
+      description: Convida um membro para o workspace
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+  /api/auth/workspaces/{id}/leave/:
+    post:
+      operationId: api_auth_workspaces_leave_create
+      description: Sair do workspace
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Workspace'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+  /api/auth/workspaces/{id}/members/:
+    get:
+      operationId: api_auth_workspaces_members_retrieve
+      description: Lista todos os membros do workspace
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+  /api/auth/workspaces/{id}/members/{member_id}/:
+    patch:
+      operationId: api_auth_workspaces_members_partial_update
+      description: Atualiza papel de um membro do workspace
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      - in: path
+        name: member_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspace'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspace'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspace'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+    delete:
+      operationId: api_auth_workspaces_members_destroy
+      description: Remove um membro do workspace
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this workspace.
+        required: true
+      - in: path
+        name: member_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/beneficiaries/:
+    get:
+      operationId: api_beneficiaries_list
+      description: ViewSet para gerenciar beneficiários
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBeneficiaryList'
+          description: ''
+    post:
+      operationId: api_beneficiaries_create
+      description: ViewSet para gerenciar beneficiários
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BeneficiaryCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BeneficiaryCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BeneficiaryCreate'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeneficiaryCreate'
+          description: ''
+  /api/beneficiaries/{id}/:
+    get:
+      operationId: api_beneficiaries_retrieve
+      description: ViewSet para gerenciar beneficiários
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Beneficiário.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Beneficiary'
+          description: ''
+    put:
+      operationId: api_beneficiaries_update
+      description: ViewSet para gerenciar beneficiários
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Beneficiário.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Beneficiary'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Beneficiary'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Beneficiary'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Beneficiary'
+          description: ''
+    patch:
+      operationId: api_beneficiaries_partial_update
+      description: ViewSet para gerenciar beneficiários
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Beneficiário.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBeneficiary'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBeneficiary'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBeneficiary'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Beneficiary'
+          description: ''
+    delete:
+      operationId: api_beneficiaries_destroy
+      description: Soft delete - marcar como inativo em vez de deletar
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Beneficiário.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/beneficiaries/bulk_create/:
+    post:
+      operationId: api_beneficiaries_bulk_create_create
+      description: Criar múltiplos beneficiários de uma vez (para imports)
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Beneficiary'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Beneficiary'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Beneficiary'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Beneficiary'
+          description: ''
+  /api/beneficiaries/search/:
+    get:
+      operationId: api_beneficiaries_search_retrieve
+      description: Buscar beneficiários por nome
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Beneficiary'
+          description: ''
+  /api/beneficiaries/search-or-create/:
+    post:
+      operationId: api_beneficiaries_search_or_create_create
+      description: |-
+        Busca beneficiário por nome. Se não encontrar, cria automaticamente.
+        Para uso no dropdown com auto-criação.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Beneficiary'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Beneficiary'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Beneficiary'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Beneficiary'
+          description: ''
+  /api/budgets/:
+    get:
+      operationId: api_budgets_list
+      description: Mixin que EXIGE workspace válido para acessar a view
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBudgetList'
+          description: ''
+    post:
+      operationId: api_budgets_create
+      description: Mixin que EXIGE workspace válido para acessar a view
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Budget'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Budget'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Budget'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+          description: ''
+  /api/budgets/{id}/:
+    get:
+      operationId: api_budgets_retrieve
+      description: Mixin que EXIGE workspace válido para acessar a view
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+          description: ''
+    put:
+      operationId: api_budgets_update
+      description: Mixin que EXIGE workspace válido para acessar a view
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Budget'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Budget'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Budget'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+          description: ''
+    patch:
+      operationId: api_budgets_partial_update
+      description: Mixin que EXIGE workspace válido para acessar a view
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBudget'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBudget'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBudget'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+          description: ''
+    delete:
+      operationId: api_budgets_destroy
+      description: Mixin que EXIGE workspace válido para acessar a view
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/budgets/alerts/:
+    get:
+      operationId: api_budgets_alerts_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBudgetAlertList'
+          description: ''
+  /api/budgets/alerts/{alert_id}/read/:
+    post:
+      operationId: api_budgets_alerts_read_create
+      description: Marca um alerta como lido
+      parameters:
+      - in: path
+        name: alert_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/budgets/summary/:
+    get:
+      operationId: api_budgets_summary_retrieve
+      description: Retorna resumo dos orçamentos
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/budgets/update-spent/:
+    post:
+      operationId: api_budgets_update_spent_create
+      description: Atualiza os valores gastos de todos os orçamentos do usuário
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/categories/categories/:
+    get:
+      operationId: api_categories_categories_list
+      description: ViewSet para gerenciar categorias
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCategoryList'
+          description: ''
+    post:
+      operationId: api_categories_categories_create
+      description: ViewSet para gerenciar categorias
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Category'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Category'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+  /api/categories/categories/{id}/:
+    get:
+      operationId: api_categories_categories_retrieve
+      description: ViewSet para gerenciar categorias
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    put:
+      operationId: api_categories_categories_update
+      description: ViewSet para gerenciar categorias
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Category'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Category'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    patch:
+      operationId: api_categories_categories_partial_update
+      description: ViewSet para gerenciar categorias
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCategory'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCategory'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCategory'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+    delete:
+      operationId: api_categories_categories_destroy
+      description: ViewSet para gerenciar categorias
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/categories/categories/flat-list/:
+    get:
+      operationId: api_categories_categories_flat_list_retrieve
+      description: Retorna categorias em lista plana para dropdown
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+  /api/categories/categories/hierarchy/:
+    get:
+      operationId: api_categories_categories_hierarchy_retrieve
+      description: |-
+        Retorna categorias organizadas hierarquicamente.
+        Categorias principais com suas subcategorias aninhadas.
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+  /api/categories/cost-centers/:
+    get:
+      operationId: api_categories_cost_centers_list
+      description: ViewSet para gerenciar centros de custo
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCostCenterList'
+          description: ''
+    post:
+      operationId: api_categories_cost_centers_create
+      description: ViewSet para gerenciar centros de custo
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CostCenter'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CostCenter'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CostCenter'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostCenter'
+          description: ''
+  /api/categories/cost-centers/{id}/:
+    get:
+      operationId: api_categories_cost_centers_retrieve
+      description: ViewSet para gerenciar centros de custo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Centro de Custo.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostCenter'
+          description: ''
+    put:
+      operationId: api_categories_cost_centers_update
+      description: ViewSet para gerenciar centros de custo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Centro de Custo.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CostCenter'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CostCenter'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CostCenter'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostCenter'
+          description: ''
+    patch:
+      operationId: api_categories_cost_centers_partial_update
+      description: ViewSet para gerenciar centros de custo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Centro de Custo.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCostCenter'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCostCenter'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCostCenter'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostCenter'
+          description: ''
+    delete:
+      operationId: api_categories_cost_centers_destroy
+      description: ViewSet para gerenciar centros de custo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Centro de Custo.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/reports/:
+    get:
+      operationId: api_reports_list
+      description: Lista e cria relatórios
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReportList'
+          description: ''
+    post:
+      operationId: api_reports_create
+      description: Lista e cria relatórios
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Report'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Report'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Report'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+          description: ''
+  /api/reports/{id}/:
+    get:
+      operationId: api_reports_retrieve
+      description: Detalhes, atualização e exclusão de relatório
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+          description: ''
+    put:
+      operationId: api_reports_update
+      description: Detalhes, atualização e exclusão de relatório
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Report'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Report'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Report'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+          description: ''
+    patch:
+      operationId: api_reports_partial_update
+      description: Detalhes, atualização e exclusão de relatório
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReport'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReport'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReport'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+          description: ''
+    delete:
+      operationId: api_reports_destroy
+      description: Detalhes, atualização e exclusão de relatório
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/reports/imports/:
+    get:
+      operationId: api_reports_imports_list
+      description: Lista histórico de importações
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedImportHistoryList'
+          description: ''
+  /api/transactions/best-purchase-date/:
+    get:
+      operationId: api_transactions_best_purchase_date_retrieve
+      description: Calcula a melhor data de compra para um cartão de crédito
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/transactions/invoices/:
+    get:
+      operationId: api_transactions_invoices_list
+      description: ViewSet para gerenciar faturas de cartão de crédito
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCreditCardInvoiceList'
+          description: ''
+    post:
+      operationId: api_transactions_invoices_create
+      description: ViewSet para gerenciar faturas de cartão de crédito
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditCardInvoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreditCardInvoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreditCardInvoice'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCardInvoice'
+          description: ''
+  /api/transactions/invoices/{id}/:
+    get:
+      operationId: api_transactions_invoices_retrieve
+      description: ViewSet para gerenciar faturas de cartão de crédito
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCardInvoice'
+          description: ''
+    put:
+      operationId: api_transactions_invoices_update
+      description: ViewSet para gerenciar faturas de cartão de crédito
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditCardInvoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreditCardInvoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreditCardInvoice'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCardInvoice'
+          description: ''
+    patch:
+      operationId: api_transactions_invoices_partial_update
+      description: ViewSet para gerenciar faturas de cartão de crédito
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCreditCardInvoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCreditCardInvoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCreditCardInvoice'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCardInvoice'
+          description: ''
+    delete:
+      operationId: api_transactions_invoices_destroy
+      description: ViewSet para gerenciar faturas de cartão de crédito
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/transactions/invoices/{id}/close/:
+    post:
+      operationId: api_transactions_invoices_close_create
+      description: Fecha uma fatura calculando o total das transações
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditCardInvoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreditCardInvoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreditCardInvoice'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCardInvoice'
+          description: ''
+  /api/transactions/invoices/{id}/pay/:
+    post:
+      operationId: api_transactions_invoices_pay_create
+      description: Registra pagamento de uma fatura
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditCardInvoice'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreditCardInvoice'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreditCardInvoice'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCardInvoice'
+          description: ''
+  /api/transactions/invoices/by_card/:
+    get:
+      operationId: api_transactions_invoices_by_card_retrieve
+      description: Lista faturas por cartão
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditCardInvoice'
+          description: ''
+  /api/transactions/transactions/:
+    get:
+      operationId: api_transactions_transactions_list
+      description: ViewSet para gerenciar transações
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTransactionList'
+          description: ''
+    post:
+      operationId: api_transactions_transactions_create
+      description: ViewSet para gerenciar transações
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: ''
+  /api/transactions/transactions/{id}/:
+    get:
+      operationId: api_transactions_transactions_retrieve
+      description: ViewSet para gerenciar transações
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Transação.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: ''
+    put:
+      operationId: api_transactions_transactions_update
+      description: ViewSet para gerenciar transações
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Transação.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+        required: true
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: ''
+    patch:
+      operationId: api_transactions_transactions_partial_update
+      description: ViewSet para gerenciar transações
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Transação.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTransaction'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTransaction'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTransaction'
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: ''
+    delete:
+      operationId: api_transactions_transactions_destroy
+      description: ViewSet para gerenciar transações
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this Transação.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/transactions/transactions/summary/:
+    get:
+      operationId: api_transactions_transactions_summary_retrieve
+      description: Resumo de transações por período
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: ''
+  /api/transactions/validate-date/:
+    post:
+      operationId: api_transactions_validate_date_create
+      description: Valida se uma data pode ser usada para transação em cartão
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        tipo:
+          $ref: '#/components/schemas/AccountTipoEnum'
+        banco:
+          type: string
+          nullable: true
+          maxLength: 100
+        codigo_banco:
+          type: string
+          nullable: true
+          description: Código de 3 dígitos do banco
+          maxLength: 3
+        saldo_inicial:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        saldo_atual:
+          type: string
+          readOnly: true
+        saldo_formatado:
+          type: string
+          readOnly: true
+        eh_conta:
+          type: boolean
+        cor:
+          type: string
+          maxLength: 20
+        icone:
+          type: string
+          maxLength: 20
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - nome
+      - saldo_atual
+      - saldo_formatado
+      - tipo
+      - updated_at
+    AccountTipoEnum:
+      enum:
+      - conta-bancaria
+      - conta-investimento
+      - criptomoeda
+      - cofre
+      - cartao-prepago
+      type: string
+      description: |-
+        * `conta-bancaria` - Conta Bancária
+        * `conta-investimento` - Conta de Investimento
+        * `criptomoeda` - Criptomoeda
+        * `cofre` - Cofre
+        * `cartao-prepago` - Cartão Pré-pago
+    BandeiraEnum:
+      enum:
+      - Visa
+      - Mastercard
+      - Elo
+      - American Express
+      - Hipercard
+      - Diners Club
+      - Discover
+      - JCB
+      - UnionPay
+      - Cabal
+      - Aura
+      - Banricompras
+      type: string
+      description: |-
+        * `Visa` - Visa
+        * `Mastercard` - Mastercard
+        * `Elo` - Elo
+        * `American Express` - American Express
+        * `Hipercard` - Hipercard
+        * `Diners Club` - Diners Club
+        * `Discover` - Discover
+        * `JCB` - JCB
+        * `UnionPay` - UnionPay
+        * `Cabal` - Cabal
+        * `Aura` - Aura
+        * `Banricompras` - Banricompras
+    Beneficiary:
+      type: object
+      description: Serializer para beneficiários
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          title: Nome do Beneficiário
+          maxLength: 255
+        is_system:
+          type: boolean
+          readOnly: true
+          title: Beneficiário do Sistema
+          description: Beneficiários criados automaticamente pelo sistema (contas/cartões)
+        is_active:
+          type: boolean
+          title: Ativo
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Atualizado em
+      required:
+      - created_at
+      - id
+      - is_system
+      - nome
+      - updated_at
+    BeneficiaryCreate:
+      type: object
+      description: Serializer para criação de beneficiários
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          title: Nome do Beneficiário
+          maxLength: 255
+        is_system:
+          type: boolean
+          readOnly: true
+          title: Beneficiário do Sistema
+          description: Beneficiários criados automaticamente pelo sistema (contas/cartões)
+        is_active:
+          type: boolean
+          title: Ativo
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Atualizado em
+      required:
+      - created_at
+      - id
+      - is_system
+      - nome
+      - updated_at
+    Budget:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        descricao:
+          type: string
+        tipo:
+          $ref: '#/components/schemas/BudgetTipoEnum'
+        mes:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+          description: Mês (1-12) para orçamentos mensais
+        ano:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        data_inicio:
+          type: string
+          format: date
+          nullable: true
+          description: Para orçamentos personalizados
+        data_fim:
+          type: string
+          format: date
+          nullable: true
+          description: Para orçamentos personalizados
+        valor_planejado:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        valor_gasto:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        valor_restante:
+          type: string
+          readOnly: true
+        percentual_usado:
+          type: string
+          readOnly: true
+        is_excedido:
+          type: string
+          readOnly: true
+        valor_planejado_formatado:
+          type: string
+          readOnly: true
+        valor_gasto_formatado:
+          type: string
+          readOnly: true
+        categorias:
+          type: array
+          items:
+            $ref: '#/components/schemas/BudgetCategory'
+          readOnly: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - ano
+      - categorias
+      - created_at
+      - id
+      - is_excedido
+      - nome
+      - percentual_usado
+      - updated_at
+      - valor_gasto
+      - valor_gasto_formatado
+      - valor_planejado
+      - valor_planejado_formatado
+      - valor_restante
+    BudgetAlert:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        budget_category:
+          type: integer
+        budget_category_info:
+          type: string
+          readOnly: true
+        tipo_alerta:
+          $ref: '#/components/schemas/TipoAlertaEnum'
+        valor_limite:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          description: Valor em reais ou percentual (0-100)
+        ativo:
+          type: boolean
+        notificado:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - budget_category
+      - budget_category_info
+      - created_at
+      - id
+      - notificado
+      - tipo_alerta
+      - updated_at
+      - valor_limite
+    BudgetCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        category:
+          type: integer
+        category_name:
+          type: string
+          readOnly: true
+        valor_planejado:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        valor_gasto:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        valor_restante:
+          type: string
+          readOnly: true
+        percentual_usado:
+          type: string
+          readOnly: true
+        is_excedido:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - category
+      - category_name
+      - created_at
+      - id
+      - is_excedido
+      - percentual_usado
+      - updated_at
+      - valor_gasto
+      - valor_planejado
+      - valor_restante
+    BudgetTipoEnum:
+      enum:
+      - mensal
+      - anual
+      - personalizado
+      type: string
+      description: |-
+        * `mensal` - Mensal
+        * `anual` - Anual
+        * `personalizado` - Personalizado
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        descricao:
+          type: string
+        cor:
+          type: string
+          description: Cor em formato hexadecimal
+          maxLength: 7
+        icone:
+          type: string
+          maxLength: 50
+        parent:
+          type: integer
+          nullable: true
+          description: Categoria pai (deixe vazio para categoria principal)
+        nivel_importancia:
+          $ref: '#/components/schemas/NivelImportanciaEnum'
+        considerar_dashboard:
+          type: boolean
+          description: Se deve aparecer no dashboard principal
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - nome
+      - updated_at
+    ChangePassword:
+      type: object
+      description: Serializer para mudança de senha
+      properties:
+        old_password:
+          type: string
+          writeOnly: true
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 8
+      required:
+      - new_password
+      - old_password
+    CostCenter:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        descricao:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - nome
+      - updated_at
+    CreditCard:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        bandeira:
+          $ref: '#/components/schemas/BandeiraEnum'
+        ultimos_4_digitos:
+          type: string
+          description: Últimos 4 dígitos do cartão
+          maxLength: 4
+        dia_vencimento:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          description: Dia do vencimento da fatura (1-31)
+        dia_fechamento:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          description: Dia do fechamento da fatura (1-31)
+        limite:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        limite_formatado:
+          type: string
+          readOnly: true
+        saldo_atual:
+          type: string
+          readOnly: true
+        saldo_formatado:
+          type: string
+          readOnly: true
+        disponivel:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        percentual_usado:
+          type: number
+          format: double
+          readOnly: true
+        cor:
+          type: string
+          maxLength: 20
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - bandeira
+      - created_at
+      - dia_fechamento
+      - dia_vencimento
+      - disponivel
+      - id
+      - limite
+      - limite_formatado
+      - nome
+      - percentual_usado
+      - saldo_atual
+      - saldo_formatado
+      - ultimos_4_digitos
+      - updated_at
+    CreditCardInvoice:
+      type: object
+      description: Serializer para faturas de cartão de crédito
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        credit_card:
+          type: integer
+        credit_card_name:
+          type: string
+          readOnly: true
+        mes:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        ano:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        data_fechamento:
+          type: string
+          format: date
+        data_vencimento:
+          type: string
+          format: date
+        valor_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        valor_total_formatado:
+          type: string
+          readOnly: true
+        valor_pago:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        valor_restante:
+          type: string
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/CreditCardInvoiceStatusEnum'
+        status_display:
+          type: string
+          readOnly: true
+        is_current_month:
+          type: string
+          readOnly: true
+        days_to_close:
+          type: string
+          readOnly: true
+        is_overdue:
+          type: string
+          readOnly: true
+        can_add_transactions:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - ano
+      - can_add_transactions
+      - created_at
+      - credit_card
+      - credit_card_name
+      - data_fechamento
+      - data_vencimento
+      - days_to_close
+      - id
+      - is_current_month
+      - is_overdue
+      - mes
+      - status_display
+      - updated_at
+      - valor_restante
+      - valor_total_formatado
+    CreditCardInvoiceStatusEnum:
+      enum:
+      - aberta
+      - fechada
+      - paga
+      - vencida
+      type: string
+      description: |-
+        * `aberta` - Aberta
+        * `fechada` - Fechada
+        * `paga` - Paga
+        * `vencida` - Vencida
+    FormatoArquivoEnum:
+      enum:
+      - csv
+      - xlsx
+      - ofx
+      type: string
+      description: |-
+        * `csv` - CSV
+        * `xlsx` - Excel
+        * `ofx` - OFX
+    ImportHistory:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        arquivo_nome:
+          type: string
+          maxLength: 255
+        formato_arquivo:
+          $ref: '#/components/schemas/FormatoArquivoEnum'
+        total_registros:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        registros_processados:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        registros_erro:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        registros_duplicados:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        status:
+          $ref: '#/components/schemas/ImportHistoryStatusEnum'
+        log_erros:
+          description: Log dos erros encontrados
+        data_importacao:
+          type: string
+          format: date-time
+          readOnly: true
+        data_conclusao:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        user:
+          type: integer
+          readOnly: true
+        account:
+          type: integer
+      required:
+      - account
+      - arquivo_nome
+      - data_conclusao
+      - data_importacao
+      - formato_arquivo
+      - id
+      - user
+    ImportHistoryStatusEnum:
+      enum:
+      - processando
+      - concluido
+      - erro
+      - cancelado
+      type: string
+      description: |-
+        * `processando` - Processando
+        * `concluido` - Concluído
+        * `erro` - Erro
+        * `cancelado` - Cancelado
+    NivelImportanciaEnum:
+      enum:
+      - essencial
+      - necessario
+      - superfluo
+      type: string
+      description: |-
+        * `essencial` - Essencial
+        * `necessario` - Necessário
+        * `superfluo` - Supérfluo
+    PaginatedAccountList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Account'
+    PaginatedBeneficiaryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Beneficiary'
+    PaginatedBudgetAlertList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BudgetAlert'
+    PaginatedBudgetList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Budget'
+    PaginatedCategoryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+    PaginatedCostCenterList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CostCenter'
+    PaginatedCreditCardInvoiceList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreditCardInvoice'
+    PaginatedCreditCardList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreditCard'
+    PaginatedImportHistoryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportHistory'
+    PaginatedReportList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Report'
+    PaginatedTransactionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+    PaginatedWorkspaceList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Workspace'
+    PatchedAccount:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        tipo:
+          $ref: '#/components/schemas/AccountTipoEnum'
+        banco:
+          type: string
+          nullable: true
+          maxLength: 100
+        codigo_banco:
+          type: string
+          nullable: true
+          description: Código de 3 dígitos do banco
+          maxLength: 3
+        saldo_inicial:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        saldo_atual:
+          type: string
+          readOnly: true
+        saldo_formatado:
+          type: string
+          readOnly: true
+        eh_conta:
+          type: boolean
+        cor:
+          type: string
+          maxLength: 20
+        icone:
+          type: string
+          maxLength: 20
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedBeneficiary:
+      type: object
+      description: Serializer para beneficiários
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          title: Nome do Beneficiário
+          maxLength: 255
+        is_system:
+          type: boolean
+          readOnly: true
+          title: Beneficiário do Sistema
+          description: Beneficiários criados automaticamente pelo sistema (contas/cartões)
+        is_active:
+          type: boolean
+          title: Ativo
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Criado em
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Atualizado em
+    PatchedBudget:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        descricao:
+          type: string
+        tipo:
+          $ref: '#/components/schemas/BudgetTipoEnum'
+        mes:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+          description: Mês (1-12) para orçamentos mensais
+        ano:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        data_inicio:
+          type: string
+          format: date
+          nullable: true
+          description: Para orçamentos personalizados
+        data_fim:
+          type: string
+          format: date
+          nullable: true
+          description: Para orçamentos personalizados
+        valor_planejado:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        valor_gasto:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        valor_restante:
+          type: string
+          readOnly: true
+        percentual_usado:
+          type: string
+          readOnly: true
+        is_excedido:
+          type: string
+          readOnly: true
+        valor_planejado_formatado:
+          type: string
+          readOnly: true
+        valor_gasto_formatado:
+          type: string
+          readOnly: true
+        categorias:
+          type: array
+          items:
+            $ref: '#/components/schemas/BudgetCategory'
+          readOnly: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        descricao:
+          type: string
+        cor:
+          type: string
+          description: Cor em formato hexadecimal
+          maxLength: 7
+        icone:
+          type: string
+          maxLength: 50
+        parent:
+          type: integer
+          nullable: true
+          description: Categoria pai (deixe vazio para categoria principal)
+        nivel_importancia:
+          $ref: '#/components/schemas/NivelImportanciaEnum'
+        considerar_dashboard:
+          type: boolean
+          description: Se deve aparecer no dashboard principal
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedCostCenter:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        descricao:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedCreditCard:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        bandeira:
+          $ref: '#/components/schemas/BandeiraEnum'
+        ultimos_4_digitos:
+          type: string
+          description: Últimos 4 dígitos do cartão
+          maxLength: 4
+        dia_vencimento:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          description: Dia do vencimento da fatura (1-31)
+        dia_fechamento:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          description: Dia do fechamento da fatura (1-31)
+        limite:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        limite_formatado:
+          type: string
+          readOnly: true
+        saldo_atual:
+          type: string
+          readOnly: true
+        saldo_formatado:
+          type: string
+          readOnly: true
+        disponivel:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        percentual_usado:
+          type: number
+          format: double
+          readOnly: true
+        cor:
+          type: string
+          maxLength: 20
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedCreditCardInvoice:
+      type: object
+      description: Serializer para faturas de cartão de crédito
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        credit_card:
+          type: integer
+        credit_card_name:
+          type: string
+          readOnly: true
+        mes:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        ano:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        data_fechamento:
+          type: string
+          format: date
+        data_vencimento:
+          type: string
+          format: date
+        valor_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        valor_total_formatado:
+          type: string
+          readOnly: true
+        valor_pago:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        valor_restante:
+          type: string
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/CreditCardInvoiceStatusEnum'
+        status_display:
+          type: string
+          readOnly: true
+        is_current_month:
+          type: string
+          readOnly: true
+        days_to_close:
+          type: string
+          readOnly: true
+        is_overdue:
+          type: string
+          readOnly: true
+        can_add_transactions:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedReport:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        descricao:
+          type: string
+        tipo:
+          $ref: '#/components/schemas/ReportTipoEnum'
+        periodo:
+          $ref: '#/components/schemas/PeriodoEnum'
+        filtros:
+          description: Filtros aplicados ao relatório
+        data_inicio:
+          type: string
+          format: date
+        data_fim:
+          type: string
+          format: date
+        dados:
+          description: Dados do relatório em cache
+        ultima_atualizacao:
+          type: string
+          format: date-time
+          nullable: true
+        is_favorito:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+    PatchedTransaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        tipo:
+          $ref: '#/components/schemas/TransactionTipoEnum'
+        valor:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        valor_formatado:
+          type: string
+          readOnly: true
+        descricao:
+          type: string
+          title: Descrição
+          maxLength: 200
+        data:
+          type: string
+          format: date
+        account:
+          type: integer
+          nullable: true
+          title: Conta de origem
+        account_name:
+          type: string
+          readOnly: true
+        to_account:
+          type: integer
+          nullable: true
+          title: Conta de destino
+        to_account_name:
+          type: string
+          readOnly: true
+        credit_card:
+          type: integer
+          nullable: true
+          title: Cartão de crédito
+        credit_card_name:
+          type: string
+          readOnly: true
+        category:
+          type: integer
+          nullable: true
+        category_name:
+          type: string
+          readOnly: true
+        beneficiario:
+          type: integer
+          nullable: true
+          title: Beneficiário
+        beneficiario_name:
+          type: string
+          readOnly: true
+        total_parcelas:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+        numero_parcela:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+        tipo_recorrencia:
+          $ref: '#/components/schemas/TipoRecorrenciaEnum'
+        data_fim_recorrencia:
+          type: string
+          format: date
+          nullable: true
+        confirmada:
+          type: boolean
+          description: Se a transação foi confirmada/processada
+        tipo_pagamento:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+          title: Usuário
+          description: Obrigatório. 150 caracteres ou menos. Letras, números e @/./+/-/_
+            apenas.
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 30
+        last_name:
+          type: string
+          maxLength: 30
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+          title: Foto do perfil
+        full_name:
+          type: string
+          readOnly: true
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Data de registro
+    PatchedWorkspace:
+      type: object
+      description: Serializer para workspaces
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        descricao:
+          type: string
+        criado_por:
+          type: integer
+          readOnly: true
+        criado_por_nome:
+          type: string
+          readOnly: true
+        criado_por_email:
+          type: string
+          format: email
+          readOnly: true
+        membros_count:
+          type: integer
+          readOnly: true
+        membros:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkspaceMember'
+          readOnly: true
+        user_role:
+          type: string
+          nullable: true
+          readOnly: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PeriodoEnum:
+      enum:
+      - mensal
+      - trimestral
+      - semestral
+      - anual
+      - personalizado
+      type: string
+      description: |-
+        * `mensal` - Mensal
+        * `trimestral` - Trimestral
+        * `semestral` - Semestral
+        * `anual` - Anual
+        * `personalizado` - Personalizado
+    Report:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        descricao:
+          type: string
+        tipo:
+          $ref: '#/components/schemas/ReportTipoEnum'
+        periodo:
+          $ref: '#/components/schemas/PeriodoEnum'
+        filtros:
+          description: Filtros aplicados ao relatório
+        data_inicio:
+          type: string
+          format: date
+        data_fim:
+          type: string
+          format: date
+        dados:
+          description: Dados do relatório em cache
+        ultima_atualizacao:
+          type: string
+          format: date-time
+          nullable: true
+        is_favorito:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+      required:
+      - created_at
+      - data_fim
+      - data_inicio
+      - id
+      - nome
+      - periodo
+      - tipo
+      - updated_at
+      - user
+    ReportTipoEnum:
+      enum:
+      - transacoes
+      - categorias
+      - contas
+      - orcamentos
+      - fluxo_caixa
+      - comparativo
+      type: string
+      description: |-
+        * `transacoes` - Transações
+        * `categorias` - Por Categorias
+        * `contas` - Por Contas
+        * `orcamentos` - Orçamentos
+        * `fluxo_caixa` - Fluxo de Caixa
+        * `comparativo` - Comparativo
+    RoleEnum:
+      enum:
+      - admin
+      - editor
+      - viewer
+      type: string
+      description: |-
+        * `admin` - Administrador
+        * `editor` - Editor
+        * `viewer` - Visualizador
+    TipoAlertaEnum:
+      enum:
+      - percentual
+      - valor_fixo
+      type: string
+      description: |-
+        * `percentual` - Percentual
+        * `valor_fixo` - Valor Fixo
+    TipoRecorrenciaEnum:
+      enum:
+      - nenhuma
+      - diaria
+      - semanal
+      - mensal
+      - anual
+      type: string
+      description: |-
+        * `nenhuma` - Nenhuma
+        * `diaria` - Diária
+        * `semanal` - Semanal
+        * `mensal` - Mensal
+        * `anual` - Anual
+    TokenObtainPair:
+      type: object
+      properties:
+        email:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - email
+      - password
+      - refresh
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        tipo:
+          $ref: '#/components/schemas/TransactionTipoEnum'
+        valor:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        valor_formatado:
+          type: string
+          readOnly: true
+        descricao:
+          type: string
+          title: Descrição
+          maxLength: 200
+        data:
+          type: string
+          format: date
+        account:
+          type: integer
+          nullable: true
+          title: Conta de origem
+        account_name:
+          type: string
+          readOnly: true
+        to_account:
+          type: integer
+          nullable: true
+          title: Conta de destino
+        to_account_name:
+          type: string
+          readOnly: true
+        credit_card:
+          type: integer
+          nullable: true
+          title: Cartão de crédito
+        credit_card_name:
+          type: string
+          readOnly: true
+        category:
+          type: integer
+          nullable: true
+        category_name:
+          type: string
+          readOnly: true
+        beneficiario:
+          type: integer
+          nullable: true
+          title: Beneficiário
+        beneficiario_name:
+          type: string
+          readOnly: true
+        total_parcelas:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+        numero_parcela:
+          type: integer
+          maximum: 2147483647
+          minimum: 1
+        tipo_recorrencia:
+          $ref: '#/components/schemas/TipoRecorrenciaEnum'
+        data_fim_recorrencia:
+          type: string
+          format: date
+          nullable: true
+        confirmada:
+          type: boolean
+          description: Se a transação foi confirmada/processada
+        tipo_pagamento:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - account_name
+      - beneficiario_name
+      - category_name
+      - created_at
+      - credit_card_name
+      - data
+      - descricao
+      - id
+      - tipo
+      - tipo_pagamento
+      - to_account_name
+      - updated_at
+      - valor
+      - valor_formatado
+    TransactionTipoEnum:
+      enum:
+      - entrada
+      - saida
+      - transferencia
+      type: string
+      description: |-
+        * `entrada` - Entrada
+        * `saida` - Saída
+        * `transferencia` - Transferência
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+          title: Usuário
+          description: Obrigatório. 150 caracteres ou menos. Letras, números e @/./+/-/_
+            apenas.
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 30
+        last_name:
+          type: string
+          maxLength: 30
+        phone:
+          type: string
+          nullable: true
+          title: Telefone
+          maxLength: 20
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+          title: Foto do perfil
+        full_name:
+          type: string
+          readOnly: true
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Data de registro
+      required:
+      - date_joined
+      - email
+      - full_name
+      - id
+      - username
+    UserRegistration:
+      type: object
+      properties:
+        username:
+          type: string
+          title: Usuário
+          description: Obrigatório. 150 caracteres ou menos. Letras, números e @/./+/-/_
+            apenas.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
+        password_confirm:
+          type: string
+          writeOnly: true
+        first_name:
+          type: string
+          maxLength: 30
+        last_name:
+          type: string
+          maxLength: 30
+      required:
+      - email
+      - password
+      - password_confirm
+      - username
+    Workspace:
+      type: object
+      description: Serializer para workspaces
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 100
+        descricao:
+          type: string
+        criado_por:
+          type: integer
+          readOnly: true
+        criado_por_nome:
+          type: string
+          readOnly: true
+        criado_por_email:
+          type: string
+          format: email
+          readOnly: true
+        membros_count:
+          type: integer
+          readOnly: true
+        membros:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkspaceMember'
+          readOnly: true
+        user_role:
+          type: string
+          nullable: true
+          readOnly: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - criado_por
+      - criado_por_email
+      - criado_por_nome
+      - id
+      - membros
+      - membros_count
+      - nome
+      - updated_at
+      - user_role
+    WorkspaceMember:
+      type: object
+      description: Serializer para membros do workspace
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+        user_email:
+          type: string
+          format: email
+          readOnly: true
+        user_name:
+          type: string
+          readOnly: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        role_display:
+          type: string
+          readOnly: true
+        joined_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+      required:
+      - id
+      - joined_at
+      - role_display
+      - user
+      - user_email
+      - user_name
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"

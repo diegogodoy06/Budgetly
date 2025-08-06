@@ -10,15 +10,18 @@ import {
   PencilIcon,
   TrashIcon,
   MagnifyingGlassIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  ArrowPathIcon,
+  XCircleIcon
 } from '@heroicons/react/24/outline';
 import { useAccounts } from '../hooks/useAccounts';
 import { Account, AccountFormData } from '../types';
 import { bancosBrasileiros } from '../data/bancos';
 import { BancoLogo } from '../utils/assets';
+import { accountsAPI } from '@/services/api';
 
 const Accounts: React.FC = () => {
-  const { accounts, loading, error, createAccount, updateAccount, deleteAccount } = useAccounts();
+  const { accounts, loading, error, createAccount, updateAccount, deleteAccount, recalculateAllBalances, resetInitialBalances } = useAccounts();
   
   const [mostrarModal, setMostrarModal] = useState(false);
   const [carteiraEditando, setCarteiraEditando] = useState<Account | null>(null);
@@ -238,7 +241,27 @@ const Accounts: React.FC = () => {
             Gerencie suas carteiras, contas bancárias, investimentos e mais
           </p>
         </div>
-        <div className="mt-4 flex md:mt-0 md:ml-4">
+        <div className="mt-4 flex space-x-3 md:mt-0 md:ml-4">
+          <button
+            type="button"
+            onClick={resetInitialBalances}
+            disabled={loading}
+            className="inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Zerar saldos iniciais de contas sem transações"
+          >
+            <XCircleIcon className={`h-4 w-4 mr-2 ${loading ? 'animate-pulse' : ''}`} />
+            {loading ? 'Zerando...' : 'Zerar Saldos'}
+          </button>
+          <button
+            type="button"
+            onClick={recalculateAllBalances}
+            disabled={loading}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Recalcular saldos das contas baseado nas transações"
+          >
+            <ArrowPathIcon className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            {loading ? 'Recalculando...' : 'Recalcular Saldos'}
+          </button>
           <button
             type="button"
             onClick={() => setMostrarModal(true)}
@@ -319,13 +342,13 @@ const Accounts: React.FC = () => {
               return (
                 <div key={account.id} className="group relative">
                   {/* Card com gradiente baseado no banco */}
-                  <div className={`bg-gradient-to-br ${corBanco} rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1`}>
+                  <div className={`bg-gradient-to-br ${corBanco} rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-48 flex flex-col`}>
                     
                     {/* Header do card */}
                     <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
                         {account.codigo_banco ? (
-                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+                          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm flex-shrink-0">
                             <BancoLogo 
                               codigoBanco={account.codigo_banco} 
                               nomeBanco={account.banco}
@@ -333,14 +356,26 @@ const Accounts: React.FC = () => {
                             />
                           </div>
                         ) : (
-                          <div className="w-12 h-12 bg-white bg-opacity-20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                          <div className="w-12 h-12 bg-white bg-opacity-20 backdrop-blur-sm rounded-full flex items-center justify-center flex-shrink-0">
                             <IconComponent className="h-6 w-6 text-white" />
                           </div>
                         )}
+                        
+                        {/* Tipo e banco ao lado do ícone */}
+                        <div className="flex flex-col justify-center min-w-0 flex-1">
+                          <span className="text-sm text-white text-opacity-90 font-medium capitalize truncate">
+                            {account.tipo.replace('-', ' ')}
+                          </span>
+                          {account.banco && (
+                            <span className="text-xs text-white text-opacity-70 truncate">
+                              {account.banco.replace(' S.A.', '').replace(' BANCO MÚLTIPLO', '')}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       
                       {/* Botões de ação */}
-                      <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                         <button
                           onClick={() => handleEditar(account)}
                           className="p-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-all"
@@ -356,28 +391,14 @@ const Accounts: React.FC = () => {
                       </div>
                     </div>
                     
-                    {/* Informações da conta */}
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-semibold text-white truncate">
+                    {/* Informações da conta - flex-1 para ocupar espaço restante */}
+                    <div className="flex-1 flex flex-col justify-between">
+                      <h3 className="text-lg font-semibold text-white truncate mb-4">
                         {account.nome}
                       </h3>
                       
-                      <div className="flex items-center space-x-2 text-white text-opacity-80">
-                        <span className="text-sm capitalize">
-                          {account.tipo.replace('-', ' ')}
-                        </span>
-                        {account.banco && (
-                          <>
-                            <span className="text-xs">•</span>
-                            <span className="text-sm truncate">
-                              {account.banco.replace(' S.A.', '').replace(' BANCO MÚLTIPLO', '')}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                      
-                      {/* Saldo atual */}
-                      <div className="mt-4 pt-4 border-t border-white border-opacity-20">
+                      {/* Saldo atual - sempre no final */}
+                      <div className="pt-4 border-t border-white border-opacity-20">
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-white text-opacity-80">Saldo Atual</span>
                           <span className="text-xl font-bold text-white">
@@ -630,6 +651,9 @@ const Accounts: React.FC = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Saldo inicial
+                      {carteiraEditando && (
+                        <span className="text-xs text-gray-500 ml-2">(não editável)</span>
+                      )}
                     </label>
                     <div className="relative">
                       <span className="absolute left-3 top-2 text-gray-500 text-sm">R$</span>
@@ -637,12 +661,21 @@ const Accounts: React.FC = () => {
                         type="number"
                         step="0.01"
                         value={novaCarteira.saldo_inicial}
-                        onChange={(e) => setNovaCarteira(prev => ({ ...prev, saldo_inicial: parseFloat(e.target.value) || 0 }))}
+                        onChange={carteiraEditando ? undefined : (e) => setNovaCarteira(prev => ({ ...prev, saldo_inicial: parseFloat(e.target.value) || 0 }))}
                         placeholder="0,00"
-                        className="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
+                        disabled={carteiraEditando !== null}
+                        className={`w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                          carteiraEditando ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                        }`}
+                        required={!carteiraEditando}
                       />
                     </div>
+                    {carteiraEditando && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        O saldo inicial não pode ser alterado após a criação da conta. 
+                        Ele foi usado para gerar uma transação automática.
+                      </p>
+                    )}
                   </div>
 
                   {/* Toggle Switch "É uma conta" */}

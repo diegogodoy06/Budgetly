@@ -4,14 +4,16 @@ from rest_framework.response import Response
 from django.db.models import Sum, Q, F
 from .models import Budget, BudgetAlert
 from .serializers import BudgetSerializer, BudgetAlertSerializer, BudgetSummarySerializer
+from apps.accounts.workspace_mixins import WorkspaceRequiredMixin
 
 
-class BudgetListCreateView(generics.ListCreateAPIView):
+class BudgetListCreateView(WorkspaceRequiredMixin, generics.ListCreateAPIView):
     serializer_class = BudgetSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Budget.objects.filter(user=self.request.user, is_active=True)
+        queryset = Budget.objects.filter(is_active=True)
+        queryset = self.get_workspace_queryset(queryset)
         
         # Filtros opcionais
         month = self.request.query_params.get('month')
@@ -28,12 +30,16 @@ class BudgetListCreateView(generics.ListCreateAPIView):
         return queryset
 
 
-class BudgetDetailView(generics.RetrieveUpdateDestroyAPIView):
+class BudgetDetailView(WorkspaceRequiredMixin, generics.RetrieveUpdateDestroyAPIView):
     serializer_class = BudgetSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Budget.objects.filter(user=self.request.user)
+        try:
+            workspace = self.get_user_workspace()
+            return Budget.objects.filter(workspace=workspace)
+        except:
+            return Budget.objects.none()
 
     def perform_destroy(self, instance):
         # Soft delete

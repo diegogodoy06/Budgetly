@@ -26,6 +26,7 @@ class RecurrenceType(models.TextChoices):
 
 class Transaction(models.Model):
     """Modelo para transações financeiras"""
+    workspace = models.ForeignKey('accounts.Workspace', on_delete=models.CASCADE, related_name='transactions')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
     
     # Contas envolvidas
@@ -42,16 +43,18 @@ class Transaction(models.Model):
     # Dados básicos
     tipo = models.CharField(max_length=15, choices=TransactionType.choices)
     valor = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
-    descricao = models.CharField(max_length=255)
-    observacoes = models.TextField(blank=True)
+    descricao = models.CharField(max_length=200, verbose_name="Descrição")
     data = models.DateField()
     
     # Categorização
     category = models.ForeignKey('categories.Category', on_delete=models.SET_NULL, 
                                 null=True, blank=True, related_name='transactions')
-    cost_center = models.ForeignKey('categories.CostCenter', on_delete=models.SET_NULL,
-                                   null=True, blank=True, related_name='transactions')
     tags = models.ManyToManyField('categories.Tag', blank=True, related_name='transactions')
+    
+    # Beneficiário
+    beneficiario = models.ForeignKey('beneficiaries.Beneficiary', on_delete=models.SET_NULL,
+                                   null=True, blank=True, related_name='transactions',
+                                   verbose_name="Beneficiário")
     
     # Parcelamento
     total_parcelas = models.IntegerField(default=1, validators=[MinValueValidator(1)])
@@ -81,13 +84,31 @@ class Transaction(models.Model):
         """Validação personalizada do modelo"""
         from django.core.exceptions import ValidationError
         
-        # Pelo menos account ou credit_card deve ser preenchido
-        if not self.account and not self.credit_card:
-            raise ValidationError("Deve ser especificada uma conta ou cartão de crédito.")
+        # Para transferências, deve ter conta origem e destino
+        if self.tipo == TransactionType.TRANSFERENCIA:
+            if not self.account or not self.to_account:
+                raise ValidationError("Transferências devem ter conta de origem e destino.")
+            if self.account == self.to_account:
+                raise ValidationError("Conta de origem e destino não podem ser iguais.")
+            if self.credit_card:
+                raise ValidationError("Transferências não podem usar cartão de crédito.")
+        else:
+            # Para outros tipos, deve ter account OU credit_card (não ambos)
+            if not self.account and not self.credit_card:
+                raise ValidationError("Deve ser especificada uma conta ou cartão de crédito.")
+            if self.account and self.credit_card:
+                raise ValidationError("Não é possível especificar conta e cartão de crédito ao mesmo tempo.")
         
-        # Não pode ter account e credit_card ao mesmo tempo
-        if self.account and self.credit_card:
-            raise ValidationError("Não é possível especificar conta e cartão de crédito ao mesmo tempo.")
+        # Parcelamento só é válido para cartão de crédito
+        if self.total_parcelas > 1 and not self.credit_card:
+            raise ValidationError("Parcelamento só é permitido para transações de cartão de crédito.")
+        
+        # Validar número da parcela
+        if self.numero_parcela > self.total_parcelas:
+            raise ValidationError("Número da parcela não pode ser maior que o total de parcelas.")
+            
+        # Transações de cartão de crédito agora podem começar como pendentes
+        # e serem confirmadas quando a fatura for paga
 
     @property
     def valor_formatado(self):
@@ -145,19 +166,107 @@ class CreditCardInvoice(models.Model):
     def valor_total_formatado(self):
         """Retorna o valor total formatado em reais"""
         return f"R$ {self.valor_total:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+        
+    @property
+    def is_current_month(self):
+        """Verifica se é a fatura do mês atual"""
+        from datetime import date
+        today = date.today()
+        return self.ano == today.year and self.mes == today.month
+        
+    @property
+    def days_to_close(self):
+        """Dias restantes para fechamento (se aberta)"""
+        if self.status != 'aberta':
+            return 0
+            
+        from datetime import date
+        today = date.today()
+        
+        if not self.is_current_month:
+            return 0
+            
+        return max(0, self.credit_card.dia_fechamento - today.day)
+        
+    @property
+    def is_overdue(self):
+        """Verifica se a fatura está vencida"""
+        from datetime import date
+        return self.status in ['fechada', 'paga'] and date.today() > self.data_vencimento
+        
+    def can_add_transactions(self):
+        """Verifica se ainda é possível adicionar transações nesta fatura"""
+        return self.status == 'aberta' and self.days_to_close > 0
 
     def fechar_fatura(self):
-        """Fecha a fatura calculando o total das transações"""
+        """Fecha a fatura calculando o total das transações e cria transação pendente para pagamento"""
+        from datetime import date
+        from decimal import Decimal
+        
+        if self.status == 'fechada':
+            return  # Já fechada
+            
+        # Calcular o total das transações da fatura baseado no período correto
+        # Para cartão: transações do período de fechamento anterior ao atual
+        data_inicio = date(self.ano, self.mes, 1)
+        if self.mes == 1:
+            data_fim = date(self.ano - 1, 12, self.credit_card.dia_fechamento)
+        else:
+            data_fim = date(self.ano, self.mes - 1, self.credit_card.dia_fechamento)
+            
+        # Se for mês atual, usar até o dia de fechamento
+        if (self.ano == date.today().year and self.mes == date.today().month and 
+            date.today().day >= self.credit_card.dia_fechamento):
+            data_fim = date(self.ano, self.mes, self.credit_card.dia_fechamento)
+        
         transacoes = Transaction.objects.filter(
             credit_card=self.credit_card,
             tipo=TransactionType.SAIDA,
-            data__month=self.mes,
-            data__year=self.ano,
+            data__gte=data_fim + timedelta(days=1) if data_fim else data_inicio,
+            data__lte=date(self.ano, self.mes, self.credit_card.dia_fechamento),
             confirmada=True
         )
-        self.valor_total = sum(t.valor for t in transacoes)
+        
+        self.valor_total = sum(t.valor for t in transacoes) or Decimal('0')
         self.status = 'fechada'
+        
+        # NOVA REGRA: Confirmar todas as transações de cartão desta fatura
+        transacoes_cartao = Transaction.objects.filter(
+            credit_card=self.credit_card,
+            data__gte=data_inicio,
+            data__lte=date(self.ano, self.mes, self.credit_card.dia_fechamento),
+            workspace=self.credit_card.workspace
+        )
+        
+        # Confirmar todas as transações de cartão desta fatura
+        transacoes_confirmadas = transacoes_cartao.update(confirmada=True)
+        print(f"💳 Fatura {self.credit_card.nome} {self.mes:02d}/{self.ano} fechada: {transacoes_confirmadas} transações confirmadas automaticamente")
+        
         self.save()
+        
+        # Criar transação pendente para pagamento da fatura se houver valor
+        if self.valor_total > 0:
+            # Verificar se já existe uma transação de pagamento para esta fatura
+            existing_payment = Transaction.objects.filter(
+                user=self.credit_card.user,
+                workspace=self.credit_card.workspace,
+                descricao__icontains=f"Pagamento fatura {self.credit_card.nome} {self.mes:02d}/{self.ano}",
+                tipo=TransactionType.SAIDA,
+                valor=self.valor_total
+            ).first()
+            
+            if not existing_payment:
+                Transaction.objects.create(
+                    user=self.credit_card.user,
+                    workspace=self.credit_card.workspace,
+                    tipo=TransactionType.SAIDA,
+                    valor=self.valor_total,
+                    descricao=f"Pagamento fatura {self.credit_card.nome} {self.mes:02d}/{self.ano}",
+                    data=self.data_vencimento,
+                    confirmada=False  # Transação pendente
+                )
+                
+        return self
 
     def pagar_fatura(self, valor, conta_origem):
         """Registra o pagamento da fatura"""

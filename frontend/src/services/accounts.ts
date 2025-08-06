@@ -42,7 +42,7 @@ export const accountsService = {
   // Listar todas as contas do usuário
   async getAccounts(): Promise<Account[]> {
     try {
-      const response = await api.get<PaginatedResponse<AccountResponse>>('/api/accounts/');
+      const response = await api.get<PaginatedResponse<AccountResponse>>('/api/accounts/accounts/');
       return response.data.results.map((account: AccountResponse) => ({
         ...account,
         tipo: account.tipo as Account['tipo']
@@ -56,7 +56,7 @@ export const accountsService = {
   // Buscar uma conta específica
   async getAccount(id: number): Promise<Account> {
     try {
-      const response = await api.get<AccountResponse>(`/api/accounts/${id}/`);
+      const response = await api.get<AccountResponse>(`/api/accounts/accounts/${id}/`);
       return {
         ...response.data,
         tipo: response.data.tipo as Account['tipo']
@@ -81,7 +81,7 @@ export const accountsService = {
         icone: accountData.icone
       };
 
-      const response = await api.post<AccountResponse>('/api/accounts/', payload);
+      const response = await api.post<AccountResponse>('/api/accounts/accounts/', payload);
       return {
         ...response.data,
         tipo: response.data.tipo as Account['tipo']
@@ -118,7 +118,7 @@ export const accountsService = {
         icone: accountData.icone
       };
 
-      const response = await api.put<AccountResponse>(`/api/accounts/${id}/`, payload);
+      const response = await api.put<AccountResponse>(`/api/accounts/accounts/${id}/`, payload);
       return {
         ...response.data,
         tipo: response.data.tipo as Account['tipo']
@@ -144,7 +144,7 @@ export const accountsService = {
   // Deletar conta (soft delete)
   async deleteAccount(id: number): Promise<void> {
     try {
-      await api.delete(`/api/accounts/${id}/`);
+      await api.delete(`/api/accounts/accounts/${id}/`);
     } catch (error) {
       console.error('Erro ao deletar conta:', error);
       throw new Error('Erro ao deletar conta');
@@ -154,7 +154,7 @@ export const accountsService = {
   // Buscar saldos das contas (endpoint otimizado)
   async getAccountBalances(): Promise<Pick<Account, 'id' | 'nome' | 'tipo' | 'saldo_atual'>[]> {
     try {
-      const response = await api.get<PaginatedResponse<AccountResponse>>('/api/accounts/balances/');
+      const response = await api.get<PaginatedResponse<AccountResponse>>('/api/accounts/accounts/balances/');
       return response.data.results.map((account: AccountResponse) => ({
         id: account.id,
         nome: account.nome,
@@ -164,6 +164,68 @@ export const accountsService = {
     } catch (error) {
       console.error('Erro ao buscar saldos:', error);
       throw new Error('Erro ao carregar saldos');
+    }
+  },
+
+  // Recalcular todos os saldos das contas do workspace
+  async recalculateAllBalances(): Promise<{
+    message: string;
+    contas_atualizadas: number;
+    total_contas: number;
+    resultados: Array<{
+      conta: string;
+      saldo_anterior?: string;
+      saldo_atual: string;
+      diferenca?: string;
+      atualizada: boolean;
+      message?: string;
+    }>;
+  }> {
+    try {
+      const response = await api.post('/api/accounts/accounts/recalculate_all_balances/');
+      return response.data;
+    } catch (error: any) {
+      console.error('Erro ao recalcular saldos:', error);
+      
+      if (error.response?.status === 400) {
+        const errorData = error.response.data;
+        if (errorData.detail) {
+          throw new Error(errorData.detail);
+        }
+      }
+      
+      throw new Error('Erro ao recalcular saldos das contas');
+    }
+  },
+
+  // Zerar saldos iniciais de contas sem transações
+  async resetInitialBalances(): Promise<{
+    message: string;
+    contas_zeradas: number;
+    total_contas: number;
+    resultados: Array<{
+      conta: string;
+      saldo_inicial_anterior?: string;
+      saldo_inicial_atual?: number;
+      saldo_atual?: number;
+      zerada: boolean;
+      motivo?: string;
+    }>;
+  }> {
+    try {
+      const response = await api.post('/api/accounts/accounts/reset_initial_balances/');
+      return response.data;
+    } catch (error: any) {
+      console.error('Erro ao zerar saldos iniciais:', error);
+      
+      if (error.response?.status === 400) {
+        const errorData = error.response.data;
+        if (errorData.detail) {
+          throw new Error(errorData.detail);
+        }
+      }
+      
+      throw new Error('Erro ao zerar saldos iniciais');
     }
   }
 };

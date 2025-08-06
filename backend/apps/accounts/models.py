@@ -3,11 +3,55 @@ from django.db import models
 from decimal import Decimal
 
 
+class Workspace(models.Model):
+    """Modelo para espaços de trabalho compartilhados"""
+    nome = models.CharField(max_length=100)
+    descricao = models.TextField(blank=True)
+    criado_por = models.ForeignKey('User', on_delete=models.CASCADE, related_name='workspaces_criados')
+    membros = models.ManyToManyField('User', through='WorkspaceMember', related_name='workspaces')
+    
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['nome']
+        unique_together = ['criado_por', 'nome']
+
+    def __str__(self):
+        return f"{self.nome} (por {self.criado_por.email})"
+
+
+class WorkspaceMemberRole(models.TextChoices):
+    """Níveis de acesso ao workspace"""
+    ADMIN = 'admin', 'Administrador'
+    EDITOR = 'editor', 'Editor'
+    VIEWER = 'viewer', 'Visualizador'
+
+
+class WorkspaceMember(models.Model):
+    """Modelo para membros de um workspace"""
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
+    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    role = models.CharField(max_length=10, choices=WorkspaceMemberRole.choices, default=WorkspaceMemberRole.VIEWER)
+    
+    joined_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ['workspace', 'user']
+
+    def __str__(self):
+        return f"{self.user.email} - {self.workspace.nome} ({self.role})"
+
+
 class User(AbstractUser):
     """Modelo personalizado de usuário"""
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=30, blank=True)
     last_name = models.CharField(max_length=30, blank=True)
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Telefone")
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True, verbose_name="Foto do perfil")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -29,6 +73,7 @@ class AccountType(models.TextChoices):
 
 class Account(models.Model):
     """Modelo para carteiras/contas financeiras"""
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name='accounts')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='accounts')
     nome = models.CharField(max_length=100)
     tipo = models.CharField(max_length=20, choices=AccountType.choices)
@@ -46,7 +91,7 @@ class Account(models.Model):
 
     class Meta:
         ordering = ['nome']
-        unique_together = ['user', 'nome']
+        unique_together = ['workspace', 'nome']
 
     def __str__(self):
         return f"{self.nome} ({self.get_tipo_display()})"
@@ -70,6 +115,7 @@ class CreditCardBrand(models.TextChoices):
 
 class CreditCard(models.Model):
     """Modelo para cartões de crédito"""
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name='credit_cards')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='credit_cards')
     nome = models.CharField(max_length=100)
     bandeira = models.CharField(max_length=20, choices=CreditCardBrand.choices)
@@ -86,7 +132,7 @@ class CreditCard(models.Model):
 
     class Meta:
         ordering = ['nome']
-        unique_together = ['user', 'nome']
+        unique_together = ['workspace', 'nome']
 
     def __str__(self):
         return f"{self.nome} ({self.bandeira} ****{self.ultimos_4_digitos})"

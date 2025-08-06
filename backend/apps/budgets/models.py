@@ -16,6 +16,7 @@ class BudgetType(models.TextChoices):
 
 class Budget(models.Model):
     """Modelo para orçamentos"""
+    workspace = models.ForeignKey('accounts.Workspace', on_delete=models.CASCADE, related_name='budgets')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budgets')
     nome = models.CharField(max_length=100)
     descricao = models.TextField(blank=True)
@@ -37,7 +38,7 @@ class Budget(models.Model):
 
     class Meta:
         ordering = ['-ano', '-mes', 'nome']
-        unique_together = ['user', 'nome', 'mes', 'ano']
+        unique_together = ['workspace', 'user', 'nome', 'mes', 'ano']
         verbose_name = 'Orçamento'
         verbose_name_plural = 'Orçamentos'
 

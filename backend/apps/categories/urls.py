@@ -1,17 +1,13 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from . import views
 
+# Router para ViewSets
+router = DefaultRouter()
+router.register(r'categories', views.CategoryViewSet, basename='category')
+router.register(r'cost-centers', views.CostCenterViewSet, basename='costcenter')
+
 urlpatterns = [
-    # Categories - Lista básica e CRUD
-    path('', views.CategoryListCreateView.as_view(), name='category-list'),
-    path('<int:pk>/', views.CategoryDetailView.as_view(), name='category-detail'),
-    path('stats/', views.CategoryStatsView.as_view(), name='category-stats'),
-    
-    # Categories - Endpoints hierárquicos
-    path('hierarchy/', views.category_hierarchy_view, name='category-hierarchy'),
-    path('flat-list/', views.category_flat_list_view, name='category-flat-list'),
-    
-    # Tags
-    path('tags/', views.TagListCreateView.as_view(), name='tag-list'),
-    path('tags/<int:pk>/', views.TagDetailView.as_view(), name='tag-detail'),
+    # ViewSets via router
+    path('', include(router.urls)),
 ]

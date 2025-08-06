@@ -63,3 +63,47 @@ yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Temporary documentation files
+CONFIGURACOES_SUBMENU.md
+FB-001_IMPLEMENTACAO_COMPLETA.md
+FB-002_IMPLEMENTACAO_COMPLETA.md
+GITHUB_ISSUES_TEMPLATE.md
+LAYOUT-COMPACTO-MODAL.md
+MELHORIAS-LAYOUT-BANCOS.md
+PLANO_DESENVOLVIMENTO.md
+RESUMO_PLANEJAMENTO.md
+backend/IMPLEMENTACAO_COMPLETA.md
+backend/IMPLEMENTACAO_WORKSPACE_COMPLETA.md
+frontend/IMPLEMENTACAO-BANCARIA.md
+frontend/LAYOUT-MODERNIZADO.md
+workspace_*.md
+
+# Temporary scripts
+backend/fix_*.py
+backend/test_*.py
+backend/check_*.py
+backend/resumo_*.py
+test_*.py
+fix_*.py
+check_*.py
+
+# Backup and temporary files
+**/models_backup.py
+**/serializers_simple.py
+**/serializers_workspace.py
+**/urls_simple.py
+**/urls_workspace.py
+**/views_simple.py
+**/views_workspace.py
+**/admin_backup.py
+**/workspace_*.py
+**/*_backup.py
+**/*_new.py
+**/*_old.py
+api_test.html
+backend/db_backup_*.sqlite3
+backend/migrate_to_workspaces.py
+backend/prepare_workspace_migration.py
+backend/setup_clean.py
+backend/setup_workspaces.py

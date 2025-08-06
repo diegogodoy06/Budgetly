@@ -2,7 +2,7 @@ import axios from 'axios';
 import type { 
   User, Account, Transaction, Category, Tag, Budget, CreditCardBill,
   LoginRequest, RegisterRequest, AuthResponse, DashboardData,
-  CreditCard, CreditCardFormData
+  CreditCard, CreditCardFormData, CreditCardInvoice
 } from '@/types';
 
 const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
@@ -15,13 +15,38 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token and workspace
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Token ${token}`;
+      // Use Bearer format for JWT tokens (current backend setup)
+      config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Não adicionar workspace ID para endpoints de autenticação
+    const authEndpoints = [
+      '/api/accounts/login/', 
+      '/api/accounts/register/', 
+      '/api/accounts/logout/',
+      '/api/accounts/profile/',
+      '/api/accounts/workspaces/'
+    ];
+    const isAuthEndpoint = authEndpoints.some(endpoint => config.url?.includes(endpoint));
+    
+    if (!isAuthEndpoint) {
+      // Adicionar workspace ID se disponível e não for endpoint de auth
+      const currentWorkspaceId = localStorage.getItem('current_workspace_id');
+      if (currentWorkspaceId) {
+        config.headers['X-Workspace-ID'] = currentWorkspaceId;
+        console.log('🏢 Requisição com workspace ID:', currentWorkspaceId, 'para:', config.url);
+      } else {
+        console.log('⚠️ Requisição sem workspace ID para:', config.url);
+      }
+    } else {
+      console.log('🔐 Endpoint de autenticação, não enviando workspace ID para:', config.url);
+    }
+    
     return config;
   },
   (error) => {
@@ -51,37 +76,37 @@ api.interceptors.response.use(
 // Auth API
 export const authAPI = {
   login: (data: LoginRequest): Promise<AuthResponse> =>
-    api.post('/api/auth/login/', data).then(res => res.data),
+    api.post('/api/accounts/login/', data).then(res => res.data),
   
   register: (data: RegisterRequest): Promise<AuthResponse> =>
-    api.post('/api/auth/register/', data).then(res => res.data),
+    api.post('/api/accounts/register/', data).then(res => res.data),
   
   logout: (): Promise<void> =>
-    api.post('/api/auth/logout/').then(res => res.data),
+    api.post('/api/accounts/logout/').then(res => res.data),
   
   getProfile: (): Promise<User> =>
-    api.get('/api/auth/profile/').then(res => res.data),
+    api.get('/api/accounts/profile/').then(res => res.data),
 };
 
 // Accounts API
 export const accountsAPI = {
   getAll: (): Promise<Account[]> =>
-    api.get('/api/accounts/').then(res => res.data.results || res.data),
+    api.get('/api/accounts/accounts/').then(res => res.data.results || res.data),
   
   getById: (id: number): Promise<Account> =>
-    api.get(`/api/accounts/${id}/`).then(res => res.data),
+    api.get(`/api/accounts/accounts/${id}/`).then(res => res.data),
   
   create: (data: Partial<Account>): Promise<Account> =>
-    api.post('/api/accounts/', data).then(res => res.data),
+    api.post('/api/accounts/accounts/', data).then(res => res.data),
   
   update: (id: number, data: Partial<Account>): Promise<Account> =>
-    api.patch(`/api/accounts/${id}/`, data).then(res => res.data),
+    api.patch(`/api/accounts/accounts/${id}/`, data).then(res => res.data),
   
   delete: (id: number): Promise<void> =>
-    api.delete(`/api/accounts/${id}/`).then(res => res.data),
+    api.delete(`/api/accounts/accounts/${id}/`).then(res => res.data),
   
   getBalances: (): Promise<Account[]> =>
-    api.get('/api/accounts/balances/').then(res => res.data),
+    api.get('/api/accounts/accounts/balances/').then(res => res.data),
 };
 
 // Credit Cards API
@@ -108,77 +133,88 @@ export const creditCardsAPI = {
 // Transactions API
 export const transactionsAPI = {
   getAll: (params?: any): Promise<Transaction[]> =>
-    api.get('/api/transactions/', { params }).then(res => res.data.results || res.data),
+    api.get('/api/transactions/transactions/', { params }).then(res => res.data.results || res.data),
   
   getById: (id: number): Promise<Transaction> =>
-    api.get(`/api/transactions/${id}/`).then(res => res.data),
+    api.get(`/api/transactions/transactions/${id}/`).then(res => res.data),
   
   create: (data: any): Promise<Transaction> =>
-    api.post('/api/transactions/', data).then(res => res.data),
+    api.post('/api/transactions/transactions/', data).then(res => res.data),
   
   update: (id: number, data: any): Promise<Transaction> =>
-    api.put(`/api/transactions/${id}/`, data).then(res => res.data),
+    api.put(`/api/transactions/transactions/${id}/`, data).then(res => res.data),
   
   delete: (id: number): Promise<void> =>
-    api.delete(`/api/transactions/${id}/`).then(res => res.data),
+    api.delete(`/api/transactions/transactions/${id}/`).then(res => res.data),
   
   getByCreditCard: (creditCardId: number, params?: any): Promise<Transaction[]> =>
-    api.get('/api/transactions/', { 
+    api.get('/api/transactions/transactions/', { 
       params: { credit_card: creditCardId, ...params } 
     }).then(res => res.data.results || res.data),
   
   summary: (params?: any): Promise<any> =>
-    api.get('/api/transactions/summary/', { params }).then(res => res.data),
+    api.get('/api/transactions/transactions/summary/', { params }).then(res => res.data),
   
   byCategory: (params?: any): Promise<any> =>
-    api.get('/api/transactions/by-category/', { params }).then(res => res.data),
+    api.get('/api/transactions/transactions/by_category/', { params }).then(res => res.data),
+  
+  confirmCreditCardTransaction: (id: number): Promise<Transaction> =>
+    api.post(`/api/transactions/transactions/${id}/confirm_credit_card_transaction/`).then(res => res.data.transaction),
 };
 
 // Categories API
 export const categoriesAPI = {
   getAll: (): Promise<Category[]> =>
-    api.get('/api/categories/').then(res => res.data.results || res.data),
+    api.get('/api/categories/categories/').then(res => res.data.results || res.data),
   
   getById: (id: number): Promise<Category> =>
-    api.get(`/api/categories/${id}/`).then(res => res.data),
+    api.get(`/api/categories/categories/${id}/`).then(res => res.data),
   
   create: (data: Partial<Category>): Promise<Category> =>
-    api.post('/api/categories/', data).then(res => res.data),
+    api.post('/api/categories/categories/', data).then(res => res.data),
   
   update: (id: number, data: Partial<Category>): Promise<Category> =>
-    api.patch(`/api/categories/${id}/`, data).then(res => res.data),
+    api.patch(`/api/categories/categories/${id}/`, data).then(res => res.data),
   
   delete: (id: number): Promise<void> =>
-    api.delete(`/api/categories/${id}/`).then(res => res.data),
+    api.delete(`/api/categories/categories/${id}/`).then(res => res.data),
 
   // Novos endpoints para categorias hierárquicas
   getHierarchy: (): Promise<Category[]> =>
-    api.get('/api/categories/hierarchy/').then(res => res.data),
+    api.get('/api/categories/categories/hierarchy/').then(res => res.data),
   
   getFlatList: (): Promise<any[]> =>
-    api.get('/api/categories/flat-list/').then(res => res.data),
+    api.get('/api/categories/categories/flat-list/').then(res => res.data)
+};
+
+// Cost Centers API
+export const costCentersAPI = {
+  getAll: (): Promise<any[]> =>
+    api.get('/api/categories/cost-centers/').then(res => res.data.results || res.data),
   
-  getMainCategories: (): Promise<Category[]> =>
-    api.get('/api/categories/?level=main').then(res => res.data.results || res.data),
+  getById: (id: number): Promise<any> =>
+    api.get(`/api/categories/cost-centers/${id}/`).then(res => res.data),
   
-  getSubCategories: (parentId?: number): Promise<Category[]> => {
-    const url = parentId 
-      ? `/api/categories/?parent=${parentId}`
-      : '/api/categories/?level=sub';
-    return api.get(url).then(res => res.data.results || res.data);
-  },
+  create: (data: any): Promise<any> =>
+    api.post('/api/categories/cost-centers/', data).then(res => res.data),
+  
+  update: (id: number, data: any): Promise<any> =>
+    api.patch(`/api/categories/cost-centers/${id}/`, data).then(res => res.data),
+  
+  delete: (id: number): Promise<void> =>
+    api.delete(`/api/categories/cost-centers/${id}/`).then(res => res.data),
 };
 
 // Tags API
 export const tagsAPI = {
   getAll: (): Promise<Tag[]> =>
-    api.get('/api/tags/').then(res => res.data.results || res.data),
+    api.get('/api/categories/tags/').then(res => res.data.results || res.data),
   
   create: (data: Partial<Tag>): Promise<Tag> =>
-    api.post('/api/tags/', data).then(res => res.data),
+    api.post('/api/categories/tags/', data).then(res => res.data),
   
   delete: (id: number): Promise<void> =>
-    api.delete(`/api/tags/${id}/`).then(res => res.data),
+    api.delete(`/api/categories/tags/${id}/`).then(res => res.data),
 };
 
 // Budgets API
@@ -242,6 +278,64 @@ export const reportsAPI = {
       },
     }).then(res => res.data);
   },
+};
+
+// Credit Card Invoices API
+export const invoicesAPI = {
+  // Listar todas as faturas
+  getAll: (): Promise<CreditCardInvoice[]> =>
+    api.get('/api/transactions/invoices/').then(res => res.data),
+
+  // Listar faturas por cartão
+  getByCard: (creditCardId: number): Promise<CreditCardInvoice[]> =>
+    api.get(`/api/transactions/invoices/by_card/?credit_card_id=${creditCardId}`).then(res => res.data),
+  
+  // Obter fatura específica
+  get: (invoiceId: number): Promise<CreditCardInvoice> =>
+    api.get(`/api/transactions/invoices/${invoiceId}/`).then(res => res.data),
+  
+  // Criar nova fatura
+  create: (data: Partial<CreditCardInvoice>): Promise<CreditCardInvoice> =>
+    api.post('/api/transactions/invoices/', data).then(res => res.data),
+  
+  // Fechar fatura
+  close: (invoiceId: number): Promise<{ message: string; invoice: CreditCardInvoice }> =>
+    api.post(`/api/transactions/invoices/${invoiceId}/close/`).then(res => res.data),
+  
+  // Pagar fatura
+  pay: (invoiceId: number, data: { valor: number; conta_origem: number }): Promise<{ message: string; invoice: CreditCardInvoice }> =>
+    api.post(`/api/transactions/invoices/${invoiceId}/pay/`, data).then(res => res.data),
+  
+  // Validar data para transação
+  validateDate: (creditCardId: number, date: string): Promise<{ 
+    valid: boolean; 
+    message: string; 
+    invoice_status?: string;
+    invoice_month?: string;
+  }> =>
+    api.post('/api/transactions/validate-date/', { 
+      credit_card_id: creditCardId, 
+      date 
+    }).then(res => res.data),
+  
+  // Obter melhor data de compra
+  getBestPurchaseDate: (creditCardId: number): Promise<{
+    credit_card_id: number;
+    credit_card_name: string;
+    best_date: string;
+    best_date_formatted: string;
+    invoice_month: string;
+    due_date: string;
+    due_date_formatted: string;
+    days_to_due: number;
+    closing_day: number;
+    due_day: number;
+  }> =>
+    api.get(`/api/transactions/best-purchase-date/?credit_card_id=${creditCardId}`).then(res => res.data),
+
+  // Preview da fatura atual do cartão
+  getPreview: (creditCardId: number): Promise<any> =>
+    api.get(`/api/accounts/credit-cards/${creditCardId}/invoice_preview/`).then(res => res.data),
 };
 
 export default api;

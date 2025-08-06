@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useWorkspace } from '../contexts/WorkspaceContext';
 import { 
   PlusIcon, 
   CreditCardIcon,
   XMarkIcon,
   PencilIcon,
-  TrashIcon
+  TrashIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
 } from '@heroicons/react/24/outline';
-import { creditCardsAPI, transactionsAPI } from '@/services/api';
-import type { CreditCard, CreditCardFormData, CreditCardBrand, Transaction } from '@/types';
+import { creditCardsAPI, transactionsAPI, invoicesAPI } from '@/services/api';
+import type { CreditCard, CreditCardFormData, CreditCardBrand, Transaction, CreditCardInvoice } from '@/types';
 import toast from 'react-hot-toast';
 
 const CREDIT_CARD_BRANDS: { value: CreditCardBrand; label: string; cor: string; logo: string }[] = [
@@ -26,6 +29,15 @@ const CREDIT_CARD_BRANDS: { value: CreditCardBrand; label: string; cor: string; 
 ];
 
 const CreditCards: React.FC = () => {
+  const { currentWorkspace } = useWorkspace();
+  
+  // Função para limpar dados quando workspace muda
+  const limparDados = () => {
+    setCartoes([]);
+    setTransacoes([]);
+    setCartaoSelecionado(null);
+    setLoading(true);
+  };
 
   // Funções para formatação de moeda
   const formatCurrencyInput = (value: number): string => {
@@ -33,6 +45,60 @@ const CreditCards: React.FC = () => {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
+  };
+
+  // Função para calcular a melhor data de compra baseada no cartão
+  const calculateBestPurchaseDate = (card: CreditCard): string => {
+    const today = new Date();
+    const currentDay = today.getDate();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    // A melhor data é sempre o dia seguinte ao fechamento da fatura atual
+    // Isso garante que a compra vai para a próxima fatura (maior prazo para pagamento)
+    
+    let targetMonth = currentMonth;
+    let targetYear = currentYear;
+    
+    // Se já passou do fechamento deste mês, vai para o próximo mês
+    if (currentDay > card.dia_fechamento) {
+      targetMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+      targetYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+    }
+    
+    // A melhor data é sempre o dia seguinte ao fechamento
+    const bestDate = new Date(targetYear, targetMonth, card.dia_fechamento + 1);
+    
+    return bestDate.toLocaleDateString('pt-BR');
+  };
+
+  // Função para verificar status da fatura atual
+  const getInvoiceStatus = (card: CreditCard) => {
+    // Se temos dados da API da fatura atual, usar eles
+    if (faturaAtual && cartaoSelecionado === card.id) {
+      const fatura = faturaAtual.fatura_atual;
+      return {
+        isOpen: fatura.status === 'aberta',
+        daysToClosing: fatura.dias_para_fechamento || 0,
+        status: fatura.status,
+        valor_atual: fatura.valor_atual
+      };
+    }
+    
+    // Fallback para cálculo local
+    const today = new Date();
+    const currentDay = today.getDate();
+    
+    const isBeforeClosing = currentDay < card.dia_fechamento;
+    const daysToClosing = isBeforeClosing 
+      ? card.dia_fechamento - currentDay 
+      : (new Date(today.getFullYear(), today.getMonth() + 1, card.dia_fechamento).getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+    
+    return {
+      isOpen: isBeforeClosing,
+      daysToClosing: Math.ceil(daysToClosing),
+      status: isBeforeClosing ? 'aberta' : 'fechada'
+    };
   };
 
   const handleLimiteChange = (value: string) => {
@@ -56,14 +122,24 @@ const CreditCards: React.FC = () => {
     const mes = hoje.getMonth() + 1;
     return `${ano}-${mes.toString().padStart(2, '0')}`;
   });
+  
+  // Estados para navegação de meses
+  const [offsetMeses, setOffsetMeses] = useState(0); // Controla quantos meses para frente/trás estamos
+  const MESES_VISIVEIS = 5; // Quantidade de meses visíveis por vez
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mostrarModalTransacao, setMostrarModalTransacao] = useState(false);
+  const [mostrarModalFaturas, setMostrarModalFaturas] = useState(false);
   const [menuAcoesAberto, setMenuAcoesAberto] = useState<number | null>(null);
   const [cartaoEditando, setCartaoEditando] = useState<CreditCard | null>(null);
 
   // Transações carregadas da API
   const [transacoes, setTransacoes] = useState<Transaction[]>([]);
   const [carregandoTransacoes, setCarregandoTransacoes] = useState(false);
+
+  // Faturas carregadas da API
+  const [faturas, setFaturas] = useState<CreditCardInvoice[]>([]);
+  const [carregandoFaturas, setCarregandoFaturas] = useState(false);
+  const [faturaAtual, setFaturaAtual] = useState<any>(null);
 
   const [formData, setFormData] = useState<CreditCardFormData>({
     nome: '',
@@ -85,11 +161,27 @@ const CreditCards: React.FC = () => {
     categoria: '',
     recorrente: false,
     tipoRecorrencia: 'mensal' as 'mensal' | 'trimestral' | 'semanal' | 'anual',
-    centroCusto: ''
+    centroCusto: '',
+    confirmada: true
   });
 
   useEffect(() => {
     carregarCartoes();
+  }, [currentWorkspace?.id]); // Recarregar quando workspace mudar
+
+  // Escutar mudanças de workspace
+  useEffect(() => {
+    const handleWorkspaceChange = () => {
+      console.log('🔄 CreditCards detectou mudança de workspace');
+      limparDados();
+      // carregarCartoes será chamado pelo useEffect de currentWorkspace
+    };
+
+    window.addEventListener('workspaceChanged', handleWorkspaceChange);
+    
+    return () => {
+      window.removeEventListener('workspaceChanged', handleWorkspaceChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -99,10 +191,11 @@ const CreditCards: React.FC = () => {
     }
   }, [cartoes]);
 
-  // Carregar transações quando cartão for selecionado
+  // Carregar transações e faturas quando cartão for selecionado
   useEffect(() => {
     if (cartaoSelecionado) {
       carregarTransacoes(cartaoSelecionado);
+      carregarFaturas(cartaoSelecionado);
     }
   }, [cartaoSelecionado]);
 
@@ -115,10 +208,18 @@ const CreditCards: React.FC = () => {
   }, [formData.bandeira]);
 
   const carregarCartoes = async () => {
+    if (!currentWorkspace) {
+      setCartoes([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
+      console.log('🔄 Carregando cartões para workspace:', currentWorkspace.nome);
       const data = await creditCardsAPI.getAll();
       setCartoes(data);
+      console.log('✅ Cartões carregados:', data.length);
     } catch (error) {
       console.error('Erro ao carregar cartões:', error);
       toast.error('Erro ao carregar cartões de crédito');
@@ -137,6 +238,38 @@ const CreditCards: React.FC = () => {
       toast.error('Erro ao carregar transações do cartão');
     } finally {
       setCarregandoTransacoes(false);
+    }
+  };
+
+  const carregarFaturas = async (cartaoId: number) => {
+    try {
+      setCarregandoFaturas(true);
+      const [faturasData, previewData] = await Promise.all([
+        invoicesAPI.getByCard(cartaoId),
+        invoicesAPI.getPreview(cartaoId)
+      ]);
+      setFaturas(faturasData);
+      setFaturaAtual(previewData);
+    } catch (error) {
+      console.error('Erro ao carregar faturas:', error);
+      toast.error('Erro ao carregar faturas do cartão');
+    } finally {
+      setCarregandoFaturas(false);
+    }
+  };
+
+  const fecharFatura = async (faturaId: number) => {
+    try {
+      await invoicesAPI.close(faturaId);
+      toast.success('Fatura fechada com sucesso!');
+      
+      // Recarregar faturas após fechar
+      if (cartaoSelecionado) {
+        carregarFaturas(cartaoSelecionado);
+      }
+    } catch (error) {
+      console.error('Erro ao fechar fatura:', error);
+      toast.error('Erro ao fechar fatura');
     }
   };
 
@@ -262,25 +395,28 @@ const CreditCards: React.FC = () => {
     const meses = [];
     const hoje = new Date();
     
-    // 2 meses fechados (passados)
-    for (let i = 2; i >= 1; i--) {
-      const data = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
-      const anoMes = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}`;
-      meses.push(anoMes);
-    }
+    // Calcular o ponto de início baseado no offset
+    // Por padrão, mostramos: 2 passados, atual, 2 futuros
+    // Com offset, podemos navegar para mostrar outros períodos
+    const inicioOffset = -2 + offsetMeses; // Começar 2 meses atrás + offset
     
-    // Mês atual
-    const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
-    meses.push(mesAtual);
-    
-    // 2 meses futuros (abertos)
-    for (let i = 1; i <= 2; i++) {
-      const data = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+    for (let i = 0; i < MESES_VISIVEIS; i++) {
+      const mesesDoInicio = inicioOffset + i;
+      const data = new Date(hoje.getFullYear(), hoje.getMonth() + mesesDoInicio, 1);
       const anoMes = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}`;
       meses.push(anoMes);
     }
     
     return meses;
+  };
+
+  // Funções de navegação
+  const navegarMesesAnterior = () => {
+    setOffsetMeses(prev => prev - 1);
+  };
+
+  const navegarMesesProximo = () => {
+    setOffsetMeses(prev => prev + 1);
   };
 
   const formatarMesAno = (anoMes: string) => {
@@ -454,13 +590,22 @@ const CreditCards: React.FC = () => {
               </div>
               
               <div className="relative z-10 flex justify-between items-end">
-                <div>
-                  <p className="text-xs opacity-75">Bandeira</p>
-                  <p className="text-xs font-semibold">{cartao.bandeira_display}</p>
+                <div className="flex gap-1.5">
+                  {/* Label de Vencimento */}
+                  <div className="bg-white/20 backdrop-blur-sm px-1.5 py-0.5 rounded-md border border-white/30">
+                    <p className="text-xs font-medium">{cartao.dia_vencimento} Venc</p>
+                  </div>
+                  
+                  {/* Label de Fechamento */}
+                  <div className="bg-white/20 backdrop-blur-sm px-1.5 py-0.5 rounded-md border border-white/30">
+                    <p className="text-xs font-medium">{cartao.dia_fechamento} Fech</p>
+                  </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs opacity-75">Usado</p>
-                  <p className="text-sm font-bold">{formatCurrency(cartao.saldo_atual)}</p>
+                  <p className="text-xs opacity-75">Usado / Limite</p>
+                  <p className="text-xs font-bold">
+                    {formatCurrency(cartao.saldo_atual)} / {formatCurrency(cartao.limite)}
+                  </p>
                 </div>
               </div>
               
@@ -468,30 +613,32 @@ const CreditCards: React.FC = () => {
               {cartaoSelecionado === cartao.id && (
                 <div className="absolute top-2 left-2 w-2 h-2 bg-white rounded-full shadow-md animate-in zoom-in duration-500 animate-pulse"></div>
               )}
+              
+              {/* Barra de progresso como rodapé do card */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20 rounded-b-2xl overflow-hidden">
+                <div 
+                  className={`h-full transition-all duration-1000 ease-out ${
+                    cartao.percentual_usado > 100
+                      ? 'bg-gradient-to-r from-red-400 to-red-600'
+                      : cartaoSelecionado === cartao.id 
+                      ? cartao.percentual_usado > 80
+                        ? 'bg-gradient-to-r from-red-400 to-red-600'
+                        : cartao.percentual_usado > 50
+                        ? 'bg-gradient-to-r from-yellow-400 to-orange-500'
+                        : 'bg-gradient-to-r from-green-400 to-blue-500'
+                      : cartao.percentual_usado > 80
+                      ? 'bg-red-400'
+                      : cartao.percentual_usado > 50
+                      ? 'bg-yellow-400'
+                      : 'bg-green-400'
+                  }`}
+                  style={{ width: `${Math.min(cartao.percentual_usado, 100)}%` }}
+                ></div>
+              </div>
             </div>
             
             {/* Informações extras abaixo do card */}
             <div className="mt-2 px-2">
-              <div className="flex justify-between text-xs text-gray-600">
-                <span>Venc: {cartao.dia_vencimento}</span>
-                <span>Fech: {cartao.dia_fechamento}</span>
-                <span>Limite: {formatCurrency(cartao.limite)}</span>
-              </div>
-              <div className="mt-1">
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div 
-                    className={`h-1.5 rounded-full transition-all duration-1000 ease-out ${
-                      cartaoSelecionado === cartao.id 
-                        ? 'bg-gradient-to-r from-green-400 to-red-500' 
-                        : 'bg-gray-400'
-                    }`}
-                    style={{ width: `${cartao.percentual_usado}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-0.5 text-center transition-all duration-500">
-                  {cartao.percentual_usado.toFixed(1)}% usado
-                </p>
-              </div>
             </div>
           </div>
         ))}
@@ -516,33 +663,109 @@ const CreditCards: React.FC = () => {
       {cartaoSelecionado && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           {/* Header com informações do cartão */}
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
+          <div className="px-6 py-3 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   {cartoes.find(c => c.id === cartaoSelecionado)?.nome}
                 </h3>
-                <div className="flex items-center space-x-6 text-sm text-gray-500 mt-1">
-                  <span>Fechamento: dia {cartoes.find(c => c.id === cartaoSelecionado)?.dia_fechamento}</span>
-                  <span>Vencimento: dia {cartoes.find(c => c.id === cartaoSelecionado)?.dia_vencimento}</span>
+                
+                {/* Todas as informações em uma linha horizontal */}
+                <div className="flex items-center gap-6">
+                  {/* Fechamento */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">Fechamento:</span>
+                    <span className="text-xs font-medium text-gray-900">
+                      Dia {cartoes.find(c => c.id === cartaoSelecionado)?.dia_fechamento}
+                    </span>
+                  </div>
+                  
+                  {/* Vencimento */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">Vencimento:</span>
+                    <span className="text-xs font-medium text-gray-900">
+                      Dia {cartoes.find(c => c.id === cartaoSelecionado)?.dia_vencimento}
+                    </span>
+                  </div>
+                  
+                  {/* Melhor Data */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">Melhor Data:</span>
+                    <span className="text-xs font-medium text-blue-700">
+                      {(() => {
+                        const cartao = cartoes.find(c => c.id === cartaoSelecionado);
+                        return cartao ? calculateBestPurchaseDate(cartao) : '-';
+                      })()}
+                    </span>
+                  </div>
+                  
+                  {/* Status Fatura */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">Status:</span>
+                    {(() => {
+                      const cartao = cartoes.find(c => c.id === cartaoSelecionado);
+                      if (!cartao) return <span className="text-xs text-gray-400">-</span>;
+                      
+                      const status = getInvoiceStatus(cartao);
+                      return (
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          status.isOpen 
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-orange-100 text-orange-700'
+                        }`}>
+                          <div className={`w-1.5 h-1.5 rounded-full mr-1 ${
+                            status.isOpen ? 'bg-green-500' : 'bg-orange-500'
+                          }`}></div>
+                          {status.isOpen 
+                            ? `Aberta • ${status.daysToClosing}d`
+                            : 'Fechada'
+                          }
+                        </span>
+                      );
+                    })()}
+                  </div>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setMostrarModalTransacao(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <PlusIcon className="h-4 w-4 mr-2" />
-                Nova Transação
-              </button>
+              
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMostrarModalFaturas(true)}
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <CreditCardIcon className="h-4 w-4 mr-2" />
+                  Faturas
+                </button>
+                {!isFaturaFechada(cartaoSelecionado, mesSelecionado) && (
+                  <button
+                    type="button"
+                    onClick={() => setMostrarModalTransacao(true)}
+                    className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    <PlusIcon className="h-4 w-4 mr-2" />
+                    Nova Transação
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Seletor de Mês e Info da Fatura */}
-          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 relative">
-            <div className="flex gap-8 justify-start" id="meses-container">
-              {getMesesDisponiveis().map((mes) => (
-                <div key={mes} className="flex flex-col cursor-pointer min-w-0" onClick={() => setMesSelecionado(mes)}>
+          <div className="px-6 py-3 bg-gray-50 border-b border-gray-200 relative">
+            <div className="flex items-center gap-4">
+              {/* Seta para navegação anterior */}
+              <button
+                onClick={navegarMesesAnterior}
+                className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-200 transition-colors"
+                aria-label="Meses anteriores"
+              >
+                <ChevronLeftIcon className="w-5 h-5 text-gray-600" />
+              </button>
+
+              {/* Container dos meses */}
+              <div className="flex gap-0 justify-between flex-1" id="meses-container">
+                {getMesesDisponiveis().map((mes) => (
+                <div key={mes} className="flex flex-col cursor-pointer flex-1 text-center" onClick={() => setMesSelecionado(mes)}>
                   <div className={`text-sm font-medium mb-1 ${
                     mesSelecionado === mes
                       ? 'text-gray-900'
@@ -550,7 +773,7 @@ const CreditCards: React.FC = () => {
                   }`}>
                     {formatarMesAno(mes)}
                   </div>
-                  <div className="flex items-center space-x-3 text-xs">
+                  <div className="flex items-center justify-center space-x-3 text-xs">
                     <span className="text-gray-800 font-extralight text-xs">
                       {formatCurrency(getValorFatura(cartaoSelecionado, mes))}
                     </span>
@@ -564,15 +787,26 @@ const CreditCards: React.FC = () => {
                   </div>
                 </div>
               ))}
+              </div>
+
+              {/* Seta para navegação próxima */}
+              <button
+                onClick={navegarMesesProximo}
+                className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-200 transition-colors"
+                aria-label="Próximos meses"
+              >
+                <ChevronRightIcon className="w-5 h-5 text-gray-600" />
+              </button>
             </div>
             
-            {/* Barra completa embaixo com indicador do mês selecionado */}
-            <div className="absolute bottom-0 left-6 right-6 h-0.5 bg-gray-200">
+            {/* Barra embaixo alinhada com os meses */}
+            <div className="absolute bottom-0 left-12 h-0.5 bg-gray-200" style={{ width: 'calc(100% - 6rem)' }}>
               <div 
                 className="h-0.5 bg-gray-900 transition-all duration-300 ease-in-out"
                 style={{
-                  width: `calc((100% - ${(getMesesDisponiveis().length - 1) * 2}rem) / ${getMesesDisponiveis().length})`,
-                  transform: `translateX(${getMesesDisponiveis().findIndex(mes => mes === mesSelecionado) * (100 / getMesesDisponiveis().length)}%) translateX(${getMesesDisponiveis().findIndex(mes => mes === mesSelecionado) * 2}rem)`
+                  width: `calc(${100 / MESES_VISIVEIS}% - 0px)`, // Largura de cada mês
+                  left: `${getMesesDisponiveis().findIndex(mes => mes === mesSelecionado) * (100 / MESES_VISIVEIS)}%`,
+                  position: 'absolute'
                 }}
               ></div>
             </div>
@@ -592,9 +826,9 @@ const CreditCards: React.FC = () => {
                         Descrição
                       </th>
                       <th className="px-3 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                        Centro de Custo
+                        Categoria
                       </th>
-                      <th className="px-3 py-2 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      <th className="px-3 py-2 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
                         Parcela
                       </th>
                       <th className="px-3 py-2 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
@@ -628,27 +862,20 @@ const CreditCards: React.FC = () => {
                           {new Date(transacao.data).toLocaleDateString('pt-BR')}
                         </td>
                         <td className="px-3 py-2 text-xs text-gray-700">
-                          <div>
-                            <p className="font-normal">{transacao.descricao}</p>
-                            <p className="text-xs text-blue-600 bg-blue-100 rounded-full px-2 py-1 inline-block mt-1">
-                              {transacao.category_name || 'Sem categoria'}
-                            </p>
-                          </div>
+                          <p className="font-normal">{transacao.descricao}</p>
                         </td>
-                        <td className="px-3 py-2 whitespace-nowrap text-xs">
-                          <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs">
-                            Geral
+                        <td className="px-3 py-2 text-xs text-gray-600">
+                          <span className="text-xs text-blue-600 bg-blue-100 rounded-full px-2 py-1 inline-block">
+                            {transacao.category_name || 'Sem categoria'}
                           </span>
                         </td>
                         <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500 text-center">
                           {transacao.total_parcelas > 1 ? `${transacao.numero_parcela}/${transacao.total_parcelas}` : '-'}
                         </td>
-                        <td className="px-3 py-2 whitespace-nowrap text-xs font-normal text-right">
-                          <div className="flex items-center justify-end">
-                            <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs mr-2 flex items-center">
-                              ● R$ {parseFloat(transacao.valor).toFixed(2).replace('.', ',')}
-                            </span>
-                          </div>
+                        <td className="px-3 py-2 whitespace-nowrap text-xs font-medium text-right">
+                          <span className={`${transacao.tipo === 'entrada' ? 'text-green-600' : 'text-red-600'}`}>
+                            {transacao.tipo === 'entrada' ? '+' : '-'} R$ {parseFloat(transacao.valor).toFixed(2).replace('.', ',')}
+                          </span>
                         </td>
                         <td className="px-3 py-2 whitespace-nowrap text-center text-xs font-normal relative">
                           <button 
@@ -687,12 +914,14 @@ const CreditCards: React.FC = () => {
                 <CreditCardIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma transação encontrada</h3>
                 <p className="text-gray-600 mb-4">Nenhuma movimentação encontrada para este mês</p>
-                <button
-                  onClick={() => setMostrarModalTransacao(true)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                >
-                  Adicionar Transação
-                </button>
+                {!isFaturaFechada(cartaoSelecionado, mesSelecionado) && (
+                  <button
+                    onClick={() => setMostrarModalTransacao(true)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  >
+                    Adicionar Transação
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -881,11 +1110,11 @@ const CreditCards: React.FC = () => {
                   tipo: 'saida' as const,
                   valor: novaTransacao.valor,
                   descricao: novaTransacao.descricao,
-                  observacoes: '',
                   data: novaTransacao.dataCompra,
                   category: novaTransacao.categoria ? parseInt(novaTransacao.categoria) : undefined,
                   total_parcelas: 1,
-                  tipo_recorrencia: novaTransacao.recorrente ? novaTransacao.tipoRecorrencia : 'nenhuma' as const
+                  tipo_recorrencia: novaTransacao.recorrente ? novaTransacao.tipoRecorrencia : 'nenhuma' as const,
+                  confirmada: novaTransacao.confirmada
                 };
 
                 await transactionsAPI.create(transactionData);
@@ -906,7 +1135,8 @@ const CreditCards: React.FC = () => {
                   categoria: '',
                   recorrente: false,
                   tipoRecorrencia: 'mensal',
-                  centroCusto: ''
+                  centroCusto: '',
+                  confirmada: true
                 });
                 
                 toast.success('Transação adicionada com sucesso!');
@@ -1012,7 +1242,46 @@ const CreditCards: React.FC = () => {
                       <option value="anual">Anual</option>
                     </select>
                   </div>
-                  )}
+                )}
+
+                {/* Status da Transação */}
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Status da Transação
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="confirmada"
+                        checked={novaTransacao.confirmada === true}
+                        onChange={() => setNovaTransacao(prev => ({ ...prev, confirmada: true }))}
+                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
+                      />
+                      <span className="ml-3 text-sm text-gray-900">
+                        <span className="font-medium text-green-600">✅ Transação Confirmada</span>
+                        <span className="block text-xs text-gray-500">
+                          A movimentação já foi realizada e afeta o saldo atual
+                        </span>
+                      </span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="confirmada"
+                        checked={novaTransacao.confirmada === false}
+                        onChange={() => setNovaTransacao(prev => ({ ...prev, confirmada: false }))}
+                        className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300"
+                      />
+                      <span className="ml-3 text-sm text-gray-900">
+                        <span className="font-medium text-orange-600">⏳ Lançamento Futuro</span>
+                        <span className="block text-xs text-gray-500">
+                          Previsto/planejado, não afeta o saldo atual
+                        </span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
                 </div>
               </form>
               </div>

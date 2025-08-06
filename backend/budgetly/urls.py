@@ -36,6 +36,7 @@ def home_view(request):
                 'accounts': request.build_absolute_uri('/api/accounts/'),
                 'transactions': request.build_absolute_uri('/api/transactions/'),
                 'categories': request.build_absolute_uri('/api/categories/'),
+                'beneficiaries': request.build_absolute_uri('/api/beneficiaries/'),
                 'budgets': request.build_absolute_uri('/api/budgets/'),
                 'reports': request.build_absolute_uri('/api/reports/'),
             }
@@ -53,6 +54,7 @@ urlpatterns = [
     path('api/accounts/', include('apps.accounts.urls')),
     path('api/transactions/', include('apps.transactions.urls')),
     path('api/categories/', include('apps.categories.urls')),
+    path('api/beneficiaries/', include('apps.beneficiaries.urls')),
     path('api/budgets/', include('apps.budgets.urls')),
     path('api/reports/', include('apps.reports.urls')),
     

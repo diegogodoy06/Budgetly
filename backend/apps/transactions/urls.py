@@ -1,20 +1,17 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from . import views
 
-app_name = 'transactions'
+# Router para ViewSets
+router = DefaultRouter()
+router.register(r'transactions', views.TransactionViewSet, basename='transaction')
+router.register(r'invoices', views.CreditCardInvoiceViewSet, basename='invoice')
 
 urlpatterns = [
-    # Transações
-    path('', views.TransactionListCreateView.as_view(), name='transaction-list'),
-    path('<int:pk>/', views.TransactionDetailView.as_view(), name='transaction-detail'),
+    # ViewSets via router
+    path('', include(router.urls)),
     
-    # Faturas de cartão de crédito
-    path('invoices/', views.CreditCardInvoiceListView.as_view(), name='invoice-list'),
-    path('invoices/<int:pk>/', views.CreditCardInvoiceDetailView.as_view(), name='invoice-detail'),
-    path('invoices/<int:invoice_id>/pay/', views.pay_invoice, name='pay-invoice'),
-    path('invoices/<int:invoice_id>/close/', views.close_invoice, name='close-invoice'),
-    
-    # Relatórios e resumos
-    path('summary/', views.transaction_summary, name='transaction-summary'),
-    path('by-category/', views.transactions_by_category, name='transactions-by-category'),
+    # Invoice utilities
+    path('validate-date/', views.validate_transaction_date, name='validate-transaction-date'),
+    path('best-purchase-date/', views.get_best_purchase_date, name='best-purchase-date'),
 ]

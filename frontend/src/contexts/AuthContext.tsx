@@ -34,17 +34,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   // Função para salvar dados de autenticação
-  const setAuthData = (userData: User, authToken: string) => {
+  const setAuthData = (userData: User, authToken: string, refreshToken?: string) => {
     setUser(userData);
     setToken(authToken);
     localStorage.setItem('token', authToken);
     localStorage.setItem('user', JSON.stringify(userData));
+    if (refreshToken) {
+      localStorage.setItem('refreshToken', refreshToken);
+    }
   };
 
   useEffect(() => {
     const initializeAuth = async () => {
       try {
         const savedToken = localStorage.getItem('token');
+        console.log('🔐 AuthContext - Inicializando auth, token salvo:', !!savedToken);
         const savedUser = localStorage.getItem('user');
 
         if (savedToken && savedUser) {
@@ -74,7 +78,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       const response = await authAPI.login(data);
       
-      setAuthData(response.user, response.token);
+      setAuthData(response.user, response.token, response.refresh);
       
       toast.success(response.message || 'Login realizado com sucesso!');
     } catch (error: any) {

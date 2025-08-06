@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { categoriesAPI } from '@/services/api';
+import { categoriesAPI, costCentersAPI } from '@/services/api';
 import type { Category } from '@/types';
 import toast from 'react-hot-toast';
+import { debugAPIState } from '@/utils/debugAPI';
 
 export interface Categoria {
   id: number;
@@ -25,6 +26,9 @@ export interface CentroCusto {
 }
 
 interface ConfiguracoesContextType {
+  // Estado
+  loading: boolean;
+  
   // Categorias
   categorias: Categoria[];
   categoriasAtivas: Categoria[];
@@ -58,22 +62,93 @@ export const ConfiguracoesProvider: React.FC<ConfiguracoesProviderProps> = ({ ch
     carregarDados();
   }, []);
 
+  // Escutar mudanças de workspace
+  useEffect(() => {
+    const handleWorkspaceChange = (event: CustomEvent) => {
+      console.log('🔄 ConfiguracoesContext detectou mudança de workspace:', event.detail);
+      const { previousWorkspace, newWorkspace } = event.detail;
+      
+      if (previousWorkspace?.id !== newWorkspace?.id) {
+        console.log('✨ Recarregando dados de configurações para novo workspace');
+        carregarDados();
+      }
+    };
+
+    window.addEventListener('workspaceChanged', handleWorkspaceChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('workspaceChanged', handleWorkspaceChange as EventListener);
+    };
+  }, []);
+
   const carregarDados = async () => {
     try {
       setLoading(true);
       
-      // Carrega categorias da API
-      const categoriasAPI = await categoriesAPI.getAll();
-      const categoriasConvertidas = categoriasAPI.map(convertCategoryToCategoria);
-      setCategorias(categoriasConvertidas);
+      // Debug do estado da API
+      const debugInfo = debugAPIState();
+      console.log('🔄 ConfiguracoesContext - Iniciando carregamento de dados...', debugInfo);
       
-      // Por enquanto, mantém centros de custo mock
-      setCentrosCusto([
-        { id: 1, nome: 'Pessoal', ativo: true },
-        { id: 2, nome: 'Trabalho', ativo: true },
-        { id: 3, nome: 'Família', ativo: true },
-        { id: 4, nome: 'Geral', ativo: true }
-      ]);
+      // Carrega categorias da API
+      try {
+        const categoriasAPI = await categoriesAPI.getAll();
+        console.log('✅ ConfiguracoesContext - Resposta da API de categorias:', categoriasAPI);
+        
+        // Verifica se é um array
+        if (!Array.isArray(categoriasAPI)) {
+          console.error('❌ API de categorias não retornou um array:', typeof categoriasAPI, categoriasAPI);
+          toast.error('Erro: API de categorias retornou dados inválidos');
+          
+          // Usar dados mock como fallback
+          console.log('🔄 Usando dados mock para categorias...');
+          setCategorias([
+            { id: 1, nome: 'Alimentação', ativa: true, considerarDashboard: true, importancia: 'essencial' },
+            { id: 2, nome: 'Transporte', ativa: true, considerarDashboard: true, importancia: 'necessario' },
+            { id: 3, nome: 'Lazer', ativa: true, considerarDashboard: true, importancia: 'superfluo' },
+          ]);
+          return;
+        }
+        
+        const categoriasConvertidas = categoriasAPI.map(convertCategoryToCategoria);
+        console.log('✅ ConfiguracoesContext - Categorias convertidas:', categoriasConvertidas);
+        setCategorias(categoriasConvertidas);
+      } catch (error) {
+        console.error('❌ Erro ao carregar categorias da API:', error);
+        toast.error('Erro ao carregar categorias da API, usando dados mock');
+        
+        // Usar dados mock como fallback
+        console.log('🔄 Usando dados mock para categorias...');
+        setCategorias([
+          { id: 1, nome: 'Alimentação', ativa: true, considerarDashboard: true, importancia: 'essencial' },
+          { id: 2, nome: 'Transporte', ativa: true, considerarDashboard: true, importancia: 'necessario' },
+          { id: 3, nome: 'Lazer', ativa: true, considerarDashboard: true, importancia: 'superfluo' },
+        ]);
+      }
+      
+      // Carrega centros de custo da API
+      try {
+        const centrosCustoAPI = await costCentersAPI.getAll();
+        console.log('Resposta da API de centros de custo:', centrosCustoAPI);
+        
+        if (Array.isArray(centrosCustoAPI)) {
+          const centrosCustoConvertidos = centrosCustoAPI.map(convertCostCenterToCentroCusto);
+          setCentrosCusto(centrosCustoConvertidos);
+        } else {
+          console.warn('API de centros de custo não retornou um array, usando dados mock');
+          setCentrosCusto([
+            { id: 1, nome: 'Pessoal', ativo: true },
+            { id: 2, nome: 'Casa', ativo: true },
+            { id: 3, nome: 'Trabalho', ativo: true },
+          ]);
+        }
+      } catch (error) {
+        console.warn('Erro ao carregar centros de custo, usando dados mock:', error);
+        setCentrosCusto([
+          { id: 1, nome: 'Pessoal', ativo: true },
+          { id: 2, nome: 'Casa', ativo: true },
+          { id: 3, nome: 'Trabalho', ativo: true },
+        ]);
+      }
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);
       toast.error('Erro ao carregar configurações');
@@ -94,6 +169,13 @@ export const ConfiguracoesProvider: React.FC<ConfiguracoesProviderProps> = ({ ch
     is_parent: category.is_parent,
     cor: category.cor,
     icone: category.icone
+  });
+
+  // Converte CostCenter (API) para CentroCusto (contexto)
+  const convertCostCenterToCentroCusto = (costCenter: any): CentroCusto => ({
+    id: costCenter.id,
+    nome: costCenter.nome,
+    ativo: costCenter.is_active || true
   });
 
   // Converte Categoria (contexto) para Category (API)
@@ -197,6 +279,9 @@ export const ConfiguracoesProvider: React.FC<ConfiguracoesProviderProps> = ({ ch
   const centrosCustoAtivos = centrosCusto.filter(centro => centro.ativo);
 
   const value: ConfiguracoesContextType = {
+    // Estado
+    loading,
+    
     // Categorias
     categorias,
     categoriasAtivas,

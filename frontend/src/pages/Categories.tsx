@@ -3,21 +3,20 @@ import {
   PlusIcon, 
   PencilIcon, 
   TrashIcon,
-  ChevronRightIcon,
-  ChevronDownIcon,
   FolderIcon,
-  FolderOpenIcon
+  TagIcon
 } from '@heroicons/react/24/outline';
 import { categoriesAPI } from '@/services/api';
 import type { Category } from '@/types';
 import toast from 'react-hot-toast';
+import { useWorkspace } from '../contexts/WorkspaceContext';
 
 const Categories: React.FC = () => {
+  const { currentWorkspace } = useWorkspace();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
   const [formData, setFormData] = useState({
     nome: '',
     descricao: '',
@@ -29,29 +28,73 @@ const Categories: React.FC = () => {
   });
 
   useEffect(() => {
-    carregarCategorias();
+    if (currentWorkspace) {
+      console.log('✅ Workspace disponível, carregando categorias');
+      carregarCategorias();
+    } else {
+      console.log('⏳ Aguardando workspace...');
+    }
+  }, [currentWorkspace?.id]);
+
+  // Carregamento inicial (para casos onde o workspace já está disponível)
+  useEffect(() => {
+    console.log('🚀 Categories - Montagem do componente, workspace atual:', currentWorkspace?.nome);
+    if (currentWorkspace) {
+      carregarCategorias();
+    }
+  }, []);
+
+  // Escutar mudanças de workspace
+  useEffect(() => {
+    const handleWorkspaceChange = (event: CustomEvent) => {
+      console.log('🔄 Categories detectou mudança de workspace:', event.detail);
+      const { previousWorkspace, newWorkspace } = event.detail;
+      
+      if (previousWorkspace?.id !== newWorkspace?.id) {
+        console.log('✨ Recarregando categorias para novo workspace:', newWorkspace?.nome);
+        if (newWorkspace) {
+          carregarCategorias();
+        } else {
+          console.log('❌ Novo workspace é null, limpando categorias');
+          setCategories([]);
+          setLoading(false);
+        }
+      } else {
+        console.log('⚪ Mesma workspace, não recarregando');
+      }
+    };
+
+    window.addEventListener('workspaceChanged', handleWorkspaceChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('workspaceChanged', handleWorkspaceChange as EventListener);
+    };
   }, []);
 
   const carregarCategorias = async () => {
+    if (!currentWorkspace) {
+      console.log('❌ Nenhum workspace ativo, não carregando categorias');
+      setCategories([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
+      console.log('🔄 Carregando categorias para workspace:', currentWorkspace.nome, 'ID:', currentWorkspace.id);
       
       // Primeiro tenta a API hierárquica
       try {
-        console.log('Tentando carregar hierarquia...');
+        console.log('📡 Tentando carregar hierarquia...');
         const data = await categoriesAPI.getHierarchy();
-        console.log('Dados hierárquicos recebidos:', data);
-        setCategories(data);
-        
-        // Expande as categorias principais por padrão
-        const mainCategoryIds = data.map(cat => cat.id);
-        setExpandedCategories(new Set(mainCategoryIds));
+        console.log('✅ Dados hierárquicos recebidos:', data?.length, 'categorias');
+        setCategories(data || []);
       } catch (hierarchyError) {
-        console.log('Erro na API hierarchy, tentando API básica:', hierarchyError);
+        console.log('⚠️ Erro na API hierarchy, tentando API básica:', hierarchyError);
         
         // Fallback para API básica
         const data = await categoriesAPI.getAll();
-        console.log('Dados básicos recebidos:', data);
+        console.log('✅ Dados básicos recebidos:', data?.length, 'categorias');
         
         // Converte para formato hierárquico básico
         const hierarchyData = data
@@ -63,9 +106,6 @@ const Categories: React.FC = () => {
         
         console.log('Dados convertidos para hierarquia:', hierarchyData);
         setCategories(hierarchyData);
-        
-        const mainCategoryIds = hierarchyData.map(cat => cat.id);
-        setExpandedCategories(new Set(mainCategoryIds));
       }
     } catch (error) {
       console.error('Erro ao carregar categorias:', error);
@@ -73,16 +113,6 @@ const Categories: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const toggleExpanded = (categoryId: number) => {
-    const newExpanded = new Set(expandedCategories);
-    if (newExpanded.has(categoryId)) {
-      newExpanded.delete(categoryId);
-    } else {
-      newExpanded.add(categoryId);
-    }
-    setExpandedCategories(newExpanded);
   };
 
   const abrirModal = (category: Category | null = null, parentId?: number) => {
@@ -159,96 +189,135 @@ const Categories: React.FC = () => {
     }
   };
 
-  const renderCategory = (category: Category, level: number = 0) => {
-    const isExpanded = expandedCategories.has(category.id);
+  const renderCategoryCard = (category: Category) => {
     const hasChildren = category.children && category.children.length > 0;
-    const indentClass = level > 0 ? 'ml-8' : '';
-
+    
     return (
-      <div key={category.id} className={indentClass}>
-        {/* Categoria Principal/Subcategoria */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4 mb-2 hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center flex-1">
-              {/* Botão de expandir (apenas para categorias principais com filhas) */}
-              {level === 0 && hasChildren && (
-                <button
-                  onClick={() => toggleExpanded(category.id)}
-                  className="mr-3 p-1 hover:bg-gray-100 rounded"
-                >
-                  {isExpanded ? (
-                    <ChevronDownIcon className="h-4 w-4 text-gray-500" />
-                  ) : (
-                    <ChevronRightIcon className="h-4 w-4 text-gray-500" />
-                  )}
-                </button>
-              )}
-
+      <div key={category.id} className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200">
+        {/* Header da Categoria Principal */}
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start space-x-4 flex-1 min-w-0">
               {/* Ícone da categoria */}
               <div 
-                className="w-10 h-10 rounded-lg flex items-center justify-center mr-3"
-                style={{ backgroundColor: category.cor + '20' }}
+                className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-semibold text-lg flex-shrink-0"
+                style={{ backgroundColor: category.cor }}
               >
-                <span className="text-lg">{category.icone}</span>
+                <span>{category.icone}</span>
               </div>
-
+              
               {/* Informações da categoria */}
-              <div className="flex-1">
-                <div className="flex items-center">
-                  <h3 className="font-medium text-gray-900">{category.nome}</h3>
-                  {level === 0 && (
-                    <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                      Principal
-                    </span>
-                  )}
-                  {level > 0 && (
-                    <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
-                      Subcategoria
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-gray-500">{category.descricao}</p>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xl font-semibold text-gray-900 break-words leading-tight">
+                  {category.nome}
+                </h3>
+                <p className="text-sm text-gray-600 break-words leading-tight mt-1">
+                  {category.descricao}
+                </p>
                 {hasChildren && (
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-gray-400 mt-2">
                     {category.children?.length} subcategorias
                   </p>
                 )}
               </div>
             </div>
 
-            {/* Ações */}
-            <div className="flex items-center space-x-2">
-              {level === 0 && (
-                <button
-                  onClick={() => abrirModal(null, category.id)}
-                  className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
-                  title="Adicionar subcategoria"
-                >
-                  <PlusIcon className="h-4 w-4" />
-                </button>
-              )}
+            {/* Menu de ações */}
+            <div className="flex items-start space-x-2 flex-shrink-0">
+              <button
+                onClick={() => abrirModal(null, category.id)}
+                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                title="Adicionar subcategoria"
+              >
+                <PlusIcon className="h-5 w-5" />
+              </button>
               <button
                 onClick={() => abrirModal(category)}
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                 title="Editar categoria"
               >
-                <PencilIcon className="h-4 w-4" />
+                <PencilIcon className="h-5 w-5" />
               </button>
               <button
                 onClick={() => excluirCategoria(category)}
-                className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 title="Excluir categoria"
               >
-                <TrashIcon className="h-4 w-4" />
+                <TrashIcon className="h-5 w-5" />
               </button>
             </div>
           </div>
         </div>
 
-        {/* Subcategorias (apenas se expandida) */}
-        {isExpanded && hasChildren && (
-          <div className="ml-4 mt-2">
-            {category.children?.map(child => renderCategory(child, level + 1))}
+        {/* Subcategorias */}
+        {hasChildren && (
+          <div className="p-6">
+            <h4 className="text-sm font-medium text-gray-700 mb-4 flex items-center">
+              <TagIcon className="h-4 w-4 mr-2" />
+              Subcategorias
+            </h4>
+            <div className="space-y-3">
+              {category.children?.map(subcategory => (
+                <div 
+                  key={subcategory.id}
+                  className="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors group relative"
+                >
+                  {/* Conteúdo da subcategoria */}
+                  <div className="flex items-start space-x-3 pr-16">
+                    <div 
+                      className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
+                      style={{ backgroundColor: subcategory.cor + '20' }}
+                    >
+                      <span className="text-sm">{subcategory.icone}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 break-words leading-relaxed">
+                        {subcategory.nome}
+                      </p>
+                      {subcategory.descricao && (
+                        <p className="text-xs text-gray-500 break-words mt-1 leading-relaxed">
+                          {subcategory.descricao}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Botões de ação fixos no lado direito */}
+                  <div className="absolute top-3 right-3 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => abrirModal(subcategory)}
+                      className="p-1.5 text-blue-600 hover:bg-blue-200 rounded-md transition-colors"
+                      title="Editar subcategoria"
+                    >
+                      <PencilIcon className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => excluirCategoria(subcategory)}
+                      className="p-1.5 text-red-600 hover:bg-red-200 rounded-md transition-colors"
+                      title="Excluir subcategoria"
+                    >
+                      <TrashIcon className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Se não tem subcategorias, mostra um placeholder */}
+        {!hasChildren && (
+          <div className="p-6 text-center">
+            <div className="text-gray-400">
+              <TagIcon className="h-8 w-8 mx-auto mb-2" />
+              <p className="text-sm">Nenhuma subcategoria</p>
+              <button
+                onClick={() => abrirModal(null, category.id)}
+                className="mt-2 text-xs text-blue-600 hover:text-blue-800"
+              >
+                Adicionar primeira subcategoria
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -272,10 +341,10 @@ const Categories: React.FC = () => {
       <div className="md:flex md:items-center md:justify-between mb-8">
         <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-            Categorias Hierárquicas
+            Gerenciamento de Categorias
           </h2>
           <p className="mt-1 text-sm text-gray-500">
-            Organize suas transações com categorias principais e subcategorias
+            Organize suas transações com categorias principais e subcategorias em cards visuais
           </p>
         </div>
         <div className="mt-4 flex md:mt-0 md:ml-4">
@@ -289,30 +358,12 @@ const Categories: React.FC = () => {
         </div>
       </div>
 
-      {/* Debug Info */}
-      <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <h4 className="font-medium text-yellow-800">Debug Info:</h4>
-        <p className="text-sm text-yellow-700">
-          Total de categorias carregadas: {categories.length}
-        </p>
-        {categories.length > 0 && (
-          <div className="mt-2 text-xs text-yellow-600">
-            <p>Primeiras categorias:</p>
-            {categories.slice(0, 3).map(cat => (
-              <div key={cat.id}>
-                • {cat.nome} (ID: {cat.id}, Parent: {cat.parent || 'nenhum'}, Children: {cat.children?.length || 0})
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Lista de Categorias */}
-      <div className="space-y-4">
+      {/* Lista de Categorias em Cards */}
+      <div className="space-y-6">
         {categories.length === 0 ? (
           <div className="text-center py-12">
             <FolderIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhuma categoria</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhuma categoria encontrada</h3>
             <p className="mt-1 text-sm text-gray-500">
               Comece criando sua primeira categoria principal.
             </p>
@@ -327,7 +378,9 @@ const Categories: React.FC = () => {
             </div>
           </div>
         ) : (
-          categories.map(category => renderCategory(category))
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {categories.map(category => renderCategoryCard(category))}
+          </div>
         )}
       </div>
 

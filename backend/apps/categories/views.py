@@ -1,121 +1,89 @@
-from rest_framework import generics, permissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import viewsets, permissions
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q
-from .models import Category, Tag
-from .serializers import CategorySerializer, TagSerializer, CategoryWithTransactionCountSerializer, CategoryHierarchySerializer
+from .models import Category, CostCenter
+from .serializers import CategorySerializer, CostCenterSerializer
+from apps.accounts.workspace_mixins import WorkspaceRequiredMixin
 
 
-class CategoryListCreateView(generics.ListCreateAPIView):
+class CategoryViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
+    """ViewSet para gerenciar categorias"""
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Category.objects.filter(user=self.request.user, is_active=True)
+        """Retorna categorias filtradas por workspace"""
+        queryset = Category.objects.all()
+        return self.get_workspace_queryset(queryset)
+    
+    def perform_create(self, serializer):
+        """Salva a categoria com workspace e user"""
+        serializer.save(
+            workspace=self.request.workspace,
+            user=self.request.user
+        )
+
+    @action(detail=False, methods=['get'])
+    def hierarchy(self, request):
+        """
+        Retorna categorias organizadas hierarquicamente.
+        Categorias principais com suas subcategorias aninhadas.
+        """
+        # Busca todas as categorias do workspace
+        all_categories = self.get_queryset()
         
-        # Filtro por nível (categorias principais ou subcategorias)
-        level = self.request.query_params.get('level', None)
-        if level == 'main':
-            queryset = queryset.filter(parent__isnull=True)
-        elif level == 'sub':
-            queryset = queryset.filter(parent__isnull=False)
+        # Filtra apenas categorias principais (sem parent)
+        main_categories = all_categories.filter(parent__isnull=True).order_by('nome')
         
-        # Filtro por categoria pai
-        parent_id = self.request.query_params.get('parent', None)
-        if parent_id:
-            queryset = queryset.filter(parent_id=parent_id)
+        # Serializa as categorias principais
+        result = []
+        for main_category in main_categories:
+            # Serializa a categoria principal
+            main_data = CategorySerializer(main_category).data
             
-        return queryset.select_related('parent').order_by('nome')
-
-
-class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return Category.objects.filter(user=self.request.user).select_related('parent')
-
-    def perform_destroy(self, instance):
-        # Verifica se tem subcategorias
-        if instance.get_children().exists():
-            # Move subcategorias para sem pai (torna em categorias principais)
-            instance.get_children().update(parent=None)
+            # Busca subcategorias desta categoria principal
+            subcategories = all_categories.filter(parent=main_category).order_by('nome')
+            
+            # Adiciona as subcategorias serializadas
+            main_data['children'] = CategorySerializer(subcategories, many=True).data
+            
+            result.append(main_data)
         
-        # Soft delete
-        instance.is_active = False
-        instance.save()
+        return Response(result)
 
-
-@api_view(['GET'])
-@permission_classes([permissions.IsAuthenticated])
-def category_hierarchy_view(request):
-    """Endpoint para retornar categorias em estrutura hierárquica"""
-    # Busca apenas categorias principais (sem pai)
-    main_categories = Category.objects.filter(
-        user=request.user, 
-        is_active=True, 
-        parent__isnull=True
-    ).order_by('nome')
-    
-    serializer = CategoryHierarchySerializer(main_categories, many=True, context={'request': request})
-    return Response(serializer.data)
-
-
-@api_view(['GET'])
-@permission_classes([permissions.IsAuthenticated])
-def category_flat_list_view(request):
-    """Endpoint para retornar todas as categorias em lista plana para dropdowns"""
-    categories = Category.objects.filter(
-        user=request.user, 
-        is_active=True
-    ).select_related('parent').order_by('parent__nome', 'nome')
-    
-    # Organiza as categorias com indentação visual
-    organized_data = []
-    for category in categories:
-        if category.parent:
-            # Subcategoria com indentação
-            organized_data.append({
-                'id': category.id,
-                'nome': f"  └─ {category.nome}",
-                'nome_completo': f"{category.parent.nome} > {category.nome}",
-                'parent_id': category.parent.id,
-                'is_subcategory': True,
-                'cor': category.cor,
-            })
-        else:
-            # Categoria principal
-            organized_data.append({
+    @action(detail=False, methods=['get'], url_path='flat-list')
+    def flat_list(self, request):
+        """Retorna categorias em lista plana para dropdown"""
+        all_categories = self.get_queryset().order_by('parent__nome', 'nome')
+        
+        result = []
+        for category in all_categories:
+            has_children = all_categories.filter(parent=category).exists()
+            category_data = {
                 'id': category.id,
                 'nome': category.nome,
-                'nome_completo': category.nome,
-                'parent_id': None,
-                'is_subcategory': False,
-                'cor': category.cor,
-            })
+                'parent': category.parent_id,
+                'isSelectable': not has_children,
+                'level': 1 if category.parent else 0,
+            }
+            result.append(category_data)
+        
+        return Response(result)
+
+
+class CostCenterViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
+    """ViewSet para gerenciar centros de custo"""
+    serializer_class = CostCenterSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """Retorna centros de custo filtrados por workspace"""
+        queryset = CostCenter.objects.all()
+        return self.get_workspace_queryset(queryset)
     
-    return Response(organized_data)
-
-
-class CategoryStatsView(generics.ListAPIView):
-    serializer_class = CategoryWithTransactionCountSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return Category.objects.filter(user=self.request.user, is_active=True)
-
-
-class TagListCreateView(generics.ListCreateAPIView):
-    serializer_class = TagSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return Tag.objects.filter(user=self.request.user)
-
-
-class TagDetailView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = TagSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return Tag.objects.filter(user=self.request.user)
+    def perform_create(self, serializer):
+        """Salva o centro de custo com workspace e user"""
+        serializer.save(
+            workspace=self.request.workspace,
+            user=self.request.user
+        )
