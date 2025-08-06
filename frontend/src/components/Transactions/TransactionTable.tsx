@@ -45,6 +45,7 @@ interface TransactionTableProps {
   handleKeyDown: (e: React.KeyboardEvent, id: number) => void;
   handleValorInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSelectChange: (id: number, field: string, value: string) => void;
+  handleBeneficiaryChange: (id: number, beneficiaryId: number | null, beneficiaryName?: string) => void;
   setEditValue: (value: string) => void;
   
   // Action functions
@@ -86,6 +87,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
   handleKeyDown,
   handleValorInputChange,
   handleSelectChange,
+  handleBeneficiaryChange,
   setEditValue,
   toggleStatus,
   handleDelete,
@@ -137,17 +139,12 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
               <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
                 ✓
               </th>
-              {!isSelectionMode && (
-                <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ações
-                </th>
-              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
               <tr>
-                <td colSpan={isSelectionMode ? 8 : 9} className="px-6 py-8 text-center">
+                <td colSpan={8} className="px-6 py-8 text-center">
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
                     <span className="ml-2 text-sm text-gray-500">Carregando transações...</span>
@@ -156,7 +153,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
               </tr>
             ) : transacoesFiltradas.length === 0 ? (
               <tr>
-                <td colSpan={isSelectionMode ? 8 : 9} className="px-6 py-8 text-center text-sm text-gray-500">
+                <td colSpan={8} className="px-6 py-8 text-center text-sm text-gray-500">
                   Nenhuma transação encontrada
                 </td>
               </tr>
@@ -181,6 +178,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                   handleKeyDown={handleKeyDown}
                   handleValorInputChange={handleValorInputChange}
                   handleSelectChange={handleSelectChange}
+                  handleBeneficiaryChange={handleBeneficiaryChange}
                   toggleStatus={toggleStatus}
                   handleDelete={handleDelete}
                   setEditValue={setEditValue}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import BeneficiaryInlineEdit from './BeneficiaryInlineEdit';
 
 interface Transaction {
   id: number;
@@ -40,6 +40,7 @@ interface TransactionRowProps {
   handleKeyDown: (e: React.KeyboardEvent, id: number) => void;
   handleValorInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSelectChange: (id: number, field: string, value: string) => void;
+  handleBeneficiaryChange: (id: number, beneficiaryId: number | null, beneficiaryName?: string) => void;
   toggleStatus: (transaction: Transaction) => void;
   handleDelete: (id: number) => void;
   setEditValue: (value: string) => void;
@@ -70,6 +71,7 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
   handleKeyDown,
   handleValorInputChange,
   handleSelectChange,
+  handleBeneficiaryChange,
   toggleStatus,
   handleDelete,
   setEditValue,
@@ -121,7 +123,11 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
             onClick={(e) => {
               if (!isSelectionMode) {
                 e.stopPropagation();
-                startEditing(transaction.id, 'data', transaction.data);
+                // Ensure date is in YYYY-MM-DD format for the input
+                const dateValue = transaction.data.includes('T') 
+                  ? transaction.data.split('T')[0] 
+                  : transaction.data;
+                startEditing(transaction.id, 'data', dateValue);
               }
             }}
             className={`${!isSelectionMode ? 'cursor-pointer' : ''} px-2 py-1 rounded ${getEditableFieldClass(false)}`}
@@ -183,27 +189,14 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
       {/* Beneficiário */}
       <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
         {editingTransaction === transaction.id && editingField === 'beneficiario' ? (
-          <div className="flex items-center space-x-2 min-w-[200px]">
-            <div className="flex-1">
-              <input
-                type="text"
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                onBlur={() => handleAutoSave(transaction.id)}
-                onKeyDown={(e) => handleKeyDown(e, transaction.id)}
-                className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-                placeholder="Digite o nome do beneficiário"
-                autoFocus
-              />
-            </div>
-            <button
-              onClick={cancelEditing}
-              className="text-red-600 hover:text-red-800 text-xs"
-              title="Fechar"
-            >
-              ✕
-            </button>
-          </div>
+          <BeneficiaryInlineEdit
+            value={editValue}
+            onSave={(beneficiaryId, beneficiaryName) => {
+              handleBeneficiaryChange(transaction.id, beneficiaryId, beneficiaryName);
+            }}
+            onCancel={cancelEditing}
+            onKeyDown={(e) => handleKeyDown(e, transaction.id)}
+          />
         ) : (
           <span
             className={`${!isSelectionMode ? 'cursor-pointer hover:bg-gray-100' : ''} px-2 py-1 rounded transition-colors`}
@@ -374,19 +367,6 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
           </button>
         )}
       </td>
-      
-      {/* Ações */}
-      {!isSelectionMode && (
-        <td className="px-4 py-2 whitespace-nowrap text-center text-sm font-medium">
-          <button
-            onClick={() => handleDelete(transaction.id)}
-            className="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50"
-            title="Excluir transação"
-          >
-            <XMarkIcon className="h-4 w-4" />
-          </button>
-        </td>
-      )}
     </tr>
   );
 };

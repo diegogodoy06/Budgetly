@@ -609,7 +609,8 @@ const Transactions: React.FC = () => {
       const transaction = transactions.find(t => t.id === transactionId);
       if (!transaction) return;
 
-      const updateData: any = { ...transaction };
+      // Prepare update data with only the changed field
+      const updateData: any = {};
       
       if (editingField === 'descricao') {
         if (editValue.trim() === '') return; // Não salvar descrição vazia
@@ -617,29 +618,17 @@ const Transactions: React.FC = () => {
       } else if (editingField === 'valor') {
         updateData.valor = parseValorEdicaoInline(editValue);
       } else if (editingField === 'data') {
-        updateData.data = editValue;
+        // Ensure the date is saved correctly without timezone issues
+        updateData.data = editValue; // Keep it as YYYY-MM-DD format
       } else if (editingField === 'category') {
         updateData.category = editValue ? parseInt(editValue) : null;
       } else if (editingField === 'beneficiario') {
-        // Para o input de texto temporário, vamos apenas deixar como está por enquanto
-        // TODO: Implementar busca/criação de beneficiário
-        if (editValue.trim()) {
-          // Se é um número, usa o ID
-          if (!isNaN(parseInt(editValue))) {
-            updateData.beneficiario = parseInt(editValue);
-          } else {
-            // Se é texto, por enquanto não atualiza (precisaria criar a API)
-            console.log('Beneficiário por nome ainda não implementado:', editValue);
-            cancelEditing();
-            return;
-          }
-        } else {
-          updateData.beneficiario = null;
-        }
+        // This should be handled by handleBeneficiaryChange instead
+        return;
       } else if (editingField === 'confirmada') {
         updateData.confirmada = editValue === 'true';
       } else if (editingField === 'account') {
-        // Limpar campos anteriores
+        // Clear both account and credit_card first
         updateData.account = null;
         updateData.credit_card = null;
         
@@ -726,6 +715,26 @@ const Transactions: React.FC = () => {
         await saveInlineEdit(transactionId);
       }
     }, 100);
+  };
+
+  // Nova função para lidar com mudanças no beneficiário
+  const handleBeneficiaryChange = async (transactionId: number, beneficiaryId: number | null, beneficiaryName?: string) => {
+    try {
+      const transaction = transactions.find(t => t.id === transactionId);
+      if (!transaction) return;
+
+      const updateData: any = { ...transaction };
+      updateData.beneficiario = beneficiaryId;
+      
+      const updated = await transactionsAPI.update(transactionId, updateData);
+      setTransactions(transactions.map(t => t.id === transactionId ? updated : t));
+      toast.success('Beneficiário atualizado com sucesso!');
+      cancelEditing();
+    } catch (error) {
+      console.error('Erro ao atualizar beneficiário:', error);
+      toast.error('Erro ao atualizar beneficiário');
+      cancelEditing();
+    }
   };
 
   // Função para adicionar feedback visual de salvamento
@@ -815,6 +824,7 @@ const Transactions: React.FC = () => {
             handleKeyDown={handleKeyDown}
             handleValorInputChange={handleValorInputChange}
             handleSelectChange={handleSelectChange}
+            handleBeneficiaryChange={handleBeneficiaryChange}
             setEditValue={setEditValue}
             toggleStatus={toggleStatus}
             handleDelete={handleDelete}
