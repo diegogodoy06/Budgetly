@@ -27,20 +27,7 @@ export const getBrandColor = (brand: CreditCardBrand): string => {
   return brandInfo?.cor || 'bg-gray-600';
 };
 
-export const getBrandLogo = (brand: CreditCardBrand): JSX.Element => {
+export const getBrandLogoPath = (brand: CreditCardBrand): string => {
   const brandInfo = CREDIT_CARD_BRANDS.find(b => b.value === brand);
-  const logoPath = brandInfo?.logo || '/src/assets/images/card-brands/visa.png';
-  
-  return (
-    <img 
-      src={logoPath} 
-      alt={brand} 
-      className="h-6 w-auto object-contain"
-      onError={(e) => {
-        // Fallback para emoji se a imagem não carregar
-        e.currentTarget.style.display = 'none';
-        e.currentTarget.nextElementSibling?.setAttribute('style', 'display: inline');
-      }}
-    />
-  );
+  return brandInfo?.logo || '/src/assets/images/card-brands/visa.png';
 };

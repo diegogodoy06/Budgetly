@@ -1,7 +1,7 @@
 import React from 'react';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import type { CreditCard } from '@/types';
-import { getBrandLogo } from '@/utils/creditCardBrands';
+import BrandLogo from './BrandLogo';
 import { formatCurrency, formatCardNumber } from '@/utils/currencyUtils';
 
 interface CreditCardItemProps {
@@ -49,7 +49,7 @@ const CreditCardItem: React.FC<CreditCardItemProps> = ({
             </div>
             <div className="flex items-center space-x-2">
               {/* Logo da bandeira */}
-              <div className="flex items-center">{getBrandLogo(card.bandeira)}</div>
+              <div className="flex items-center"><BrandLogo brand={card.bandeira} /></div>
               <div className="flex space-x-1">
                 <button
                   onClick={(e) => {
