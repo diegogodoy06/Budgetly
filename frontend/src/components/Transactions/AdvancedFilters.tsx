@@ -411,10 +411,10 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
         )}
       </div>
 
-      {/* Active Filters Display */}
+      {/* Active Filters Display - Compact horizontal layout */}
       {activeFilters.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
+        <div className="mt-4">
+          <div className="flex items-center justify-between mb-2">
             <div className="text-sm font-medium text-gray-700">
               Filtros ativos ({activeFilters.length}):
             </div>
@@ -426,13 +426,14 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             </button>
           </div>
           
-          <div className="space-y-2">
+          {/* Compact filter display - horizontal layout */}
+          <div className="flex flex-wrap gap-2">
             {activeFilters.map(filter => (
               <div
                 key={filter.id}
-                className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-md"
+                className="inline-flex items-center justify-between px-3 py-1 bg-blue-50 border border-blue-200 rounded-full text-sm"
               >
-                <div className="text-sm text-blue-800">
+                <div className="text-blue-800">
                   <span className="font-medium">{filter.fieldLabel}</span>
                   {' '}
                   <span>{filter.operationLabel}</span>
@@ -441,9 +442,9 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                 </div>
                 <button
                   onClick={() => removeFilter(filter.id)}
-                  className="text-blue-600 hover:text-blue-800"
+                  className="ml-2 text-blue-600 hover:text-blue-800"
                 >
-                  <XMarkIcon className="h-4 w-4" />
+                  <XMarkIcon className="h-3 w-3" />
                 </button>
               </div>
             ))}

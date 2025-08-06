@@ -8,6 +8,7 @@ import {
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import InvoiceManagementModal from './InvoiceManagementModal';
+import AdvancedFilters from './AdvancedFilters';
 
 interface TransactionHeaderProps {
   // Filter states
@@ -19,6 +20,7 @@ interface TransactionHeaderProps {
   // Data
   accounts: Array<{ id: number; nome: string; tipo: string; banco?: string }>;
   creditCards: Array<{ id: number; nome: string; bandeira?: string }>;
+  categories: Array<{ id: number; nome: string }>;
   transacoesFiltradas: Array<any>;
   
   // Computed values
@@ -35,6 +37,26 @@ interface TransactionHeaderProps {
   setSearchTerm?: (value: string) => void;
   selectedTransactions?: Set<number>;
   isSelectionMode?: boolean;
+  
+  // Advanced filters
+  advancedFilters?: Array<{
+    id: string;
+    field: string;
+    fieldLabel: string;
+    operation: string;
+    operationLabel: string;
+    value: string | number | string[];
+    valueLabel: string;
+  }>;
+  setAdvancedFilters?: (filters: Array<{
+    id: string;
+    field: string;
+    fieldLabel: string;
+    operation: string;
+    operationLabel: string;
+    value: string | number | string[];
+    valueLabel: string;
+  }>) => void;
 }
 
 const TransactionHeader: React.FC<TransactionHeaderProps> = ({
@@ -44,6 +66,7 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
   setMostrarFiltros,
   accounts,
   creditCards,
+  categories,
   transacoesFiltradas,
   contarFiltrosAtivos,
   obterNomeFiltroAtivo,
@@ -53,7 +76,9 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
   searchTerm = '',
   setSearchTerm,
   selectedTransactions = new Set(),
-  isSelectionMode = false
+  isSelectionMode = false,
+  advancedFilters = [],
+  setAdvancedFilters
 }) => {
   
   // State for invoice modal
@@ -96,53 +121,40 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
         </h2>
       </div>
 
-      {/* Current Filter Display */}
-      <div className="mb-4">
-        <div className="text-sm text-gray-600 mb-1">Filtro ativo:</div>
-        <div className="text-lg font-medium text-gray-900">
-          {obterNomeFiltroAtivo()}
-        </div>
-      </div>
-
-      {/* Total Value Display with Breakdown */}
+      {/* Simplified Summary Display */}
       <div className="mb-6">
-        <div className="text-sm text-gray-600 mb-1">Total das transações:</div>
-        <button
-          onClick={() => setShowTotalBreakdown(!showTotalBreakdown)}
-          className="text-2xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-200 flex items-center"
-        >
-          {formatarMoeda(calcularSaldoFiltrado())}
-          <ChevronDownIcon 
-            className={`h-5 w-5 ml-2 transition-transform duration-200 ${
-              showTotalBreakdown ? 'rotate-180' : ''
-            }`} 
-          />
-        </button>
-        
-        {/* Breakdown Cards */}
-        {showTotalBreakdown && (
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="text-sm font-medium text-green-700">Confirmadas</div>
-              <div className="text-xl font-bold text-green-800">
-                {formatarMoeda(confirmed)}
-              </div>
-            </div>
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-              <div className="text-sm font-medium text-orange-700">Não confirmadas</div>
-              <div className="text-xl font-bold text-orange-800">
-                {formatarMoeda(unconfirmed)}
-              </div>
-            </div>
+        <div className="flex items-center space-x-4">
+          <div className="text-sm text-gray-600">
+            {transacoesFiltradas.length} transações
           </div>
-        )}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setShowTotalBreakdown(!showTotalBreakdown)}
+              className="text-2xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-200"
+            >
+              {formatarMoeda(calcularSaldoFiltrado())}
+            </button>
+            
+            {/* Inline Breakdown */}
+            {showTotalBreakdown && (
+              <div className="flex items-center space-x-3 text-sm">
+                <span className="text-green-600 font-medium">
+                  Confirmadas: {formatarMoeda(confirmed)}
+                </span>
+                <span className="text-orange-600 font-medium">
+                  Pendentes: {formatarMoeda(unconfirmed)}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Main Layout: Left side (Add New + Filters) and Right side (Search + Actions) */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         
         {/* Left Side - Add New and Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 relative">
           <button
             type="button"
             onClick={abrirPopupAdicionar}
@@ -152,21 +164,38 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
             Nova Transação
           </button>
 
-          <button
-            type="button"
-            onClick={() => setMostrarFiltros(!mostrarFiltros)}
-            className={`inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-              mostrarFiltros ? 'bg-blue-50 text-blue-700 border-blue-300' : 'text-gray-700 bg-white hover:bg-gray-50'
-            }`}
-          >
-            <FunnelIcon className="h-5 w-5 mr-2" />
-            Filtros Avançados
-            {contarFiltrosAtivos() > 0 && (
-              <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {contarFiltrosAtivos()}
-              </span>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setMostrarFiltros(!mostrarFiltros)}
+              className={`inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                mostrarFiltros ? 'bg-blue-50 text-blue-700 border-blue-300' : 'text-gray-700 bg-white hover:bg-gray-50'
+              }`}
+            >
+              <FunnelIcon className="h-5 w-5 mr-2" />
+              Filtros Avançados
+              {contarFiltrosAtivos() > 0 && (
+                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {contarFiltrosAtivos()}
+                </span>
+              )}
+            </button>
+
+            {/* Advanced Filters Dropdown */}
+            {mostrarFiltros && setAdvancedFilters && (
+              <div className="absolute top-full left-0 mt-2 w-96 bg-white border border-gray-300 rounded-lg shadow-lg z-50">
+                <div className="p-4">
+                  <AdvancedFilters
+                    accounts={accounts}
+                    creditCards={creditCards}
+                    categories={categories}
+                    onFiltersChange={setAdvancedFilters}
+                    activeFilters={advancedFilters}
+                  />
+                </div>
+              </div>
             )}
-          </button>
+          </div>
         </div>
 
         {/* Right Side - Search and Row Actions */}

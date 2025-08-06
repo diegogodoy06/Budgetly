@@ -43,6 +43,7 @@ interface TransactionRowProps {
   toggleStatus: (transaction: Transaction) => void;
   handleDelete: (id: number) => void;
   setEditValue: (value: string) => void;
+  setHoveredTransaction: (id: number | null) => void;
   
   // Utility functions
   formatarData: (data: string) => string;
@@ -72,6 +73,7 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
   toggleStatus,
   handleDelete,
   setEditValue,
+  setHoveredTransaction,
   formatarData,
   getContaDisplay,
   getEditableFieldClass,
@@ -81,6 +83,8 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
     <tr 
       className={`${isSelectionMode ? 'cursor-pointer' : 'hover:bg-gray-50'} ${selectedTransactions.has(transaction.id) ? 'bg-blue-50 border-l-4 border-blue-500' : ''} transition-colors group`}
       onClick={() => isSelectionMode && selectTransaction(transaction.id)}
+      onMouseEnter={() => setHoveredTransaction(transaction.id)}
+      onMouseLeave={() => setHoveredTransaction(null)}
     >
       {/* Checkbox - sempre presente, mas só visível no hover ou modo seleção */}
       <td className="px-2 py-2 whitespace-nowrap">

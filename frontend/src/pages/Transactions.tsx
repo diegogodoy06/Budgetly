@@ -747,6 +747,7 @@ const Transactions: React.FC = () => {
         setMostrarFiltros={setShowAdvancedFilters}
         accounts={accounts}
         creditCards={creditCards}
+        categories={categories}
         transacoesFiltradas={finalFilteredTransactions}
         contarFiltrosAtivos={() => contarFiltrosAtivos() + advancedFilters.length + (searchTerm ? 1 : 0)}
         obterNomeFiltroAtivo={obterNomeFiltroAtivo}
@@ -757,20 +758,9 @@ const Transactions: React.FC = () => {
         setSearchTerm={setSearchTerm}
         selectedTransactions={selectedTransactions}
         isSelectionMode={isSelectionMode}
+        advancedFilters={advancedFilters}
+        setAdvancedFilters={setAdvancedFilters}
       />
-
-      {/* Advanced Filters */}
-      {showAdvancedFilters && (
-        <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-          <AdvancedFilters
-            accounts={accounts}
-            creditCards={creditCards}
-            categories={categories}
-            onFiltersChange={setAdvancedFilters}
-            activeFilters={advancedFilters}
-          />
-        </div>
-      )}
 
       {/* Bulk Operations */}
       <BulkOperations

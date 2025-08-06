@@ -184,6 +184,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                   toggleStatus={toggleStatus}
                   handleDelete={handleDelete}
                   setEditValue={setEditValue}
+                  setHoveredTransaction={setHoveredTransaction}
                   formatarData={formatarData}
                   getContaDisplay={getContaDisplay}
                   getEditableFieldClass={getEditableFieldClass}
