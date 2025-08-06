@@ -160,6 +160,33 @@ export const transactionsAPI = {
   
   confirmCreditCardTransaction: (id: number): Promise<Transaction> =>
     api.post(`/api/transactions/transactions/${id}/confirm_credit_card_transaction/`).then(res => res.data.transaction),
+  
+  // CSV Import methods
+  uploadCSVPreview: (formData: FormData): Promise<{
+    headers: string[];
+    preview_rows: string[][];
+    total_rows: number;
+    delimiter: string;
+    suggested_mapping: Record<string, number>;
+  }> =>
+    api.post('/api/transactions/csv-preview/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }).then(res => res.data),
+  
+  importCSVTransactions: (formData: FormData): Promise<{
+    success: boolean;
+    imported_count: number;
+    skipped_count: number;
+    total_rows: number;
+    errors: string[];
+  }> =>
+    api.post('/api/transactions/csv-import/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }).then(res => res.data),
 };
 
 // Categories API

@@ -12,6 +12,7 @@ import {
   TransactionModals
 } from '@/components/Transactions';
 import AdvancedFilters from '@/components/Transactions/AdvancedFilters';
+import CSVImportModal from '@/components/Transactions/CSVImportModal';
 
 type TipoMovimentacao = 'todas' | 'entradas' | 'saidas' | 'contas-receber' | 'contas-pagar';
 
@@ -94,6 +95,9 @@ const Transactions: React.FC = () => {
   const [bulkEditField, setBulkEditField] = useState<string>('');
   const [bulkEditValue, setBulkEditValue] = useState<string>('');
   const [showBulkEditDropdown, setShowBulkEditDropdown] = useState(false);
+
+  // Estados para importação CSV
+  const [showCSVImportModal, setShowCSVImportModal] = useState(false);
 
   const [formData, setFormData] = useState<TransactionForm>({
     tipo: 'saida',
@@ -329,6 +333,14 @@ const Transactions: React.FC = () => {
     setTransactionEditando(null);
     setIsRecorrente(false);
     setMostrarNovoModal(true);
+  };
+
+  const abrirImportarCSV = () => {
+    setShowCSVImportModal(true);
+  };
+
+  const handleCSVImportSuccess = () => {
+    carregarDados(); // Reload transactions after successful import
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -763,6 +775,7 @@ const Transactions: React.FC = () => {
         calcularSaldoFiltrado={calcularSaldoFiltrado}
         formatarMoeda={formatarMoeda}
         abrirPopupAdicionar={abrirPopupAdicionar}
+        abrirImportarCSV={abrirImportarCSV}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         selectedTransactions={selectedTransactions}
@@ -882,6 +895,14 @@ const Transactions: React.FC = () => {
         carregarDados={carregarDados}
         closeBulkEditModal={closeBulkEditModal}
         bulkEditTransactions={bulkEditTransactions}
+      />
+
+      {/* CSV Import Modal */}
+      <CSVImportModal
+        isOpen={showCSVImportModal}
+        onClose={() => setShowCSVImportModal(false)}
+        accounts={accounts}
+        onImportSuccess={handleCSVImportSuccess}
       />
     </div>
   );

@@ -14,4 +14,8 @@ urlpatterns = [
     # Invoice utilities
     path('validate-date/', views.validate_transaction_date, name='validate-transaction-date'),
     path('best-purchase-date/', views.get_best_purchase_date, name='best-purchase-date'),
+    
+    # CSV Import
+    path('csv-preview/', views.upload_csv_preview, name='csv-preview'),
+    path('csv-import/', views.import_csv_transactions, name='csv-import'),
 ]

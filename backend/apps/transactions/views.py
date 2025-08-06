@@ -637,6 +637,306 @@ def get_best_purchase_date(request):
         )
 
 
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def upload_csv_preview(request):
+    """Upload CSV file and return preview with suggested mapping"""
+    import csv
+    import io
+    from decimal import Decimal
+    
+    if 'file' not in request.FILES:
+        return Response(
+            {'error': 'Nenhum arquivo foi enviado'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    csv_file = request.FILES['file']
+    
+    # Validate file type
+    if not csv_file.name.endswith('.csv'):
+        return Response(
+            {'error': 'Apenas arquivos CSV são aceitos'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        # Read file content
+        file_content = csv_file.read().decode('utf-8')
+        
+        # Detect delimiter
+        delimiter = _detect_delimiter(file_content)
+        
+        # Parse CSV
+        csv_reader = csv.reader(io.StringIO(file_content), delimiter=delimiter)
+        rows = list(csv_reader)
+        
+        if len(rows) < 2:
+            return Response(
+                {'error': 'O arquivo deve conter pelo menos um cabeçalho e uma linha de dados'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        headers = rows[0]
+        data_rows = rows[1:6]  # Preview first 5 rows
+        
+        # Suggest column mapping
+        suggested_mapping = _suggest_column_mapping(headers)
+        
+        return Response({
+            'headers': headers,
+            'preview_rows': data_rows,
+            'total_rows': len(rows) - 1,
+            'delimiter': delimiter,
+            'suggested_mapping': suggested_mapping
+        })
+        
+    except Exception as e:
+        return Response(
+            {'error': f'Erro ao processar arquivo CSV: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def import_csv_transactions(request):
+    """Import transactions from CSV with user-defined mapping"""
+    import csv
+    import io
+    from decimal import Decimal
+    from django.db import transaction as db_transaction
+    from apps.beneficiaries.models import Beneficiary
+    from datetime import datetime
+    
+    if 'file' not in request.FILES:
+        return Response(
+            {'error': 'Nenhum arquivo foi enviado'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    csv_file = request.FILES['file']
+    column_mapping = request.data.get('column_mapping', {})
+    account_id = request.data.get('account_id')
+    
+    if not account_id:
+        return Response(
+            {'error': 'Conta bancária deve ser especificada'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        # Validate account belongs to workspace
+        from apps.accounts.models import Account
+        account = Account.objects.get(
+            id=account_id,
+            workspace=request.workspace
+        )
+        
+        # Read and parse CSV
+        file_content = csv_file.read().decode('utf-8')
+        delimiter = _detect_delimiter(file_content)
+        csv_reader = csv.reader(io.StringIO(file_content), delimiter=delimiter)
+        rows = list(csv_reader)
+        
+        headers = rows[0]
+        data_rows = rows[1:]
+        
+        imported_count = 0
+        skipped_count = 0
+        errors = []
+        
+        with db_transaction.atomic():
+            for row_index, row in enumerate(data_rows, start=2):
+                try:
+                    transaction_data = _parse_csv_row(
+                        row, headers, column_mapping, 
+                        request.workspace, request.user, account
+                    )
+                    
+                    if transaction_data:
+                        # Check for duplicates
+                        if not _is_duplicate_transaction(transaction_data, request.workspace):
+                            Transaction.objects.create(**transaction_data)
+                            imported_count += 1
+                        else:
+                            skipped_count += 1
+                    
+                except Exception as e:
+                    errors.append(f"Linha {row_index}: {str(e)}")
+                    if len(errors) > 10:  # Limit error count
+                        break
+        
+        return Response({
+            'success': True,
+            'imported_count': imported_count,
+            'skipped_count': skipped_count,
+            'total_rows': len(data_rows),
+            'errors': errors[:10]  # Return only first 10 errors
+        })
+        
+    except Account.DoesNotExist:
+        return Response(
+            {'error': 'Conta não encontrada'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'error': f'Erro ao importar transações: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+def _detect_delimiter(content):
+    """Detect CSV delimiter from content"""
+    common_delimiters = [',', ';', '|', '\t']
+    delimiter_counts = {}
+    
+    # Check first few lines to determine delimiter
+    lines = content.split('\n')[:5]
+    
+    for delimiter in common_delimiters:
+        count = 0
+        for line in lines:
+            count += line.count(delimiter)
+        delimiter_counts[delimiter] = count
+    
+    # Return delimiter with highest count
+    return max(delimiter_counts.items(), key=lambda x: x[1])[0]
+
+
+def _suggest_column_mapping(headers):
+    """Suggest column mapping based on header names"""
+    mapping = {}
+    
+    # Common patterns for different column types
+    date_patterns = ['data', 'date', 'dt', 'data_transacao', 'data_movimento']
+    amount_patterns = ['valor', 'amount', 'value', 'montante']
+    credit_patterns = ['credito', 'credit', 'entrada', 'receita', 'income']
+    debit_patterns = ['debito', 'debit', 'saida', 'despesa', 'expense']
+    description_patterns = ['descricao', 'description', 'historico', 'memo', 'details']
+    beneficiary_patterns = ['beneficiario', 'beneficiary', 'favorecido', 'loja', 'estabelecimento']
+    
+    for i, header in enumerate(headers):
+        header_lower = header.lower().strip()
+        
+        if any(pattern in header_lower for pattern in date_patterns):
+            mapping['date'] = i
+        elif any(pattern in header_lower for pattern in amount_patterns):
+            mapping['amount'] = i
+        elif any(pattern in header_lower for pattern in credit_patterns):
+            mapping['credit'] = i
+        elif any(pattern in header_lower for pattern in debit_patterns):
+            mapping['debit'] = i
+        elif any(pattern in header_lower for pattern in description_patterns):
+            mapping['description'] = i
+        elif any(pattern in header_lower for pattern in beneficiary_patterns):
+            mapping['beneficiary'] = i
+    
+    return mapping
+
+
+def _parse_csv_row(row, headers, column_mapping, workspace, user, account):
+    """Parse a single CSV row into transaction data"""
+    from decimal import Decimal
+    from datetime import datetime
+    from apps.beneficiaries.models import Beneficiary
+    
+    data = {}
+    
+    # Extract date
+    date_col = column_mapping.get('date')
+    if date_col is not None and date_col < len(row):
+        date_str = row[date_col].strip()
+        # Try common date formats
+        for date_format in ['%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y', '%m/%d/%Y']:
+            try:
+                data['data'] = datetime.strptime(date_str, date_format).date()
+                break
+            except ValueError:
+                continue
+        
+        if 'data' not in data:
+            raise ValueError(f"Formato de data não reconhecido: {date_str}")
+    
+    # Extract amount and determine transaction type
+    amount_col = column_mapping.get('amount')
+    credit_col = column_mapping.get('credit')
+    debit_col = column_mapping.get('debit')
+    
+    if amount_col is not None and amount_col < len(row):
+        # Single amount column
+        amount_str = row[amount_col].strip().replace(',', '.')
+        amount_str = ''.join(c for c in amount_str if c.isdigit() or c == '.' or c == '-')
+        amount = Decimal(amount_str) if amount_str else Decimal('0')
+        
+        data['valor'] = abs(amount)
+        data['tipo'] = 'entrada' if amount >= 0 else 'saida'
+        
+    elif credit_col is not None and debit_col is not None:
+        # Separate credit/debit columns
+        credit_str = row[credit_col].strip() if credit_col < len(row) else '0'
+        debit_str = row[debit_col].strip() if debit_col < len(row) else '0'
+        
+        credit_str = ''.join(c for c in credit_str if c.isdigit() or c == '.')
+        debit_str = ''.join(c for c in debit_str if c.isdigit() or c == '.')
+        
+        credit_amount = Decimal(credit_str.replace(',', '.')) if credit_str else Decimal('0')
+        debit_amount = Decimal(debit_str.replace(',', '.')) if debit_str else Decimal('0')
+        
+        if credit_amount > 0:
+            data['valor'] = credit_amount
+            data['tipo'] = 'entrada'
+        elif debit_amount > 0:
+            data['valor'] = debit_amount
+            data['tipo'] = 'saida'
+        else:
+            return None  # Skip rows with no amount
+    
+    # Extract description
+    desc_col = column_mapping.get('description')
+    if desc_col is not None and desc_col < len(row):
+        data['descricao'] = row[desc_col].strip()[:200]  # Limit to model max length
+    else:
+        data['descricao'] = 'Importado do CSV'
+    
+    # Extract/create beneficiary
+    beneficiary_col = column_mapping.get('beneficiary')
+    if beneficiary_col is not None and beneficiary_col < len(row):
+        beneficiary_name = row[beneficiary_col].strip()[:255]  # Limit to model max length
+        if beneficiary_name:
+            beneficiary, created = Beneficiary.objects.get_or_create(
+                workspace=workspace,
+                nome=beneficiary_name,
+                defaults={
+                    'user': user,
+                    'tipo': 'estabelecimento',
+                    'descricao': 'Auto-criado durante importação CSV'
+                }
+            )
+            data['beneficiario'] = beneficiary
+    
+    # Set other required fields
+    data['workspace'] = workspace
+    data['user'] = user
+    data['account'] = account
+    data['confirmada'] = True  # Import as confirmed since they exist in bank
+    
+    return data
+
+
+def _is_duplicate_transaction(transaction_data, workspace):
+    """Check if transaction already exists to avoid duplicates"""
+    return Transaction.objects.filter(
+        workspace=workspace,
+        account=transaction_data.get('account'),
+        data=transaction_data.get('data'),
+        valor=transaction_data.get('valor'),
+        descricao=transaction_data.get('descricao'),
+        tipo=transaction_data.get('tipo')
+    ).exists()
+
+
 @api_view(['GET'])
 @permission_classes([])
 def test_by_category_view(request):

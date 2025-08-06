@@ -7,3 +7,4 @@ export { default as BulkOperations } from './BulkOperations';
 export { default as TransactionModals } from './TransactionModals';
 export { default as InvoiceManagementModal } from './InvoiceManagementModal';
 export { default as AdvancedFilters } from './AdvancedFilters';
+export { default as CSVImportModal } from './CSVImportModal';

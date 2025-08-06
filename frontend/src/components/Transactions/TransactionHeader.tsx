@@ -5,7 +5,8 @@ import {
   FunnelIcon,
   MagnifyingGlassIcon,
   ChevronDownIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  ArrowUpTrayIcon
 } from '@heroicons/react/24/outline';
 import InvoiceManagementModal from './InvoiceManagementModal';
 import AdvancedFilters from './AdvancedFilters';
@@ -31,6 +32,7 @@ interface TransactionHeaderProps {
   
   // Actions
   abrirPopupAdicionar: () => void;
+  abrirImportarCSV?: () => void;
   
   // New props for advanced filtering and search
   searchTerm?: string;
@@ -73,6 +75,7 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
   calcularSaldoFiltrado,
   formatarMoeda,
   abrirPopupAdicionar,
+  abrirImportarCSV,
   searchTerm = '',
   setSearchTerm,
   selectedTransactions = new Set(),
@@ -235,6 +238,18 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
             >
               <DocumentTextIcon className="h-5 w-5 mr-2" />
               Gerenciar Fatura
+            </button>
+          )}
+
+          {/* CSV Import button */}
+          {abrirImportarCSV && (
+            <button
+              type="button"
+              onClick={abrirImportarCSV}
+              className="inline-flex items-center px-4 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <ArrowUpTrayIcon className="h-5 w-5 mr-2" />
+              Importar CSV
             </button>
           )}
 
