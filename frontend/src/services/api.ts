@@ -142,7 +142,7 @@ export const transactionsAPI = {
     api.post('/api/transactions/transactions/', data).then(res => res.data),
   
   update: (id: number, data: any): Promise<Transaction> =>
-    api.put(`/api/transactions/transactions/${id}/`, data).then(res => res.data),
+    api.patch(`/api/transactions/transactions/${id}/`, data).then(res => res.data),
   
   delete: (id: number): Promise<void> =>
     api.delete(`/api/transactions/transactions/${id}/`).then(res => res.data),
