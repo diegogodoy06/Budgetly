@@ -649,6 +649,8 @@ const Transactions: React.FC = () => {
             setAbaAtiva={setAbaAtiva}
             transactions={transactions}
             formatarMoeda={formatarMoeda}
+            filtroContaAtiva={filtroContaAtiva}
+            obterNomeFiltroAtivo={obterNomeFiltroAtivo}
           />
 
           {/* Tabela de Movimentações */}
