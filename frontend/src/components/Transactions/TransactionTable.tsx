@@ -1,0 +1,292 @@
+import React from 'react';
+import TransactionRow from './TransactionRow';
+
+interface Transaction {
+  id: number;
+  data: string;
+  account_name?: string;
+  credit_card?: number;
+  beneficiario_name?: string;
+  descricao: string;
+  category?: number;
+  category_name?: string;
+  valor: string;
+  tipo: string;
+  confirmada: boolean;
+  total_parcelas: number;
+  numero_parcela?: number;
+  account?: number;
+}
+
+interface TransactionTableProps {
+  loading: boolean;
+  transacoesFiltradas: Transaction[];
+  isSelectionMode: boolean;
+  selectedTransactions: Set<number>;
+  hoveredTransaction: number | null;
+  setHoveredTransaction: (id: number | null) => void;
+  editingTransaction: number | null;
+  editingField: string | null;
+  editValue: string;
+  
+  // Data for dropdowns
+  accounts: Array<{ id: number; nome: string }>;
+  creditCards: Array<{ id: number; nome: string }>;
+  categories: Array<{ id: number; nome: string }>;
+  
+  // Selection functions
+  selectAll: () => void;
+  selectTransaction: (id: number) => void;
+  
+  // Editing functions
+  startEditing: (id: number, field: string, value: string) => void;
+  cancelEditing: () => void;
+  handleAutoSave: (id: number) => void;
+  handleKeyDown: (e: React.KeyboardEvent, id: number) => void;
+  handleValorInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleSelectChange: (id: number, field: string, value: string) => void;
+  setEditValue: (value: string) => void;
+  
+  // Action functions
+  toggleStatus: (transaction: Transaction) => void;
+  handleDelete: (id: number) => void;
+  
+  // Utility functions
+  formatarData: (data: string) => string;
+  getContaDisplay: (transaction: Transaction) => React.ReactElement;
+  getEditableFieldClass: (isEditing: boolean) => string;
+  formatarMoeda: (valor: string | number) => string;
+  
+  // Pagination
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  hasNextPage: boolean;
+  carregarDados: (page?: number) => void;
+}
+
+const TransactionTable: React.FC<TransactionTableProps> = ({
+  loading,
+  transacoesFiltradas,
+  isSelectionMode,
+  selectedTransactions,
+  hoveredTransaction,
+  setHoveredTransaction,
+  editingTransaction,
+  editingField,
+  editValue,
+  accounts,
+  creditCards,
+  categories,
+  selectAll,
+  selectTransaction,
+  startEditing,
+  cancelEditing,
+  handleAutoSave,
+  handleKeyDown,
+  handleValorInputChange,
+  handleSelectChange,
+  setEditValue,
+  toggleStatus,
+  handleDelete,
+  formatarData,
+  getContaDisplay,
+  getEditableFieldClass,
+  formatarMoeda,
+  currentPage,
+  totalPages,
+  totalCount,
+  hasNextPage,
+  carregarDados
+}) => {
+  return (
+    <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              {/* Coluna sempre presente para checkbox */}
+              <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
+                {isSelectionMode && (
+                  <input
+                    type="checkbox"
+                    checked={selectedTransactions.size === transacoesFiltradas.length && transacoesFiltradas.length > 0}
+                    onChange={selectAll}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                )}
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Data
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Conta/Cartão
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Beneficiário
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Descrição
+              </th>
+              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Categoria
+              </th>
+              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Valor
+              </th>
+              <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
+                ✓
+              </th>
+              {!isSelectionMode && (
+                <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ações
+                </th>
+              )}
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {loading ? (
+              <tr>
+                <td colSpan={isSelectionMode ? 8 : 9} className="px-6 py-8 text-center">
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+                    <span className="ml-2 text-sm text-gray-500">Carregando transações...</span>
+                  </div>
+                </td>
+              </tr>
+            ) : transacoesFiltradas.length === 0 ? (
+              <tr>
+                <td colSpan={isSelectionMode ? 8 : 9} className="px-6 py-8 text-center text-sm text-gray-500">
+                  Nenhuma transação encontrada
+                </td>
+              </tr>
+            ) : (
+              transacoesFiltradas.map((transaction) => (
+                <TransactionRow
+                  key={transaction.id}
+                  transaction={transaction}
+                  isSelectionMode={isSelectionMode}
+                  selectedTransactions={selectedTransactions}
+                  hoveredTransaction={hoveredTransaction}
+                  editingTransaction={editingTransaction}
+                  editingField={editingField}
+                  editValue={editValue}
+                  accounts={accounts}
+                  creditCards={creditCards}
+                  categories={categories}
+                  selectTransaction={selectTransaction}
+                  startEditing={startEditing}
+                  cancelEditing={cancelEditing}
+                  handleAutoSave={handleAutoSave}
+                  handleKeyDown={handleKeyDown}
+                  handleValorInputChange={handleValorInputChange}
+                  handleSelectChange={handleSelectChange}
+                  toggleStatus={toggleStatus}
+                  handleDelete={handleDelete}
+                  setEditValue={setEditValue}
+                  formatarData={formatarData}
+                  getContaDisplay={getContaDisplay}
+                  getEditableFieldClass={getEditableFieldClass}
+                  formatarMoeda={formatarMoeda}
+                />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Paginação - só aparece se houver mais de uma página */}
+      {totalPages > 1 && (
+        <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 flex justify-between sm:hidden">
+              {/* Mobile: botões simples */}
+              <button
+                onClick={() => carregarDados(currentPage - 1)}
+                disabled={currentPage <= 1}
+                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => carregarDados(currentPage + 1)}
+                disabled={!hasNextPage}
+                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Próxima
+              </button>
+            </div>
+            
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Mostrando <span className="font-medium">{(currentPage - 1) * 1000 + 1}</span> a{' '}
+                  <span className="font-medium">
+                    {Math.min(currentPage * 1000, totalCount)}
+                  </span> de{' '}
+                  <span className="font-medium">{totalCount}</span> transações
+                </p>
+              </div>
+              
+              <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  {/* Botão Anterior */}
+                  <button
+                    onClick={() => carregarDados(currentPage - 1)}
+                    disabled={currentPage <= 1}
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  
+                  {/* Números das páginas */}
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => carregarDados(pageNum)}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          pageNum === currentPage
+                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  
+                  {/* Botão Próxima */}
+                  <button
+                    onClick={() => carregarDados(currentPage + 1)}
+                    disabled={!hasNextPage}
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default TransactionTable;
