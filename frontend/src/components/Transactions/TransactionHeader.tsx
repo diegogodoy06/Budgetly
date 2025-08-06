@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { 
   PlusIcon, 
   ArrowDownTrayIcon, 
-  AdjustmentsHorizontalIcon,
-  WalletIcon,
-  CreditCardIcon,
-  BuildingLibraryIcon,
+  FunnelIcon,
+  MagnifyingGlassIcon,
+  ChevronDownIcon,
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import InvoiceManagementModal from './InvoiceManagementModal';
@@ -30,6 +29,12 @@ interface TransactionHeaderProps {
   
   // Actions
   abrirPopupAdicionar: () => void;
+  
+  // New props for advanced filtering and search
+  searchTerm?: string;
+  setSearchTerm?: (value: string) => void;
+  selectedTransactions?: Set<number>;
+  isSelectionMode?: boolean;
 }
 
 const TransactionHeader: React.FC<TransactionHeaderProps> = ({
@@ -44,98 +49,33 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
   obterNomeFiltroAtivo,
   calcularSaldoFiltrado,
   formatarMoeda,
-  abrirPopupAdicionar
+  abrirPopupAdicionar,
+  searchTerm = '',
+  setSearchTerm,
+  selectedTransactions = new Set(),
+  isSelectionMode = false
 }) => {
   
   // State for invoice modal
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   
-  // Helper function to get icon based on filter type
-  const getFilterIcon = () => {
-    if (filtroContaAtiva === 'bancos') {
-      return <BuildingLibraryIcon className="h-6 w-6" />;
-    } else if (filtroContaAtiva === 'cartoes') {
-      return <CreditCardIcon className="h-6 w-6" />;
-    } else if (typeof filtroContaAtiva === 'number') {
-      // Check if it's a specific account or credit card
-      const account = accounts.find(acc => acc.id === filtroContaAtiva);
-      const creditCard = creditCards.find(card => card.id === filtroContaAtiva);
-      
-      if (creditCard) {
-        return <CreditCardIcon className="h-6 w-6" />;
-      } else {
-        return <BuildingLibraryIcon className="h-6 w-6" />;
-      }
-    } else {
-      return <WalletIcon className="h-6 w-6" />;
-    }
+  // State for total breakdown
+  const [showTotalBreakdown, setShowTotalBreakdown] = useState(false);
+  
+  // Calculate confirmed and unconfirmed totals
+  const calculateTotalBreakdown = () => {
+    const confirmed = transacoesFiltradas
+      .filter(t => t.confirmada)
+      .reduce((sum, t) => sum + (t.tipo === 'entrada' ? t.valor : -t.valor), 0);
+    
+    const unconfirmed = transacoesFiltradas
+      .filter(t => !t.confirmada)
+      .reduce((sum, t) => sum + (t.tipo === 'entrada' ? t.valor : -t.valor), 0);
+    
+    return { confirmed, unconfirmed };
   };
 
-  // Helper function to get account type description
-  const getAccountTypeDescription = () => {
-    if (filtroContaAtiva === 'todas') {
-      return 'Visualizando todas as contas e cartões';
-    } else if (filtroContaAtiva === 'bancos') {
-      return 'Visualizando apenas contas bancárias';
-    } else if (filtroContaAtiva === 'cartoes') {
-      return 'Visualizando apenas cartões de crédito';
-    } else if (typeof filtroContaAtiva === 'number') {
-      const account = accounts.find(acc => acc.id === filtroContaAtiva);
-      const creditCard = creditCards.find(card => card.id === filtroContaAtiva);
-      
-      if (account) {
-        return `Conta: ${account.tipo}${account.banco ? ` - ${account.banco}` : ''}`;
-      } else if (creditCard) {
-        return `Cartão de crédito${creditCard.bandeira ? ` ${creditCard.bandeira}` : ''}`;
-      }
-    }
-    return 'Filtro personalizado';
-  };
-
-  // Helper function to get color theme based on filter
-  const getFilterTheme = () => {
-    if (filtroContaAtiva === 'bancos') {
-      return {
-        bg: 'bg-blue-50',
-        border: 'border-blue-200',
-        text: 'text-blue-700',
-        icon: 'text-blue-600'
-      };
-    } else if (filtroContaAtiva === 'cartoes') {
-      return {
-        bg: 'bg-purple-50',
-        border: 'border-purple-200', 
-        text: 'text-purple-700',
-        icon: 'text-purple-600'
-      };
-    } else if (typeof filtroContaAtiva === 'number') {
-      const creditCard = creditCards.find(card => card.id === filtroContaAtiva);
-      if (creditCard) {
-        return {
-          bg: 'bg-purple-50',
-          border: 'border-purple-200',
-          text: 'text-purple-700',
-          icon: 'text-purple-600'
-        };
-      } else {
-        return {
-          bg: 'bg-blue-50',
-          border: 'border-blue-200',
-          text: 'text-blue-700',
-          icon: 'text-blue-600'
-        };
-      }
-    } else {
-      return {
-        bg: 'bg-gray-50',
-        border: 'border-gray-200',
-        text: 'text-gray-700', 
-        icon: 'text-gray-600'
-      };
-    }
-  };
-
-  const theme = getFilterTheme();
+  const { confirmed, unconfirmed } = calculateTotalBreakdown();
 
   // Check if a specific credit card is selected
   const isSpecificCreditCardSelected = () => {
@@ -149,124 +89,69 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
 
   return (
     <div className="mb-6">
-      {/* Main Title */}
-      <div className="mb-6">
+      {/* Page Title */}
+      <div className="mb-4">
         <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl">
           Transações
         </h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Visualize e gerencie suas transações financeiras
-        </p>
       </div>
 
-      {/* Account Context Card - New prominent design */}
-      <div className={`${theme.bg} ${theme.border} border-2 rounded-xl p-6 mb-6 shadow-sm`}>
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          
-          {/* Account Information Section */}
-          <div className="flex items-center space-x-4">
-            <div className={`${theme.icon} p-3 bg-white rounded-lg shadow-sm`}>
-              {getFilterIcon()}
-            </div>
-            <div>
-              <h3 className={`text-lg font-semibold ${theme.text}`}>
-                {obterNomeFiltroAtivo()}
-              </h3>
-              <p className="text-sm text-gray-600">
-                {getAccountTypeDescription()}
-              </p>
-            </div>
-          </div>
-
-          {/* Account Filter Selector */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-            <div className="flex items-center space-x-3">
-              <label className="text-sm font-medium text-gray-700">
-                Alterar visualização:
-              </label>
-              <select
-                value={filtroContaAtiva}
-                onChange={(e) => {
-                  const valor = e.target.value;
-                  if (valor === 'todas' || valor === 'bancos' || valor === 'cartoes') {
-                    setFiltroContaAtiva(valor);
-                  } else {
-                    setFiltroContaAtiva(parseInt(valor));
-                  }
-                }}
-                className="text-sm border border-gray-300 rounded-lg px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-48"
-              >
-                <option value="todas">📊 Todas as Contas</option>
-                <option value="bancos">🏦 Todas as Contas Bancárias</option>
-                <option value="cartoes">💳 Todos os Cartões</option>
-                
-                {accounts.length > 0 && (
-                  <optgroup label="🏦 Contas Específicas">
-                    {accounts.map(account => (
-                      <option key={`acc-${account.id}`} value={account.id}>
-                        {account.nome}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-                
-                {creditCards.length > 0 && (
-                  <optgroup label="💳 Cartões Específicos">
-                    {creditCards.map(card => (
-                      <option key={`card-${card.id}`} value={card.id}>
-                        {card.nome}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Summary Stats Row */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="text-sm font-medium text-gray-600">Total de Transações</span>
-            </div>
-            <span className="text-lg font-semibold text-gray-900">
-              {transacoesFiltradas.length}
-            </span>
-          </div>
-          
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${calcularSaldoFiltrado() >= 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span className="text-sm font-medium text-gray-600">Saldo do Período</span>
-            </div>
-            <span className={`text-lg font-semibold ${calcularSaldoFiltrado() >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-              {formatarMoeda(calcularSaldoFiltrado())}
-            </span>
-          </div>
-
-          <div className="bg-white rounded-lg p-4 border border-gray-200 sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-              <span className="text-sm font-medium text-gray-600">Contexto Atual</span>
-            </div>
-            <span className="text-lg font-semibold text-gray-900">
-              {filtroContaAtiva === 'todas' ? 'Global' : 
-               filtroContaAtiva === 'bancos' ? 'Bancos' :
-               filtroContaAtiva === 'cartoes' ? 'Cartões' : 'Específico'}
-            </span>
-          </div>
+      {/* Current Filter Display */}
+      <div className="mb-4">
+        <div className="text-sm text-gray-600 mb-1">Filtro ativo:</div>
+        <div className="text-lg font-medium text-gray-900">
+          {obterNomeFiltroAtivo()}
         </div>
       </div>
 
-      {/* Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center space-x-2 text-sm">
-          <span className="text-gray-600">Ações rápidas:</span>
-        </div>
+      {/* Total Value Display with Breakdown */}
+      <div className="mb-6">
+        <div className="text-sm text-gray-600 mb-1">Total das transações:</div>
+        <button
+          onClick={() => setShowTotalBreakdown(!showTotalBreakdown)}
+          className="text-2xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-200 flex items-center"
+        >
+          {formatarMoeda(calcularSaldoFiltrado())}
+          <ChevronDownIcon 
+            className={`h-5 w-5 ml-2 transition-transform duration-200 ${
+              showTotalBreakdown ? 'rotate-180' : ''
+            }`} 
+          />
+        </button>
         
-        <div className="flex space-x-3">
+        {/* Breakdown Cards */}
+        {showTotalBreakdown && (
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="text-sm font-medium text-green-700">Confirmadas</div>
+              <div className="text-xl font-bold text-green-800">
+                {formatarMoeda(confirmed)}
+              </div>
+            </div>
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <div className="text-sm font-medium text-orange-700">Não confirmadas</div>
+              <div className="text-xl font-bold text-orange-800">
+                {formatarMoeda(unconfirmed)}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Main Layout: Left side (Add New + Filters) and Right side (Search + Actions) */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        
+        {/* Left Side - Add New and Filters */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            type="button"
+            onClick={abrirPopupAdicionar}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          >
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Nova Transação
+          </button>
+
           <button
             type="button"
             onClick={() => setMostrarFiltros(!mostrarFiltros)}
@@ -274,7 +159,7 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
               mostrarFiltros ? 'bg-blue-50 text-blue-700 border-blue-300' : 'text-gray-700 bg-white hover:bg-gray-50'
             }`}
           >
-            <AdjustmentsHorizontalIcon className="h-5 w-5 mr-2" />
+            <FunnelIcon className="h-5 w-5 mr-2" />
             Filtros Avançados
             {contarFiltrosAtivos() > 0 && (
               <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -282,6 +167,35 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
               </span>
             )}
           </button>
+        </div>
+
+        {/* Right Side - Search and Row Actions */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Search Field */}
+          {setSearchTerm && (
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar por descrição..."
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+            </div>
+          )}
+
+          {/* Row Selection Actions */}
+          {isSelectionMode && selectedTransactions.size > 0 && (
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">
+                {selectedTransactions.size} selecionada(s)
+              </span>
+              {/* These actions will be handled by BulkOperations component */}
+            </div>
+          )}
 
           {/* Invoice button - only show when a specific credit card is selected */}
           {selectedCreditCard && (
@@ -294,23 +208,17 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
               Gerenciar Fatura
             </button>
           )}
-          
-          <button
-            type="button"
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
-            Exportar
-          </button>
-          
-          <button
-            type="button"
-            onClick={abrirPopupAdicionar}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-          >
-            <PlusIcon className="h-5 w-5 mr-2" />
-            Nova Transação
-          </button>
+
+          {/* Export button with three dots menu */}
+          <div className="relative">
+            <button
+              type="button"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <ArrowDownTrayIcon className="h-5 w-5 mr-2" />
+              Exportar
+            </button>
+          </div>
         </div>
       </div>
 

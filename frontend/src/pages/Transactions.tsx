@@ -11,6 +11,7 @@ import {
   BulkOperations,
   TransactionModals
 } from '@/components/Transactions';
+import AdvancedFilters from '@/components/Transactions/AdvancedFilters';
 
 type TipoMovimentacao = 'todas' | 'entradas' | 'saidas' | 'contas-receber' | 'contas-pagar';
 
@@ -65,6 +66,19 @@ const Transactions: React.FC = () => {
   const [transactionEditando, setTransactionEditando] = useState<Transaction | null>(null);
   const [isRecorrente, setIsRecorrente] = useState(false);
   
+  // New states for search and advanced filtering
+  const [searchTerm, setSearchTerm] = useState('');
+  const [advancedFilters, setAdvancedFilters] = useState<Array<{
+    id: string;
+    field: string;
+    fieldLabel: string;
+    operation: string;
+    operationLabel: string;
+    value: string | number | string[];
+    valueLabel: string;
+  }>>([]);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  
   // Estados para edição inline
   const [editingTransaction, setEditingTransaction] = useState<number | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
@@ -116,6 +130,125 @@ const Transactions: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isSelectionMode, showBulkEditDropdown]);
+
+  // Enhanced filtering logic that combines search, advanced filters, and existing filters
+  const getFilteredTransactions = () => {
+    let filtered = transacoesFiltradas;
+
+    // Apply search term filter
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(transaction =>
+        transaction.descricao.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply advanced filters
+    if (advancedFilters.length > 0) {
+      filtered = filtered.filter(transaction => {
+        return advancedFilters.every(filter => {
+          const { field, operation, value } = filter;
+
+          switch (field) {
+            case 'account':
+              const accountId = transaction.account || (transaction.credit_card ? `card_${transaction.credit_card}` : null);
+              return applyFilterOperation(accountId, operation, value);
+            
+            case 'amount':
+              return applyFilterOperation(transaction.valor, operation, value);
+            
+            case 'description':
+              return applyFilterOperation(transaction.descricao, operation, value);
+            
+            case 'category':
+              return applyFilterOperation(transaction.category, operation, value);
+            
+            case 'date':
+              return applyFilterOperation(transaction.data, operation, value);
+            
+            case 'status':
+              const status = transaction.confirmada ? 'confirmed' : 'pending';
+              return applyFilterOperation(status, operation, value);
+            
+            case 'type':
+              return applyFilterOperation(transaction.tipo, operation, value);
+            
+            default:
+              return true;
+          }
+        });
+      });
+    }
+
+    return filtered;
+  };
+
+  // Helper function to apply filter operations
+  const applyFilterOperation = (fieldValue: any, operation: string, filterValue: any): boolean => {
+    if (fieldValue === null || fieldValue === undefined) {
+      return operation === 'is_not' || operation === 'not_equals' || operation === 'not_contains';
+    }
+
+    const fieldStr = String(fieldValue).toLowerCase();
+    const valueStr = String(filterValue).toLowerCase();
+
+    switch (operation) {
+      case 'is':
+      case 'equals':
+        return fieldValue === filterValue || fieldStr === valueStr;
+      
+      case 'is_not':
+      case 'not_equals':
+        return fieldValue !== filterValue && fieldStr !== valueStr;
+      
+      case 'contains':
+        return fieldStr.includes(valueStr);
+      
+      case 'not_contains':
+        return !fieldStr.includes(valueStr);
+      
+      case 'starts_with':
+        return fieldStr.startsWith(valueStr);
+      
+      case 'ends_with':
+        return fieldStr.endsWith(valueStr);
+      
+      case 'greater_than':
+        return Number(fieldValue) > Number(filterValue);
+      
+      case 'less_than':
+        return Number(fieldValue) < Number(filterValue);
+      
+      case 'greater_equal':
+        return Number(fieldValue) >= Number(filterValue);
+      
+      case 'less_equal':
+        return Number(fieldValue) <= Number(filterValue);
+      
+      case 'in':
+        if (Array.isArray(filterValue)) {
+          return filterValue.some(v => String(v) === String(fieldValue));
+        }
+        return false;
+      
+      case 'not_in':
+        if (Array.isArray(filterValue)) {
+          return !filterValue.some(v => String(v) === String(fieldValue));
+        }
+        return true;
+      
+      case 'before':
+        return new Date(fieldValue) < new Date(filterValue);
+      
+      case 'after':
+        return new Date(fieldValue) > new Date(filterValue);
+      
+      default:
+        return true;
+    }
+  };
+
+  // Get the final filtered transactions
+  const finalFilteredTransactions = getFilteredTransactions();
 
   const parseValorInput = (valorString: string): number => {
     if (!valorString) return 0;
@@ -316,10 +449,10 @@ const Transactions: React.FC = () => {
   };
 
   const selectAll = () => {
-    if (selectedTransactions.size === transacoesFiltradas.length) {
+    if (selectedTransactions.size === finalFilteredTransactions.length) {
       setSelectedTransactions(new Set());
     } else {
-      setSelectedTransactions(new Set(transacoesFiltradas.map(t => t.id)));
+      setSelectedTransactions(new Set(finalFilteredTransactions.map(t => t.id)));
     }
   };
 
@@ -610,24 +743,41 @@ const Transactions: React.FC = () => {
       <TransactionHeader
         filtroContaAtiva={filtroContaAtiva}
         setFiltroContaAtiva={setFiltroContaAtiva}
-        mostrarFiltros={mostrarFiltros}
-        setMostrarFiltros={setMostrarFiltros}
+        mostrarFiltros={showAdvancedFilters}
+        setMostrarFiltros={setShowAdvancedFilters}
         accounts={accounts}
         creditCards={creditCards}
-        transacoesFiltradas={transacoesFiltradas}
-        contarFiltrosAtivos={contarFiltrosAtivos}
+        transacoesFiltradas={finalFilteredTransactions}
+        contarFiltrosAtivos={() => contarFiltrosAtivos() + advancedFilters.length + (searchTerm ? 1 : 0)}
         obterNomeFiltroAtivo={obterNomeFiltroAtivo}
         calcularSaldoFiltrado={calcularSaldoFiltrado}
         formatarMoeda={formatarMoeda}
         abrirPopupAdicionar={abrirPopupAdicionar}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        selectedTransactions={selectedTransactions}
+        isSelectionMode={isSelectionMode}
       />
+
+      {/* Advanced Filters */}
+      {showAdvancedFilters && (
+        <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+          <AdvancedFilters
+            accounts={accounts}
+            creditCards={creditCards}
+            categories={categories}
+            onFiltersChange={setAdvancedFilters}
+            activeFilters={advancedFilters}
+          />
+        </div>
+      )}
 
       {/* Bulk Operations */}
       <BulkOperations
         isSelectionMode={isSelectionMode}
         selectedTransactions={selectedTransactions}
         transactions={transactions}
-        transacoesFiltradas={transacoesFiltradas}
+        transacoesFiltradas={finalFilteredTransactions}
         totalCount={totalCount}
         formatarMoeda={formatarMoeda}
         selectAll={selectAll}
@@ -641,7 +791,7 @@ const Transactions: React.FC = () => {
       />
 
       <div className="flex">
-        {/* Conteúdo Principal */}
+        {/* Main Content */}
         <div className={`flex-1 ${mostrarFiltros ? 'mr-80' : ''} transition-all duration-300`}>
           {/* Tabs */}
           <TransactionTabs
@@ -653,10 +803,10 @@ const Transactions: React.FC = () => {
             obterNomeFiltroAtivo={obterNomeFiltroAtivo}
           />
 
-          {/* Tabela de Movimentações */}
+          {/* Transaction Table */}
           <TransactionTable
             loading={loading}
-            transacoesFiltradas={transacoesFiltradas}
+            transacoesFiltradas={finalFilteredTransactions}
             isSelectionMode={isSelectionMode}
             selectedTransactions={selectedTransactions}
             hoveredTransaction={hoveredTransaction}
@@ -690,7 +840,7 @@ const Transactions: React.FC = () => {
           />
         </div>
 
-        {/* Barra Lateral de Filtros */}
+        {/* Legacy Sidebar Filters - kept for compatibility */}
         <TransactionFilters
           mostrarFiltros={mostrarFiltros}
           setMostrarFiltros={setMostrarFiltros}
