@@ -677,8 +677,22 @@ def upload_csv_preview(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        headers = rows[0]
-        data_rows = rows[1:6]  # Preview first 5 rows
+        # Find the header row (look for row with common column patterns)
+        header_row_index = 0
+        for i, row in enumerate(rows):
+            if len(row) > 3:  # Must have at least 4 columns
+                header_lower = [h.lower().strip() for h in row]
+                # Check if this looks like a header row
+                if any('data' in h for h in header_lower) and (
+                    any('credito' in h or 'crédito' in h for h in header_lower) or
+                    any('debito' in h or 'débito' in h for h in header_lower) or
+                    any('historico' in h or 'histórico' in h for h in header_lower)
+                ):
+                    header_row_index = i
+                    break
+        
+        headers = rows[header_row_index]
+        data_rows = rows[header_row_index + 1:header_row_index + 6]  # Preview first 5 data rows
         
         # Suggest column mapping
         suggested_mapping = _suggest_column_mapping(headers)
@@ -686,9 +700,10 @@ def upload_csv_preview(request):
         return Response({
             'headers': headers,
             'preview_rows': data_rows,
-            'total_rows': len(rows) - 1,
+            'total_rows': len(rows) - header_row_index - 1,
             'delimiter': delimiter,
-            'suggested_mapping': suggested_mapping
+            'suggested_mapping': suggested_mapping,
+            'header_row_index': header_row_index
         })
         
     except Exception as e:
@@ -739,15 +754,29 @@ def import_csv_transactions(request):
         csv_reader = csv.reader(io.StringIO(file_content), delimiter=delimiter)
         rows = list(csv_reader)
         
-        headers = rows[0]
-        data_rows = rows[1:]
+        # Find the header row using the same logic as preview
+        header_row_index = 0
+        for i, row in enumerate(rows):
+            if len(row) > 3:  # Must have at least 4 columns
+                header_lower = [h.lower().strip() for h in row]
+                # Check if this looks like a header row
+                if any('data' in h for h in header_lower) and (
+                    any('credito' in h or 'crédito' in h for h in header_lower) or
+                    any('debito' in h or 'débito' in h for h in header_lower) or
+                    any('historico' in h or 'histórico' in h for h in header_lower)
+                ):
+                    header_row_index = i
+                    break
+        
+        headers = rows[header_row_index]
+        data_rows = rows[header_row_index + 1:]
         
         imported_count = 0
         skipped_count = 0
         errors = []
         
         with db_transaction.atomic():
-            for row_index, row in enumerate(data_rows, start=2):
+            for row_index, row in enumerate(data_rows, start=header_row_index + 2):
                 try:
                     transaction_data = _parse_csv_row(
                         row, headers, column_mapping, 
@@ -809,13 +838,13 @@ def _suggest_column_mapping(headers):
     """Suggest column mapping based on header names"""
     mapping = {}
     
-    # Common patterns for different column types
+    # Common patterns for different column types - including Portuguese with accents
     date_patterns = ['data', 'date', 'dt', 'data_transacao', 'data_movimento']
     amount_patterns = ['valor', 'amount', 'value', 'montante']
-    credit_patterns = ['credito', 'credit', 'entrada', 'receita', 'income']
-    debit_patterns = ['debito', 'debit', 'saida', 'despesa', 'expense']
-    description_patterns = ['descricao', 'description', 'historico', 'memo', 'details']
-    beneficiary_patterns = ['beneficiario', 'beneficiary', 'favorecido', 'loja', 'estabelecimento']
+    credit_patterns = ['credito', 'crédito', 'credit', 'entrada', 'receita', 'income']
+    debit_patterns = ['debito', 'débito', 'debit', 'saida', 'despesa', 'expense']
+    description_patterns = ['descricao', 'descrição', 'description', 'historico', 'histórico', 'memo', 'details']
+    beneficiary_patterns = ['beneficiario', 'beneficiário', 'beneficiary', 'favorecido', 'loja', 'estabelecimento']
     
     for i, header in enumerate(headers):
         header_lower = header.lower().strip()
@@ -866,8 +895,31 @@ def _parse_csv_row(row, headers, column_mapping, workspace, user, account):
     
     if amount_col is not None and amount_col < len(row):
         # Single amount column
-        amount_str = row[amount_col].strip().replace(',', '.')
-        amount_str = ''.join(c for c in amount_str if c.isdigit() or c == '.' or c == '-')
+        amount_str = row[amount_col].strip()
+        
+        # Handle Brazilian number format
+        def parse_brazilian_amount(amount_str):
+            if not amount_str:
+                return ''
+            
+            # Preserve sign
+            is_negative = amount_str.startswith('-')
+            amount_str = amount_str.lstrip('-')
+            
+            # If contains both comma and dot, assume dot is thousands separator
+            if '.' in amount_str and ',' in amount_str:
+                # Remove thousands separator (dot) and replace decimal separator (comma) with dot
+                amount_str = amount_str.replace('.', '').replace(',', '.')
+            elif ',' in amount_str:
+                # Only comma present, assume it's decimal separator
+                amount_str = amount_str.replace(',', '.')
+            # If only dot present, assume it's decimal separator (already correct)
+            
+            # Extract only digits and decimal point
+            clean_amount = ''.join(c for c in amount_str if c.isdigit() or c == '.')
+            return f"-{clean_amount}" if is_negative else clean_amount
+        
+        amount_str = parse_brazilian_amount(amount_str)
         amount = Decimal(amount_str) if amount_str else Decimal('0')
         
         data['valor'] = abs(amount)
@@ -875,14 +927,37 @@ def _parse_csv_row(row, headers, column_mapping, workspace, user, account):
         
     elif credit_col is not None and debit_col is not None:
         # Separate credit/debit columns
-        credit_str = row[credit_col].strip() if credit_col < len(row) else '0'
-        debit_str = row[debit_col].strip() if debit_col < len(row) else '0'
+        credit_str = row[credit_col].strip() if credit_col < len(row) else ''
+        debit_str = row[debit_col].strip() if debit_col < len(row) else ''
         
-        credit_str = ''.join(c for c in credit_str if c.isdigit() or c == '.')
-        debit_str = ''.join(c for c in debit_str if c.isdigit() or c == '.')
+        # Clean up amount strings - handle Brazilian number format
+        credit_str = credit_str.replace(' ', '')
+        debit_str = debit_str.replace(' ', '')
         
-        credit_amount = Decimal(credit_str.replace(',', '.')) if credit_str else Decimal('0')
-        debit_amount = Decimal(debit_str.replace(',', '.')) if debit_str else Decimal('0')
+        # Handle Brazilian number format (comma as decimal, dot as thousands)
+        # e.g. "1.500,25" -> "1500.25" or "500,00" -> "500.00"
+        def parse_brazilian_amount(amount_str):
+            if not amount_str:
+                return ''
+            
+            # If contains both comma and dot, assume dot is thousands separator
+            if '.' in amount_str and ',' in amount_str:
+                # Remove thousands separator (dot) and replace decimal separator (comma) with dot
+                amount_str = amount_str.replace('.', '').replace(',', '.')
+            elif ',' in amount_str:
+                # Only comma present, assume it's decimal separator
+                amount_str = amount_str.replace(',', '.')
+            # If only dot present, assume it's decimal separator (already correct)
+            
+            # Extract only digits and decimal point
+            return ''.join(c for c in amount_str if c.isdigit() or c == '.')
+        
+        credit_str = parse_brazilian_amount(credit_str)
+        debit_str = parse_brazilian_amount(debit_str)
+        
+        # Convert to decimal, handling empty strings
+        credit_amount = Decimal(credit_str) if credit_str and credit_str != '' else Decimal('0')
+        debit_amount = Decimal(debit_str) if debit_str and debit_str != '' else Decimal('0')
         
         if credit_amount > 0:
             data['valor'] = credit_amount
