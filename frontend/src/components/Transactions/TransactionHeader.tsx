@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   PlusIcon, 
   ArrowDownTrayIcon, 
   AdjustmentsHorizontalIcon,
   WalletIcon,
   CreditCardIcon,
-  BuildingLibraryIcon
+  BuildingLibraryIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
+import InvoiceManagementModal from './InvoiceManagementModal';
 
 interface TransactionHeaderProps {
   // Filter states
@@ -44,6 +46,9 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
   formatarMoeda,
   abrirPopupAdicionar
 }) => {
+  
+  // State for invoice modal
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   
   // Helper function to get icon based on filter type
   const getFilterIcon = () => {
@@ -131,6 +136,16 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
   };
 
   const theme = getFilterTheme();
+
+  // Check if a specific credit card is selected
+  const isSpecificCreditCardSelected = () => {
+    if (typeof filtroContaAtiva === 'number') {
+      return creditCards.find(card => card.id === filtroContaAtiva);
+    }
+    return null;
+  };
+
+  const selectedCreditCard = isSpecificCreditCardSelected();
 
   return (
     <div className="mb-6">
@@ -267,6 +282,18 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
               </span>
             )}
           </button>
+
+          {/* Invoice button - only show when a specific credit card is selected */}
+          {selectedCreditCard && (
+            <button
+              type="button"
+              onClick={() => setShowInvoiceModal(true)}
+              className="inline-flex items-center px-4 py-2 border border-purple-300 rounded-md shadow-sm text-sm font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            >
+              <DocumentTextIcon className="h-5 w-5 mr-2" />
+              Gerenciar Fatura
+            </button>
+          )}
           
           <button
             type="button"
@@ -286,6 +313,14 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Invoice Management Modal */}
+      {showInvoiceModal && selectedCreditCard && (
+        <InvoiceManagementModal
+          creditCard={selectedCreditCard}
+          onClose={() => setShowInvoiceModal(false)}
+        />
+      )}
     </div>
   );
 };

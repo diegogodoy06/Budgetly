@@ -5,3 +5,4 @@ export { default as TransactionTable } from './TransactionTable';
 export { default as TransactionRow } from './TransactionRow';
 export { default as BulkOperations } from './BulkOperations';
 export { default as TransactionModals } from './TransactionModals';
+export { default as InvoiceManagementModal } from './InvoiceManagementModal';
