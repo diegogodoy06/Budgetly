@@ -75,8 +75,9 @@ class TransactionViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
             self._create_transfer_transactions(serializer)
         else:
             # Transação normal (entrada ou saída)
+            workspace = self.get_user_workspace()
             transaction = serializer.save(
-                workspace=self.request.workspace,
+                workspace=workspace,
                 user=self.request.user
             )
             
@@ -152,9 +153,11 @@ class TransactionViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
         data_transacao = data['data']
         category = data.get('category')
         
+        workspace = self.get_user_workspace()
+        
         # Criar beneficiário para conta de origem (quem enviou)
         beneficiario_origem, _ = Beneficiary.objects.get_or_create(
-            workspace=self.request.workspace,
+            workspace=workspace,
             nome=f"Conta {account_origem.nome}",
             defaults={
                 'user': self.request.user,
@@ -165,7 +168,7 @@ class TransactionViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
         
         # Criar beneficiário para conta de destino (quem recebeu)
         beneficiario_destino, _ = Beneficiary.objects.get_or_create(
-            workspace=self.request.workspace,
+            workspace=workspace,
             nome=f"Conta {account_destino.nome}",
             defaults={
                 'user': self.request.user,
@@ -176,7 +179,7 @@ class TransactionViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
         
         # 1. Criar transação de SAÍDA da conta origem
         transacao_saida = Transaction.objects.create(
-            workspace=self.request.workspace,
+            workspace=workspace,
             user=self.request.user,
             account=account_origem,
             tipo='saida',
@@ -191,7 +194,7 @@ class TransactionViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
         
         # 2. Criar transação de ENTRADA na conta destino
         transacao_entrada = Transaction.objects.create(
-            workspace=self.request.workspace,
+            workspace=workspace,
             user=self.request.user,
             account=account_destino,
             tipo='entrada',
@@ -234,8 +237,9 @@ class TransactionViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
         
         if beneficiary_name:
             # Verificar se já existe
+            workspace = self.get_user_workspace()
             beneficiary, created = Beneficiary.objects.get_or_create(
-                workspace=self.request.workspace,
+                workspace=workspace,
                 nome=beneficiary_name,
                 defaults={
                     'user': self.request.user,
@@ -389,15 +393,17 @@ class CreditCardInvoiceViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retorna faturas filtradas por workspace"""
+        workspace = self.get_user_workspace()
         queryset = CreditCardInvoice.objects.select_related('credit_card')
         # Filtrar por workspace através do cartão
-        return queryset.filter(credit_card__workspace=self.request.workspace)
+        return queryset.filter(credit_card__workspace=workspace)
 
     def perform_create(self, serializer):
         """Salva a fatura com validações"""
         # Validar se o cartão pertence ao workspace
+        workspace = self.get_user_workspace()
         credit_card = serializer.validated_data['credit_card']
-        if credit_card.workspace != self.request.workspace:
+        if credit_card.workspace != workspace:
             from rest_framework.exceptions import ValidationError
             raise ValidationError("Cartão não pertence ao workspace atual")
             
@@ -442,10 +448,11 @@ class CreditCardInvoiceViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
         
         try:
             # Validar conta de origem
+            workspace = self.get_user_workspace()
             from apps.accounts.models import Account
             conta_origem = Account.objects.get(
                 id=conta_origem_id,
-                workspace=self.request.workspace
+                workspace=workspace
             )
             
             # Registrar pagamento

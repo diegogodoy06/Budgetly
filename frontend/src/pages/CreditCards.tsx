@@ -10,6 +10,7 @@ import TransactionModal from '@/components/CreditCards/TransactionModal';
 import TransactionList from '@/components/CreditCards/TransactionList';
 import MonthNavigation from '@/components/CreditCards/MonthNavigation';
 import InvoiceStatus from '@/components/CreditCards/InvoiceStatus';
+import InvoiceManagementModal from '@/components/Transactions/InvoiceManagementModal';
 
 const CreditCards: React.FC = () => {
   // Use custom hooks for data management
@@ -250,6 +251,14 @@ const CreditCards: React.FC = () => {
         onSubmit={handleTransactionModalSubmit}
         selectedCardId={selectedCard}
       />
+
+      {/* Invoice Management Modal */}
+      {showInvoicesModal && selectedCardData && (
+        <InvoiceManagementModal
+          creditCard={selectedCardData}
+          onClose={() => setShowInvoicesModal(false)}
+        />
+      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { XMarkIcon, DocumentArrowUpIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { transactionsAPI } from '@/services/api';
 import toast from 'react-hot-toast';
@@ -48,6 +48,57 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({
   } | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Função para executar ação principal baseada no step atual
+  const handlePrimaryAction = () => {
+    switch (step) {
+      case 'upload':
+        fileInputRef.current?.click();
+        break;
+      case 'mapping':
+        if (validateMapping()) {
+          handleImport();
+        }
+        break;
+      case 'success':
+        handleClose();
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Hook para atalhos de teclado
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // ESC para fechar o modal
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        handleClose();
+        return;
+      }
+
+      // Ctrl+Enter para ação principal
+      if (event.ctrlKey && event.key === 'Enter') {
+        event.preventDefault();
+        // Não executar durante importação
+        if (step !== 'importing') {
+          handlePrimaryAction();
+        }
+        return;
+      }
+    };
+
+    // Adicionar listener apenas quando o modal estiver aberto
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, step, csvFile, previewData, columnMapping, selectedAccount]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -245,9 +296,11 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({
                     />
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      title="Selecionar arquivo (Ctrl+Enter)"
                     >
                       Selecionar arquivo
+                      <span className="ml-2 text-xs opacity-75">Ctrl+Enter</span>
                     </button>
                   </div>
                 </div>
@@ -452,6 +505,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({
               <button
                 onClick={handleClose}
                 className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                title="Cancelar"
               >
                 Cancelar
               </button>
@@ -463,6 +517,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({
                   onClick={handleImport}
                   disabled={!validateMapping()}
                   className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Importar Transações (Ctrl+Enter)"
                 >
                   Importar Transações
                 </button>
@@ -479,10 +534,25 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({
               <button
                 onClick={handleClose}
                 className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
+                title="Concluir (Ctrl+Enter ou ESC)"
               >
                 Concluir
               </button>
             )}
+            
+            {/* Indicação de atalhos no rodapé */}
+            <div className="hidden sm:flex items-center text-xs text-gray-500 sm:mr-auto">
+              <span className="inline-flex items-center">
+                <kbd className="px-1.5 py-0.5 text-xs font-mono bg-gray-200 rounded">ESC</kbd>
+                <span className="ml-1">para fechar</span>
+              </span>
+              {step !== 'importing' && (
+                <span className="inline-flex items-center ml-4">
+                  <kbd className="px-1.5 py-0.5 text-xs font-mono bg-gray-200 rounded">Ctrl+Enter</kbd>
+                  <span className="ml-1">para continuar</span>
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
