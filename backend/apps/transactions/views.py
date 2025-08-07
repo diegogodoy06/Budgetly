@@ -803,8 +803,21 @@ def import_csv_transactions(request):
         )
     
     csv_file = request.FILES['file']
-    column_mapping = request.data.get('column_mapping', {})
+    column_mapping_raw = request.data.get('column_mapping', '{}')
     account_id = request.data.get('account_id')
+    
+    # Parse column_mapping from JSON string
+    try:
+        import json
+        if isinstance(column_mapping_raw, str):
+            column_mapping = json.loads(column_mapping_raw)
+        else:
+            column_mapping = column_mapping_raw
+    except (json.JSONDecodeError, TypeError):
+        return Response(
+            {'error': 'Formato de mapeamento de colunas inválido'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     
     if not account_id:
         return Response(
@@ -939,9 +952,16 @@ def _suggest_column_mapping(headers):
 
 def _parse_csv_row(row, headers, column_mapping, workspace, user, account):
     """Parse a single CSV row into transaction data"""
-    from decimal import Decimal
+    from decimal import Decimal, InvalidOperation
     from datetime import datetime
     from apps.beneficiaries.models import Beneficiary
+    
+    # Validate inputs
+    if not isinstance(column_mapping, dict):
+        raise ValueError(f"column_mapping deve ser um dicionário, recebido: {type(column_mapping)}")
+    
+    if not isinstance(row, (list, tuple)) or len(row) == 0:
+        raise ValueError("Linha de dados está vazia ou em formato inválido")
     
     data = {}
     
@@ -949,6 +969,9 @@ def _parse_csv_row(row, headers, column_mapping, workspace, user, account):
     date_col = column_mapping.get('date')
     if date_col is not None and date_col < len(row):
         date_str = row[date_col].strip()
+        if not date_str:
+            raise ValueError("Campo de data está vazio")
+            
         # Try common date formats
         for date_format in ['%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y', '%m/%d/%Y']:
             try:
@@ -958,7 +981,9 @@ def _parse_csv_row(row, headers, column_mapping, workspace, user, account):
                 continue
         
         if 'data' not in data:
-            raise ValueError(f"Formato de data não reconhecido: {date_str}")
+            raise ValueError(f"Formato de data não reconhecido: '{date_str}'. Formatos aceitos: DD/MM/AAAA, AAAA-MM-DD, DD-MM-AAAA")
+    else:
+        raise ValueError("Coluna de data não foi mapeada ou está fora do intervalo")
     
     # Extract amount and determine transaction type
     amount_col = column_mapping.get('amount')
@@ -992,7 +1017,10 @@ def _parse_csv_row(row, headers, column_mapping, workspace, user, account):
             return f"-{clean_amount}" if is_negative else clean_amount
         
         amount_str = parse_brazilian_amount(amount_str)
-        amount = Decimal(amount_str) if amount_str else Decimal('0')
+        try:
+            amount = Decimal(amount_str) if amount_str else Decimal('0')
+        except (InvalidOperation, ValueError) as e:
+            raise ValueError(f"Erro ao converter valor único '{amount_str}' - {str(e)}")
         
         data['valor'] = abs(amount)
         data['tipo'] = 'entrada' if amount >= 0 else 'saida'
@@ -1028,8 +1056,11 @@ def _parse_csv_row(row, headers, column_mapping, workspace, user, account):
         debit_str = parse_brazilian_amount(debit_str)
         
         # Convert to decimal, handling empty strings
-        credit_amount = Decimal(credit_str) if credit_str and credit_str != '' else Decimal('0')
-        debit_amount = Decimal(debit_str) if debit_str and debit_str != '' else Decimal('0')
+        try:
+            credit_amount = Decimal(credit_str) if credit_str and credit_str != '' else Decimal('0')
+            debit_amount = Decimal(debit_str) if debit_str and debit_str != '' else Decimal('0')
+        except (InvalidOperation, ValueError) as e:
+            raise ValueError(f"Erro ao converter valores monetários - Crédito: '{credit_str}', Débito: '{debit_str}' - {str(e)}")
         
         if credit_amount > 0:
             data['valor'] = credit_amount
