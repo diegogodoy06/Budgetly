@@ -84,6 +84,15 @@ class TransactionViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
             # Auto-criar beneficiário baseado na conta/cartão
             self._auto_create_beneficiary_for_transaction(transaction)
             
+            # Apply automation rules to the new transaction
+            try:
+                from apps.automation_rules.services import apply_automation_rules_to_transaction
+                applied_rules = apply_automation_rules_to_transaction(transaction, workspace)
+                if applied_rules:
+                    print(f"🤖 Applied {len(applied_rules)} automation rules to transaction {transaction.id}")
+            except Exception as e:
+                print(f"❌ Error applying automation rules: {e}")
+            
             # Se for parcelado, criar as demais parcelas
             if transaction.total_parcelas > 1:
                 print(f"🔄 Criando parcelas para transação {transaction.id}: {transaction.total_parcelas} parcelas")
@@ -933,8 +942,17 @@ def import_csv_transactions(request):
                     if transaction_data:
                         # Check for duplicates
                         if not _is_duplicate_transaction(transaction_data, request.workspace):
-                            Transaction.objects.create(**transaction_data)
+                            transaction = Transaction.objects.create(**transaction_data)
                             imported_count += 1
+                            
+                            # Apply automation rules to imported transaction
+                            try:
+                                from apps.automation_rules.services import apply_automation_rules_to_transaction
+                                applied_rules = apply_automation_rules_to_transaction(transaction, request.workspace)
+                                if applied_rules:
+                                    print(f"🤖 Applied {len(applied_rules)} automation rules to imported transaction {transaction.id}")
+                            except Exception as e:
+                                print(f"❌ Error applying automation rules to import: {e}")
                         else:
                             skipped_count += 1
                     

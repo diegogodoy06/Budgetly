@@ -39,6 +39,7 @@ def home_view(request):
                 'beneficiaries': request.build_absolute_uri('/api/beneficiaries/'),
                 'budgets': request.build_absolute_uri('/api/budgets/'),
                 'reports': request.build_absolute_uri('/api/reports/'),
+                'automation_rules': request.build_absolute_uri('/api/automation-rules/'),
             }
         })
     return redirect('/api/docs/')
@@ -57,6 +58,7 @@ urlpatterns = [
     path('api/beneficiaries/', include('apps.beneficiaries.urls')),
     path('api/budgets/', include('apps.budgets.urls')),
     path('api/reports/', include('apps.reports.urls')),
+    path('api/automation-rules/', include('apps.automation_rules.urls')),
     
     # API Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'apps.budgets',
     'apps.reports',
     'apps.beneficiaries',
+    'apps.automation_rules',
 ]
 
 # Custom User Model
