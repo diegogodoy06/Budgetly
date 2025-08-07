@@ -13,11 +13,39 @@ class WorkspaceViewMixin:
         """
         Obtém o workspace atual do usuário com fallback
         """
+        print(f"🔧 WorkspaceViewMixin - User: {self.request.user}")
+        print(f"🔧 WorkspaceViewMixin - Is authenticated: {self.request.user.is_authenticated}")
+        
+        # Check if user is authenticated
+        if not self.request.user.is_authenticated:
+            raise ValidationError("Usuário não autenticado")
+        
         # Tentar obter workspace do request (setado pelo middleware)
         workspace = getattr(self.request, 'workspace', None)
         
         if workspace:
+            print(f"🔧 WorkspaceViewMixin - Workspace from middleware: {workspace.id}")
             return workspace
+            
+        # Try to get workspace from X-Workspace-ID header
+        workspace_id = self.request.headers.get('X-Workspace-ID')
+        if workspace_id:
+            try:
+                workspace_id = int(workspace_id)
+                from apps.accounts.models import WorkspaceMember
+                # Validate that user has access to this workspace
+                workspace_member = WorkspaceMember.objects.get(
+                    workspace_id=workspace_id,
+                    user=self.request.user,
+                    is_active=True
+                )
+                workspace = workspace_member.workspace
+                self.request.workspace = workspace  # Cache on request
+                print(f"🔧 WorkspaceViewMixin - Workspace from header: {workspace.id}")
+                return workspace
+            except (ValueError, WorkspaceMember.DoesNotExist) as e:
+                print(f"❌ WorkspaceViewMixin - Invalid workspace ID or access denied: {e}")
+                raise ValidationError("Acesso negado ao workspace ou workspace não encontrado")
             
         # Fallback: buscar primeiro workspace ativo do usuário
         from apps.accounts.models import WorkspaceMember
@@ -28,6 +56,8 @@ class WorkspaceViewMixin:
             ).first()
             
             if workspace_member:
+                self.request.workspace = workspace_member.workspace  # Cache on request
+                print(f"🔧 WorkspaceViewMixin - Fallback workspace: {workspace_member.workspace.id}")
                 return workspace_member.workspace
                 
         except Exception as e:

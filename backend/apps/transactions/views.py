@@ -382,7 +382,7 @@ class TransactionViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
             )
 
 
-class CreditCardInvoiceViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
+class CreditCardInvoiceViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
     """ViewSet para gerenciar faturas de cartão de crédito"""
     serializer_class = CreditCardInvoiceSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -644,14 +644,41 @@ def _get_user_workspace(request):
     """
     Helper function to get user workspace for standalone API views
     """
-    from apps.accounts.models import WorkspaceMember
+    from apps.accounts.models import WorkspaceMember, Workspace
     from rest_framework.exceptions import ValidationError
+    
+    print(f"🔧 _get_user_workspace - User: {request.user}")
+    print(f"🔧 _get_user_workspace - Is authenticated: {request.user.is_authenticated}")
+    
+    # Check if user is authenticated
+    if not request.user.is_authenticated:
+        raise ValidationError("Usuário não autenticado")
     
     # Check if workspace is already set on request (by middleware)
     workspace = getattr(request, 'workspace', None)
     
     if workspace:
+        print(f"🔧 _get_user_workspace - Workspace from middleware: {workspace.id}")
         return workspace
+    
+    # Try to get workspace from X-Workspace-ID header
+    workspace_id = request.headers.get('X-Workspace-ID')
+    if workspace_id:
+        try:
+            workspace_id = int(workspace_id)
+            # Validate that user has access to this workspace
+            workspace_member = WorkspaceMember.objects.get(
+                workspace_id=workspace_id,
+                user=request.user,
+                is_active=True
+            )
+            workspace = workspace_member.workspace
+            request.workspace = workspace  # Cache on request
+            print(f"🔧 _get_user_workspace - Workspace from header: {workspace.id}")
+            return workspace
+        except (ValueError, WorkspaceMember.DoesNotExist) as e:
+            print(f"❌ _get_user_workspace - Invalid workspace ID or access denied: {e}")
+            raise ValidationError("Acesso negado ao workspace ou workspace não encontrado")
         
     # Fallback: get first active workspace for user
     try:
@@ -663,6 +690,7 @@ def _get_user_workspace(request):
         if workspace_member:
             # Set on request for future use
             request.workspace = workspace_member.workspace
+            print(f"🔧 _get_user_workspace - Fallback workspace: {workspace_member.workspace.id}")
             return workspace_member.workspace
             
     except Exception as e:
