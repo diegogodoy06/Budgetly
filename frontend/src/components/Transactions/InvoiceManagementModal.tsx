@@ -64,6 +64,21 @@ const InvoiceManagementModal: React.FC<InvoiceManagementModalProps> = ({
     }
   };
 
+  const handleReopenInvoice = async (invoiceId: number) => {
+    try {
+      setActionLoading(`reopen-${invoiceId}`);
+      const result = await invoicesAPI.reopen(invoiceId);
+      
+      toast.success(result.message);
+      await loadData(); // Recarregar dados
+    } catch (error: any) {
+      console.error('Erro ao reabrir fatura:', error);
+      toast.error(error.response?.data?.error || 'Erro ao reabrir fatura');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handlePayInvoice = async () => {
     if (!paymentData.invoiceId || !paymentData.valor || !paymentData.contaOrigem) {
       toast.error('Preencha todos os campos para pagamento');
@@ -205,54 +220,73 @@ const InvoiceManagementModal: React.FC<InvoiceManagementModalProps> = ({
                         {/* Actions */}
                         <div className="flex flex-wrap gap-2">
                           {invoice.status === 'aberta' && (
-                            <button
-                              onClick={() => handleCloseInvoice(invoice.id)}
-                              disabled={actionLoading === `close-${invoice.id}`}
-                              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50"
-                            >
-                              {actionLoading === `close-${invoice.id}` ? 'Fechando...' : 'Fechar Fatura'}
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleCloseInvoice(invoice.id)}
+                                disabled={actionLoading === `close-${invoice.id}`}
+                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50"
+                              >
+                                {actionLoading === `close-${invoice.id}` ? 'Fechando...' : 'Fechar Manualmente'}
+                              </button>
+                              <span className="text-xs text-gray-500">
+                                ⚠️ Normalmente faturas fecham automaticamente
+                              </span>
+                            </div>
                           )}
                           
-                          {invoice.status === 'fechada' && parseFloat(invoice.valor_restante) > 0 && (
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="text"
-                                placeholder="Valor"
-                                value={paymentData.invoiceId === invoice.id ? paymentData.valor : ''}
-                                onChange={(e) => setPaymentData({
-                                  ...paymentData,
-                                  invoiceId: invoice.id,
-                                  valor: e.target.value
-                                })}
-                                className="w-24 px-2 py-1 text-xs border border-gray-300 rounded"
-                              />
-                              
-                              <select
-                                value={paymentData.invoiceId === invoice.id ? paymentData.contaOrigem || '' : ''}
-                                onChange={(e) => setPaymentData({
-                                  ...paymentData,
-                                  invoiceId: invoice.id,
-                                  contaOrigem: e.target.value ? parseInt(e.target.value) : null
-                                })}
-                                className="px-2 py-1 text-xs border border-gray-300 rounded"
-                              >
-                                <option value="">Conta</option>
-                                {accounts.map(account => (
-                                  <option key={account.id} value={account.id}>
-                                    {account.nome}
-                                  </option>
-                                ))}
-                              </select>
-                              
+                          {invoice.status === 'fechada' && (
+                            <>
+                              {/* Botão para reabrir fatura */}
                               <button
-                                onClick={handlePayInvoice}
-                                disabled={actionLoading === `pay-${invoice.id}` || paymentData.invoiceId !== invoice.id}
-                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                                onClick={() => handleReopenInvoice(invoice.id)}
+                                disabled={actionLoading === `reopen-${invoice.id}`}
+                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50"
                               >
-                                {actionLoading === `pay-${invoice.id}` ? 'Pagando...' : 'Pagar'}
+                                {actionLoading === `reopen-${invoice.id}` ? 'Reabrindo...' : 'Reabrir Fatura'}
                               </button>
-                            </div>
+                              
+                              {/* Pagamento apenas se houver valor restante */}
+                              {parseFloat(invoice.valor_restante) > 0 && (
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="text"
+                                    placeholder="Valor"
+                                    value={paymentData.invoiceId === invoice.id ? paymentData.valor : ''}
+                                    onChange={(e) => setPaymentData({
+                                      ...paymentData,
+                                      invoiceId: invoice.id,
+                                      valor: e.target.value
+                                    })}
+                                    className="w-24 px-2 py-1 text-xs border border-gray-300 rounded"
+                                  />
+                                  
+                                  <select
+                                    value={paymentData.invoiceId === invoice.id ? paymentData.contaOrigem || '' : ''}
+                                    onChange={(e) => setPaymentData({
+                                      ...paymentData,
+                                      invoiceId: invoice.id,
+                                      contaOrigem: e.target.value ? parseInt(e.target.value) : null
+                                    })}
+                                    className="px-2 py-1 text-xs border border-gray-300 rounded"
+                                  >
+                                    <option value="">Conta</option>
+                                    {accounts.map(account => (
+                                      <option key={account.id} value={account.id}>
+                                        {account.nome}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  
+                                  <button
+                                    onClick={handlePayInvoice}
+                                    disabled={actionLoading === `pay-${invoice.id}` || paymentData.invoiceId !== invoice.id}
+                                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                                  >
+                                    {actionLoading === `pay-${invoice.id}` ? 'Pagando...' : 'Pagar'}
+                                  </button>
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>

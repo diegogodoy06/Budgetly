@@ -5,7 +5,9 @@ import {
   FunnelIcon,
   MagnifyingGlassIcon,
   ChevronDownIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  ArrowUpTrayIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import InvoiceManagementModal from './InvoiceManagementModal';
 import AdvancedFilters from './AdvancedFilters';
@@ -31,12 +33,11 @@ interface TransactionHeaderProps {
   
   // Actions
   abrirPopupAdicionar: () => void;
+  abrirImportarCSV?: () => void;
   
   // New props for advanced filtering and search
   searchTerm?: string;
   setSearchTerm?: (value: string) => void;
-  selectedTransactions?: Set<number>;
-  isSelectionMode?: boolean;
   
   // Advanced filters
   advancedFilters?: Array<{
@@ -73,10 +74,9 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
   calcularSaldoFiltrado,
   formatarMoeda,
   abrirPopupAdicionar,
+  abrirImportarCSV,
   searchTerm = '',
   setSearchTerm,
-  selectedTransactions = new Set(),
-  isSelectionMode = false,
   advancedFilters = [],
   setAdvancedFilters
 }) => {
@@ -124,24 +124,26 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
       {/* Simplified Summary Display */}
       <div className="mb-6">
         <div className="flex items-center space-x-4">
-          <div className="text-sm text-gray-600">
-            {transacoesFiltradas.length} transações
-          </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setShowTotalBreakdown(!showTotalBreakdown)}
-              className="text-2xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-200"
+              className="flex items-center space-x-2 text-2xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-200 group"
             >
-              {formatarMoeda(calcularSaldoFiltrado())}
+              <span>{formatarMoeda(calcularSaldoFiltrado())}</span>
+              <ChevronDownIcon 
+                className={`h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-all duration-200 ${
+                  showTotalBreakdown ? 'rotate-180' : ''
+                }`} 
+              />
             </button>
             
             {/* Inline Breakdown */}
             {showTotalBreakdown && (
               <div className="flex items-center space-x-3 text-sm">
-                <span className="text-green-600 font-medium">
+                <span className="text-emerald-700 font-medium">
                   Confirmadas: {formatarMoeda(confirmed)}
                 </span>
-                <span className="text-orange-600 font-medium">
+                <span className="text-amber-700 font-medium">
                   Pendentes: {formatarMoeda(unconfirmed)}
                 </span>
               </div>
@@ -174,9 +176,9 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
             >
               <FunnelIcon className="h-5 w-5 mr-2" />
               Filtros Avançados
-              {contarFiltrosAtivos() > 0 && (
+              {(advancedFilters?.length || 0) > 0 && (
                 <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  {contarFiltrosAtivos()}
+                  {advancedFilters?.length || 0}
                 </span>
               )}
             </button>
@@ -191,6 +193,7 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
                     categories={categories}
                     onFiltersChange={setAdvancedFilters}
                     activeFilters={advancedFilters}
+                    showActiveFilters={false}
                   />
                 </div>
               </div>
@@ -216,16 +219,6 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
             </div>
           )}
 
-          {/* Row Selection Actions */}
-          {isSelectionMode && selectedTransactions.size > 0 && (
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">
-                {selectedTransactions.size} selecionada(s)
-              </span>
-              {/* These actions will be handled by BulkOperations component */}
-            </div>
-          )}
-
           {/* Invoice button - only show when a specific credit card is selected */}
           {selectedCreditCard && (
             <button
@@ -235,6 +228,18 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
             >
               <DocumentTextIcon className="h-5 w-5 mr-2" />
               Gerenciar Fatura
+            </button>
+          )}
+
+          {/* CSV Import button */}
+          {abrirImportarCSV && (
+            <button
+              type="button"
+              onClick={abrirImportarCSV}
+              className="inline-flex items-center px-4 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <ArrowUpTrayIcon className="h-5 w-5 mr-2" />
+              Importar CSV
             </button>
           )}
 
@@ -250,6 +255,51 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Active Advanced Filters Display */}
+      {advancedFilters && advancedFilters.length > 0 && (
+        <div className="mt-4 bg-gray-50 border border-gray-200 rounded-md p-3">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-medium text-gray-700">
+              Filtros ativos ({advancedFilters.length}):
+            </div>
+            <button
+              onClick={() => setAdvancedFilters && setAdvancedFilters([])}
+              className="text-sm text-red-600 hover:text-red-800 font-medium"
+            >
+              Limpar todos
+            </button>
+          </div>
+          
+          {/* Compact filter display - horizontal layout */}
+          <div className="flex flex-wrap gap-2">
+            {advancedFilters.map(filter => (
+              <div
+                key={filter.id}
+                className="inline-flex items-center justify-between px-3 py-1 bg-blue-50 border border-blue-200 rounded-full text-sm"
+              >
+                <div className="text-blue-800">
+                  <span className="font-medium">{filter.fieldLabel}</span>
+                  {' '}
+                  <span>{filter.operationLabel}</span>
+                  {' '}
+                  <span className="font-medium">{filter.valueLabel}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    if (setAdvancedFilters) {
+                      setAdvancedFilters(advancedFilters.filter(f => f.id !== filter.id));
+                    }
+                  }}
+                  className="ml-2 text-blue-600 hover:text-blue-800"
+                >
+                  <XMarkIcon className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Invoice Management Modal */}
       {showInvoiceModal && selectedCreditCard && (

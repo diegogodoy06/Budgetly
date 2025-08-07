@@ -1,5 +1,20 @@
 import axios from 'axios';
-import type { 
+    if (token) {
+      const tokenPrefix = token.substring(0, 10);
+      console.log('🔑 Token prefix:', tokenPrefix + '...');
+      
+      // Verificar se é JWT (começa com ey) ou Token DRF
+      const isJWT = token.startsWith('ey');
+      if (isJWT) {
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log('📤 Authorization header definido (JWT):', `Bearer ${tokenPrefix}...`);
+      } else {
+        config.headers.Authorization = `Token ${token}`;
+        console.log('📤 Authorization header definido (DRF):', `Token ${tokenPrefix}...`);
+      }
+    } else {
+      console.log('⚠️ Nenhum token encontrado no localStorage');
+    }ype { 
   User, Account, Transaction, Category, Tag, Budget, CreditCardBill,
   LoginRequest, RegisterRequest, AuthResponse, DashboardData,
   CreditCard, CreditCardFormData, CreditCardInvoice
@@ -19,16 +34,20 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
+    const currentWorkspaceId = localStorage.getItem('current_workspace_id');
+    
+    console.group(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    console.log('📍 URL completa:', `${config.baseURL}${config.url}`);
+    console.log('🔑 Token presente:', !!token);
+    console.log('🏢 Workspace ID:', currentWorkspaceId || 'Nenhum');
+    
     if (token) {
-      // Detectar se é JWT (começa com 'ey') ou Token DRF
-      const isJWT = token.startsWith('ey');
-      if (isJWT) {
-        config.headers.Authorization = `Bearer ${token}`;
-        console.log('🔑 JWT Token detectado, usando Bearer auth');
-      } else {
-        config.headers.Authorization = `Token ${token}`;
-        console.log('🔑 DRF Token detectado, usando Token auth');
-      }
+      const tokenPrefix = token.substring(0, 10);
+      console.log('🔑 Token prefix:', tokenPrefix + '...');
+      config.headers.Authorization = `Token ${token}`;
+      console.log('� Authorization header definido:', `Token ${tokenPrefix}...`);
+    } else {
+      console.log('⚠️ Nenhum token encontrado no localStorage');
     }
     
     // Não adicionar workspace ID para endpoints de autenticação
@@ -43,20 +62,27 @@ api.interceptors.request.use(
     
     if (!isAuthEndpoint) {
       // Adicionar workspace ID se disponível e não for endpoint de auth
-      const currentWorkspaceId = localStorage.getItem('current_workspace_id');
       if (currentWorkspaceId) {
         config.headers['X-Workspace-ID'] = currentWorkspaceId;
-        console.log('🏢 Requisição com workspace ID:', currentWorkspaceId, 'para:', config.url);
+        console.log('🏢 X-Workspace-ID header definido:', currentWorkspaceId);
       } else {
-        console.log('⚠️ Requisição sem workspace ID para:', config.url);
+        console.log('⚠️ Requisição sem workspace ID');
       }
     } else {
-      console.log('🔐 Endpoint de autenticação, não enviando workspace ID para:', config.url);
+      console.log('🔐 Endpoint de autenticação, não enviando workspace ID');
     }
+    
+    console.log('📋 Headers finais:', {
+      Authorization: config.headers.Authorization ? 'Token ***' : 'Não definido',
+      'X-Workspace-ID': config.headers['X-Workspace-ID'] || 'Não definido',
+      'Content-Type': config.headers['Content-Type']
+    });
+    console.groupEnd();
     
     return config;
   },
   (error) => {
+    console.error('❌ Erro no request interceptor:', error);
     return Promise.reject(error);
   }
 );
@@ -65,16 +91,24 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.log('🚨 Interceptor de resposta - Erro capturado:', {
+      status: error.response?.status,
+      url: error.config?.url,
+      message: error.response?.data?.detail || error.message,
+      hasToken: !!localStorage.getItem('token'),
+      authHeader: error.config?.headers?.Authorization
+    });
+    
     // Se o erro for 401 (Unauthorized), faz logout
     if (error.response?.status === 401) {
-      console.log('🚨 Erro 401 detectado:', error.config?.url);
+      console.log('🔒 Erro 401 detectado');
       
       // Verificar se não é um endpoint de autenticação que está falhando
       const authEndpoints = [
         '/api/accounts/login/', 
         '/api/accounts/register/', 
         '/api/accounts/profile/',
-        '/api/accounts/workspaces/'
+        '/api/accounts/workspaces/'  // Adicionado - este é um endpoint de auth!
       ];
       const isAuthEndpoint = authEndpoints.some(endpoint => error.config?.url?.includes(endpoint));
       
@@ -111,6 +145,10 @@ export const authAPI = {
   
   getProfile: (): Promise<User> =>
     api.get('/api/accounts/profile/').then(res => res.data),
+  
+  // Endpoint de teste para verificar autenticação
+  testAuth: (): Promise<any> =>
+    api.get('/api/accounts/workspaces/').then(res => res.data),
 };
 
 // Accounts API

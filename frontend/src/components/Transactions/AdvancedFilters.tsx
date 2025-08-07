@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-  XMarkIcon,
-  ChevronDownIcon,
-  PlusIcon
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 interface FilterOperation {
@@ -34,6 +32,7 @@ interface AdvancedFiltersProps {
   categories: Array<{ id: number; nome: string }>;
   onFiltersChange: (filters: ActiveFilter[]) => void;
   activeFilters: ActiveFilter[];
+  showActiveFilters?: boolean; // Control whether to show active filters inside this component
 }
 
 const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
@@ -41,12 +40,11 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   creditCards,
   categories,
   onFiltersChange,
-  activeFilters
+  activeFilters,
+  showActiveFilters = true
 }) => {
-  const [showFieldDropdown, setShowFieldDropdown] = useState(false);
+  const [showFieldDropdown, setShowFieldDropdown] = useState(true); // Start with field dropdown open
   const [showOperationDropdown, setShowOperationDropdown] = useState(false);
-  const [showValueSelector, setShowValueSelector] = useState(false);
-  
   const [selectedField, setSelectedField] = useState<FilterField | null>(null);
   const [selectedOperation, setSelectedOperation] = useState<FilterOperation | null>(null);
   const [inputValue, setInputValue] = useState('');
@@ -150,32 +148,47 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     }
   ];
 
-  // Handle clicking outside to close dropdowns
+  // Handle clicking outside and ESC key
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowFieldDropdown(false);
+        // Close all dropdowns and reset selection
+        setShowFieldDropdown(true);
         setShowOperationDropdown(false);
-        setShowValueSelector(false);
+        setSelectedField(null);
+        setSelectedOperation(null);
+        setInputValue('');
+        setSelectedOptions([]);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        // Close all dropdowns and reset selection
+        setShowFieldDropdown(true);
+        setShowOperationDropdown(false);
+        setSelectedField(null);
+        setSelectedOperation(null);
+        setInputValue('');
+        setSelectedOptions([]);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
-
-  const resetSelection = () => {
-    setSelectedField(null);
-    setSelectedOperation(null);
-    setInputValue('');
-    setSelectedOptions([]);
-    setShowFieldDropdown(false);
-    setShowOperationDropdown(false);
-    setShowValueSelector(false);
-  };
 
   const handleFieldSelect = (field: FilterField) => {
     setSelectedField(field);
+    setSelectedOperation(null);
+    setInputValue('');
+    setSelectedOptions([]);
+    // Fecha dropdown de campos e abre o de operações
     setShowFieldDropdown(false);
     setShowOperationDropdown(true);
   };
@@ -183,7 +196,15 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   const handleOperationSelect = (operation: FilterOperation) => {
     setSelectedOperation(operation);
     setShowOperationDropdown(false);
-    setShowValueSelector(true);
+  };
+
+  const resetSelection = () => {
+    setShowFieldDropdown(true); // Return to field selection
+    setShowOperationDropdown(false);
+    setSelectedField(null);
+    setSelectedOperation(null);
+    setInputValue('');
+    setSelectedOptions([]);
   };
 
   const handleAddFilter = () => {
@@ -219,6 +240,8 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     };
 
     onFiltersChange([...activeFilters, newFilter]);
+    
+    // Reset selection after adding filter - back to field selection
     resetSelection();
   };
 
@@ -235,30 +258,32 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
     if (selectedField.type === 'select' && selectedField.options) {
       if (selectedOperation.value === 'in' || selectedOperation.value === 'not_in') {
-        // Multi-select
+        // Multi-select - more compact for inline layout
         return (
           <div className="space-y-2">
-            <div className="text-sm font-medium text-gray-700">
+            <div className="text-xs text-gray-600">
               Selecione as opções:
             </div>
-            <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
-              {selectedField.options.map(option => (
-                <label key={option.value} className="flex items-center space-x-2 p-1">
-                  <input
-                    type="checkbox"
-                    checked={selectedOptions.includes(option.value.toString())}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedOptions([...selectedOptions, option.value.toString()]);
-                      } else {
-                        setSelectedOptions(selectedOptions.filter(v => v !== option.value.toString()));
-                      }
-                    }}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm">{option.label}</span>
-                </label>
-              ))}
+            <div className="max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2 bg-gray-50">
+              <div className="grid grid-cols-1 gap-1">
+                {selectedField.options.map(option => (
+                  <label key={option.value} className="flex items-center space-x-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={selectedOptions.includes(option.value.toString())}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedOptions([...selectedOptions, option.value.toString()]);
+                        } else {
+                          setSelectedOptions(selectedOptions.filter(v => v !== option.value.toString()));
+                        }
+                      }}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm">{option.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         );
@@ -324,103 +349,16 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Add Filter Section */}
-      <div className="relative" ref={dropdownRef}>
-        <button
-          onClick={() => {
-            setShowFieldDropdown(!showFieldDropdown);
-            setShowOperationDropdown(false);
-            setShowValueSelector(false);
-          }}
-          className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Adicionar Filtro
-          <ChevronDownIcon className="h-4 w-4 ml-2" />
-        </button>
-
-        {/* Field Selection Dropdown */}
-        {showFieldDropdown && (
-          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-300 rounded-md shadow-lg z-50">
-            <div className="p-2">
-              <div className="text-sm font-medium text-gray-700 mb-2">Selecione o campo:</div>
-              <div className="space-y-1">
-                {filterFields.map(field => (
-                  <button
-                    key={field.value}
-                    onClick={() => handleFieldSelect(field)}
-                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                  >
-                    {field.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Operation Selection Dropdown */}
-        {showOperationDropdown && selectedField && (
-          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-300 rounded-md shadow-lg z-50">
-            <div className="p-2">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                {selectedField.label}:
-              </div>
-              <div className="space-y-1">
-                {selectedField.operations.map(operation => (
-                  <button
-                    key={operation.value}
-                    onClick={() => handleOperationSelect(operation)}
-                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
-                  >
-                    {operation.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Value Selection Popup */}
-        {showValueSelector && selectedField && selectedOperation && (
-          <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-300 rounded-md shadow-lg z-50">
-            <div className="p-4">
-              <div className="text-sm font-medium text-gray-700 mb-3">
-                {selectedField.label} {selectedOperation.label}:
-              </div>
-              
-              {renderValueInput()}
-              
-              <div className="flex justify-end space-x-2 mt-4">
-                <button
-                  onClick={resetSelection}
-                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleAddFilter}
-                  disabled={!canAddFilter()}
-                  className="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Adicionar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Active Filters Display - Compact horizontal layout */}
-      {activeFilters.length > 0 && (
-        <div className="mt-4">
-          <div className="flex items-center justify-between mb-2">
+      {/* Active Filters Display - Only show if showActiveFilters is true */}
+      {showActiveFilters && activeFilters.length > 0 && (
+        <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
+          <div className="flex items-center justify-between mb-3">
             <div className="text-sm font-medium text-gray-700">
               Filtros ativos ({activeFilters.length}):
             </div>
             <button
               onClick={clearAllFilters}
-              className="text-sm text-red-600 hover:text-red-800"
+              className="text-sm text-red-600 hover:text-red-800 font-medium"
             >
               Limpar todos
             </button>
@@ -451,6 +389,82 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
           </div>
         </div>
       )}
+
+      {/* Filter Creation Interface */}
+      <div className="relative" ref={dropdownRef}>
+        {/* Field Selection - Always visible when component is active */}
+        {showFieldDropdown && (
+          <div className="w-full bg-white border border-gray-300 rounded-md shadow-lg">
+            <div className="p-2">
+              <div className="text-sm font-medium text-gray-700 mb-2">Selecione o campo:</div>
+              <div className="space-y-1">
+                {filterFields.map(field => (
+                  <button
+                    key={field.value}
+                    onClick={() => handleFieldSelect(field)}
+                    className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100 text-gray-700 border border-transparent hover:border-gray-200"
+                  >
+                    {field.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Operation Selection Dropdown - Grid Layout */}
+        {showOperationDropdown && selectedField && (
+          <div className="w-full bg-white border border-gray-300 rounded-md shadow-lg">
+            <div className="p-4">
+              <div className="text-sm font-medium text-gray-700 mb-3">
+                {selectedField.label} - Selecione a operação:
+              </div>
+              
+              {/* Operations in Grid Layout */}
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {selectedField.operations.map(operation => (
+                  <button
+                    key={operation.value}
+                    onClick={() => handleOperationSelect(operation)}
+                    className={`text-left px-3 py-2 text-sm rounded-md border transition-colors ${
+                      selectedOperation?.value === operation.value
+                        ? 'bg-blue-50 border-blue-300 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100 border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {operation.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Value Input Field - Below operations */}
+              {selectedOperation && (
+                <div className="space-y-3">
+                  <div className="text-sm font-medium text-gray-700">Valor:</div>
+                  {renderValueInput()}
+                  
+                  {/* Action Buttons */}
+                  <div className="flex justify-end space-x-2 pt-2">
+                    <button
+                      onClick={resetSelection}
+                      className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleAddFilter}
+                      disabled={!canAddFilter()}
+                      className="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Adicionar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

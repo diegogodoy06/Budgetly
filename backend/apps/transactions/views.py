@@ -3,23 +3,26 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.db.models import Sum, Q
 from datetime import datetime, date
-from .models import Transaction, CreditCardInvoice
+from .models import Transaction, CreditCardInvoice, TransactionType
 from .serializers import TransactionSerializer, CreditCardInvoiceSerializer
-from apps.accounts.workspace_mixins import WorkspaceRequiredMixin
+from apps.accounts.mixins import WorkspaceViewMixin
 from apps.beneficiaries.models import Beneficiary
 
 
-class TransactionViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
+class TransactionViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
     """ViewSet para gerenciar transações"""
     serializer_class = TransactionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Usar o método do workspace mixin
-        queryset = Transaction.objects.select_related(
-            'account', 'to_account', 'credit_card', 'category', 'beneficiario'
-        )
-        queryset = self.get_workspace_queryset(queryset)
+        # Get base queryset from mixin (already filtered by workspace)
+        queryset = super().get_queryset()
+        
+        # Add select_related optimization
+        if queryset is not None:
+            queryset = queryset.select_related(
+                'account', 'to_account', 'credit_card', 'category', 'beneficiario'
+            )
         
         # Filtros opcionais
         account_id = self.request.query_params.get('account')
@@ -72,8 +75,9 @@ class TransactionViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
             self._create_transfer_transactions(serializer)
         else:
             # Transação normal (entrada ou saída)
+            workspace = self.get_user_workspace()
             transaction = serializer.save(
-                workspace=self.request.workspace,
+                workspace=workspace,
                 user=self.request.user
             )
             
@@ -149,9 +153,11 @@ class TransactionViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
         data_transacao = data['data']
         category = data.get('category')
         
+        workspace = self.get_user_workspace()
+        
         # Criar beneficiário para conta de origem (quem enviou)
         beneficiario_origem, _ = Beneficiary.objects.get_or_create(
-            workspace=self.request.workspace,
+            workspace=workspace,
             nome=f"Conta {account_origem.nome}",
             defaults={
                 'user': self.request.user,
@@ -162,7 +168,7 @@ class TransactionViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
         
         # Criar beneficiário para conta de destino (quem recebeu)
         beneficiario_destino, _ = Beneficiary.objects.get_or_create(
-            workspace=self.request.workspace,
+            workspace=workspace,
             nome=f"Conta {account_destino.nome}",
             defaults={
                 'user': self.request.user,
@@ -173,7 +179,7 @@ class TransactionViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
         
         # 1. Criar transação de SAÍDA da conta origem
         transacao_saida = Transaction.objects.create(
-            workspace=self.request.workspace,
+            workspace=workspace,
             user=self.request.user,
             account=account_origem,
             tipo='saida',
@@ -188,7 +194,7 @@ class TransactionViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
         
         # 2. Criar transação de ENTRADA na conta destino
         transacao_entrada = Transaction.objects.create(
-            workspace=self.request.workspace,
+            workspace=workspace,
             user=self.request.user,
             account=account_destino,
             tipo='entrada',
@@ -231,8 +237,9 @@ class TransactionViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
         
         if beneficiary_name:
             # Verificar se já existe
+            workspace = self.get_user_workspace()
             beneficiary, created = Beneficiary.objects.get_or_create(
-                workspace=self.request.workspace,
+                workspace=workspace,
                 nome=beneficiary_name,
                 defaults={
                     'user': self.request.user,
@@ -379,22 +386,24 @@ class TransactionViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
             )
 
 
-class CreditCardInvoiceViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
+class CreditCardInvoiceViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
     """ViewSet para gerenciar faturas de cartão de crédito"""
     serializer_class = CreditCardInvoiceSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         """Retorna faturas filtradas por workspace"""
+        workspace = self.get_user_workspace()
         queryset = CreditCardInvoice.objects.select_related('credit_card')
         # Filtrar por workspace através do cartão
-        return queryset.filter(credit_card__workspace=self.request.workspace)
+        return queryset.filter(credit_card__workspace=workspace)
 
     def perform_create(self, serializer):
         """Salva a fatura com validações"""
         # Validar se o cartão pertence ao workspace
+        workspace = self.get_user_workspace()
         credit_card = serializer.validated_data['credit_card']
-        if credit_card.workspace != self.request.workspace:
+        if credit_card.workspace != workspace:
             from rest_framework.exceptions import ValidationError
             raise ValidationError("Cartão não pertence ao workspace atual")
             
@@ -424,6 +433,61 @@ class CreditCardInvoiceViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
             )
 
     @action(detail=True, methods=['post'])
+    def reopen(self, request, pk=None):
+        """Reabre uma fatura fechada, voltando transações para status pendente"""
+        invoice = self.get_object()
+        
+        if invoice.status != 'fechada':
+            return Response(
+                {'error': 'Apenas faturas fechadas podem ser reabertas'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Verificar se há transações de pagamento da fatura que precisam ser removidas
+            workspace = self.get_user_workspace()
+            pagamento_fatura = Transaction.objects.filter(
+                user=self.request.user,
+                workspace=workspace,
+                descricao__icontains=f"Pagamento fatura {invoice.credit_card.nome} {invoice.mes:02d}/{invoice.ano}",
+                tipo=TransactionType.SAIDA,
+                valor=invoice.valor_total,
+                confirmada=False  # Apenas transações pendentes de pagamento
+            ).first()
+            
+            if pagamento_fatura:
+                pagamento_fatura.delete()
+                
+            # Voltar todas as transações de cartão desta fatura para status pendente
+            from datetime import date
+            data_inicio = date(invoice.ano, invoice.mes, 1)
+            data_fim = date(invoice.ano, invoice.mes, invoice.credit_card.dia_fechamento)
+            
+            transacoes_rebertas = Transaction.objects.filter(
+                credit_card=invoice.credit_card,
+                data__gte=data_inicio,
+                data__lte=data_fim,
+                workspace=workspace
+            ).update(confirmada=False)
+            
+            # Resetar status da fatura para aberta
+            invoice.status = 'aberta'
+            invoice.valor_total = 0
+            invoice.valor_pago = 0
+            invoice.save()
+            
+            return Response({
+                'message': f'Fatura reaberta com sucesso. {transacoes_rebertas} transações voltaram para status pendente.',
+                'invoice': CreditCardInvoiceSerializer(invoice).data
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Erro ao reabrir fatura: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['post'])
     def pay(self, request, pk=None):
         """Registra pagamento de uma fatura"""
         invoice = self.get_object()
@@ -439,10 +503,11 @@ class CreditCardInvoiceViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
         
         try:
             # Validar conta de origem
+            workspace = self.get_user_workspace()
             from apps.accounts.models import Account
             conta_origem = Account.objects.get(
                 id=conta_origem_id,
-                workspace=self.request.workspace
+                workspace=workspace
             )
             
             # Registrar pagamento
@@ -635,6 +700,481 @@ def get_best_purchase_date(request):
             {'error': f'Erro no cálculo: {str(e)}'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+def _get_user_workspace(request):
+    """
+    Helper function to get user workspace for standalone API views
+    """
+    from apps.accounts.models import WorkspaceMember, Workspace
+    from rest_framework.exceptions import ValidationError
+    
+    print(f"🔧 _get_user_workspace - User: {request.user}")
+    print(f"🔧 _get_user_workspace - Is authenticated: {request.user.is_authenticated}")
+    
+    # Check if user is authenticated
+    if not request.user.is_authenticated:
+        raise ValidationError("Usuário não autenticado")
+    
+    # Check if workspace is already set on request (by middleware)
+    workspace = getattr(request, 'workspace', None)
+    
+    if workspace:
+        print(f"🔧 _get_user_workspace - Workspace from middleware: {workspace.id}")
+        return workspace
+    
+    # Try to get workspace from X-Workspace-ID header
+    workspace_id = request.headers.get('X-Workspace-ID')
+    if workspace_id:
+        try:
+            workspace_id = int(workspace_id)
+            # Validate that user has access to this workspace
+            workspace_member = WorkspaceMember.objects.get(
+                workspace_id=workspace_id,
+                user=request.user,
+                is_active=True
+            )
+            workspace = workspace_member.workspace
+            request.workspace = workspace  # Cache on request
+            print(f"🔧 _get_user_workspace - Workspace from header: {workspace.id}")
+            return workspace
+        except (ValueError, WorkspaceMember.DoesNotExist) as e:
+            print(f"❌ _get_user_workspace - Invalid workspace ID or access denied: {e}")
+            raise ValidationError("Acesso negado ao workspace ou workspace não encontrado")
+        
+    # Fallback: get first active workspace for user
+    try:
+        workspace_member = WorkspaceMember.objects.filter(
+            user=request.user,
+            is_active=True
+        ).first()
+        
+        if workspace_member:
+            # Set on request for future use
+            request.workspace = workspace_member.workspace
+            print(f"🔧 _get_user_workspace - Fallback workspace: {workspace_member.workspace.id}")
+            return workspace_member.workspace
+            
+    except Exception as e:
+        print(f"❌ Erro ao buscar workspace: {e}")
+        
+    raise ValidationError("Usuário não tem acesso a nenhum workspace ativo")
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def upload_csv_preview(request):
+    """Upload CSV file and return preview with suggested mapping"""
+    import csv
+    import io
+    from decimal import Decimal
+    
+    if 'file' not in request.FILES:
+        return Response(
+            {'error': 'Nenhum arquivo foi enviado'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    csv_file = request.FILES['file']
+    
+    # Validate file type
+    if not csv_file.name.endswith('.csv'):
+        return Response(
+            {'error': 'Apenas arquivos CSV são aceitos'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        # Read file content
+        file_content = csv_file.read().decode('utf-8')
+        
+        # Detect delimiter
+        delimiter = _detect_delimiter(file_content)
+        
+        # Parse CSV
+        csv_reader = csv.reader(io.StringIO(file_content), delimiter=delimiter)
+        rows = list(csv_reader)
+        
+        if len(rows) < 2:
+            return Response(
+                {'error': 'O arquivo deve conter pelo menos um cabeçalho e uma linha de dados'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Find the header row (look for row with common column patterns)
+        header_row_index = 0
+        for i, row in enumerate(rows):
+            if len(row) > 3:  # Must have at least 4 columns
+                header_lower = [h.lower().strip() for h in row]
+                # Check if this looks like a header row
+                if any('data' in h for h in header_lower) and (
+                    any('credito' in h or 'crédito' in h for h in header_lower) or
+                    any('debito' in h or 'débito' in h for h in header_lower) or
+                    any('historico' in h or 'histórico' in h for h in header_lower)
+                ):
+                    header_row_index = i
+                    break
+        
+        headers = rows[header_row_index]
+        data_rows = rows[header_row_index + 1:header_row_index + 6]  # Preview first 5 data rows
+        
+        # Suggest column mapping
+        suggested_mapping = _suggest_column_mapping(headers)
+        
+        return Response({
+            'headers': headers,
+            'preview_rows': data_rows,
+            'total_rows': len(rows) - header_row_index - 1,
+            'delimiter': delimiter,
+            'suggested_mapping': suggested_mapping,
+            'header_row_index': header_row_index
+        })
+        
+    except Exception as e:
+        return Response(
+            {'error': f'Erro ao processar arquivo CSV: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def import_csv_transactions(request):
+    """Import transactions from CSV with user-defined mapping"""
+    import csv
+    import io
+    from decimal import Decimal
+    from django.db import transaction as db_transaction
+    from apps.beneficiaries.models import Beneficiary
+    from datetime import datetime
+    
+    try:
+        # Get workspace for this user
+        workspace = _get_user_workspace(request)
+        request.workspace = workspace  # Set on request for consistency
+    except Exception as e:
+        return Response(
+            {'error': f'Erro ao acessar workspace: {str(e)}'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if 'file' not in request.FILES:
+        return Response(
+            {'error': 'Nenhum arquivo foi enviado'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    csv_file = request.FILES['file']
+    column_mapping_raw = request.data.get('column_mapping', '{}')
+    account_id = request.data.get('account_id')
+    
+    # Parse column_mapping from JSON string
+    try:
+        import json
+        if isinstance(column_mapping_raw, str):
+            column_mapping = json.loads(column_mapping_raw)
+        else:
+            column_mapping = column_mapping_raw
+    except (json.JSONDecodeError, TypeError):
+        return Response(
+            {'error': 'Formato de mapeamento de colunas inválido'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    if not account_id:
+        return Response(
+            {'error': 'Conta bancária deve ser especificada'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        # Validate account belongs to workspace
+        from apps.accounts.models import Account
+        account = Account.objects.get(
+            id=account_id,
+            workspace=request.workspace
+        )
+        
+        # Read and parse CSV
+        file_content = csv_file.read().decode('utf-8')
+        delimiter = _detect_delimiter(file_content)
+        csv_reader = csv.reader(io.StringIO(file_content), delimiter=delimiter)
+        rows = list(csv_reader)
+        
+        # Find the header row using the same logic as preview
+        header_row_index = 0
+        for i, row in enumerate(rows):
+            if len(row) > 3:  # Must have at least 4 columns
+                header_lower = [h.lower().strip() for h in row]
+                # Check if this looks like a header row
+                if any('data' in h for h in header_lower) and (
+                    any('credito' in h or 'crédito' in h for h in header_lower) or
+                    any('debito' in h or 'débito' in h for h in header_lower) or
+                    any('historico' in h or 'histórico' in h for h in header_lower)
+                ):
+                    header_row_index = i
+                    break
+        
+        headers = rows[header_row_index]
+        data_rows = rows[header_row_index + 1:]
+        
+        imported_count = 0
+        skipped_count = 0
+        errors = []
+        
+        with db_transaction.atomic():
+            for row_index, row in enumerate(data_rows, start=header_row_index + 2):
+                try:
+                    transaction_data = _parse_csv_row(
+                        row, headers, column_mapping, 
+                        request.workspace, request.user, account
+                    )
+                    
+                    if transaction_data:
+                        # Check for duplicates
+                        if not _is_duplicate_transaction(transaction_data, request.workspace):
+                            Transaction.objects.create(**transaction_data)
+                            imported_count += 1
+                        else:
+                            skipped_count += 1
+                    
+                except Exception as e:
+                    errors.append(f"Linha {row_index}: {str(e)}")
+                    if len(errors) > 10:  # Limit error count
+                        break
+        
+        return Response({
+            'success': True,
+            'imported_count': imported_count,
+            'skipped_count': skipped_count,
+            'total_rows': len(data_rows),
+            'errors': errors[:10]  # Return only first 10 errors
+        })
+        
+    except Account.DoesNotExist:
+        return Response(
+            {'error': 'Conta não encontrada'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {'error': f'Erro ao importar transações: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+def _detect_delimiter(content):
+    """Detect CSV delimiter from content"""
+    common_delimiters = [',', ';', '|', '\t']
+    delimiter_counts = {}
+    
+    # Check first few lines to determine delimiter
+    lines = content.split('\n')[:5]
+    
+    for delimiter in common_delimiters:
+        count = 0
+        for line in lines:
+            count += line.count(delimiter)
+        delimiter_counts[delimiter] = count
+    
+    # Return delimiter with highest count
+    return max(delimiter_counts.items(), key=lambda x: x[1])[0]
+
+
+def _suggest_column_mapping(headers):
+    """Suggest column mapping based on header names"""
+    mapping = {}
+    
+    # Common patterns for different column types - including Portuguese with accents
+    date_patterns = ['data', 'date', 'dt', 'data_transacao', 'data_movimento']
+    amount_patterns = ['valor', 'amount', 'value', 'montante']
+    credit_patterns = ['credito', 'crédito', 'credit', 'entrada', 'receita', 'income']
+    debit_patterns = ['debito', 'débito', 'debit', 'saida', 'despesa', 'expense']
+    description_patterns = ['descricao', 'descrição', 'description', 'historico', 'histórico', 'memo', 'details']
+    beneficiary_patterns = ['beneficiario', 'beneficiário', 'beneficiary', 'favorecido', 'loja', 'estabelecimento']
+    
+    for i, header in enumerate(headers):
+        header_lower = header.lower().strip()
+        
+        if any(pattern in header_lower for pattern in date_patterns):
+            mapping['date'] = i
+        elif any(pattern in header_lower for pattern in amount_patterns):
+            mapping['amount'] = i
+        elif any(pattern in header_lower for pattern in credit_patterns):
+            mapping['credit'] = i
+        elif any(pattern in header_lower for pattern in debit_patterns):
+            mapping['debit'] = i
+        elif any(pattern in header_lower for pattern in description_patterns):
+            mapping['description'] = i
+        elif any(pattern in header_lower for pattern in beneficiary_patterns):
+            mapping['beneficiary'] = i
+    
+    return mapping
+
+
+def _parse_csv_row(row, headers, column_mapping, workspace, user, account):
+    """Parse a single CSV row into transaction data"""
+    from decimal import Decimal, InvalidOperation
+    from datetime import datetime
+    from apps.beneficiaries.models import Beneficiary
+    
+    # Validate inputs
+    if not isinstance(column_mapping, dict):
+        raise ValueError(f"column_mapping deve ser um dicionário, recebido: {type(column_mapping)}")
+    
+    if not isinstance(row, (list, tuple)) or len(row) == 0:
+        raise ValueError("Linha de dados está vazia ou em formato inválido")
+    
+    data = {}
+    
+    # Extract date
+    date_col = column_mapping.get('date')
+    if date_col is not None and date_col < len(row):
+        date_str = row[date_col].strip()
+        if not date_str:
+            raise ValueError("Campo de data está vazio")
+            
+        # Try common date formats
+        for date_format in ['%d/%m/%Y', '%Y-%m-%d', '%d-%m-%Y', '%m/%d/%Y']:
+            try:
+                data['data'] = datetime.strptime(date_str, date_format).date()
+                break
+            except ValueError:
+                continue
+        
+        if 'data' not in data:
+            raise ValueError(f"Formato de data não reconhecido: '{date_str}'. Formatos aceitos: DD/MM/AAAA, AAAA-MM-DD, DD-MM-AAAA")
+    else:
+        raise ValueError("Coluna de data não foi mapeada ou está fora do intervalo")
+    
+    # Extract amount and determine transaction type
+    amount_col = column_mapping.get('amount')
+    credit_col = column_mapping.get('credit')
+    debit_col = column_mapping.get('debit')
+    
+    if amount_col is not None and amount_col < len(row):
+        # Single amount column
+        amount_str = row[amount_col].strip()
+        
+        # Handle Brazilian number format
+        def parse_brazilian_amount(amount_str):
+            if not amount_str:
+                return ''
+            
+            # Preserve sign
+            is_negative = amount_str.startswith('-')
+            amount_str = amount_str.lstrip('-')
+            
+            # If contains both comma and dot, assume dot is thousands separator
+            if '.' in amount_str and ',' in amount_str:
+                # Remove thousands separator (dot) and replace decimal separator (comma) with dot
+                amount_str = amount_str.replace('.', '').replace(',', '.')
+            elif ',' in amount_str:
+                # Only comma present, assume it's decimal separator
+                amount_str = amount_str.replace(',', '.')
+            # If only dot present, assume it's decimal separator (already correct)
+            
+            # Extract only digits and decimal point
+            clean_amount = ''.join(c for c in amount_str if c.isdigit() or c == '.')
+            return f"-{clean_amount}" if is_negative else clean_amount
+        
+        amount_str = parse_brazilian_amount(amount_str)
+        try:
+            amount = Decimal(amount_str) if amount_str else Decimal('0')
+        except (InvalidOperation, ValueError) as e:
+            raise ValueError(f"Erro ao converter valor único '{amount_str}' - {str(e)}")
+        
+        data['valor'] = abs(amount)
+        data['tipo'] = 'entrada' if amount >= 0 else 'saida'
+        
+    elif credit_col is not None and debit_col is not None:
+        # Separate credit/debit columns
+        credit_str = row[credit_col].strip() if credit_col < len(row) else ''
+        debit_str = row[debit_col].strip() if debit_col < len(row) else ''
+        
+        # Clean up amount strings - handle Brazilian number format
+        credit_str = credit_str.replace(' ', '')
+        debit_str = debit_str.replace(' ', '')
+        
+        # Handle Brazilian number format (comma as decimal, dot as thousands)
+        # e.g. "1.500,25" -> "1500.25" or "500,00" -> "500.00"
+        def parse_brazilian_amount(amount_str):
+            if not amount_str:
+                return ''
+            
+            # If contains both comma and dot, assume dot is thousands separator
+            if '.' in amount_str and ',' in amount_str:
+                # Remove thousands separator (dot) and replace decimal separator (comma) with dot
+                amount_str = amount_str.replace('.', '').replace(',', '.')
+            elif ',' in amount_str:
+                # Only comma present, assume it's decimal separator
+                amount_str = amount_str.replace(',', '.')
+            # If only dot present, assume it's decimal separator (already correct)
+            
+            # Extract only digits and decimal point
+            return ''.join(c for c in amount_str if c.isdigit() or c == '.')
+        
+        credit_str = parse_brazilian_amount(credit_str)
+        debit_str = parse_brazilian_amount(debit_str)
+        
+        # Convert to decimal, handling empty strings
+        try:
+            credit_amount = Decimal(credit_str) if credit_str and credit_str != '' else Decimal('0')
+            debit_amount = Decimal(debit_str) if debit_str and debit_str != '' else Decimal('0')
+        except (InvalidOperation, ValueError) as e:
+            raise ValueError(f"Erro ao converter valores monetários - Crédito: '{credit_str}', Débito: '{debit_str}' - {str(e)}")
+        
+        if credit_amount > 0:
+            data['valor'] = credit_amount
+            data['tipo'] = 'entrada'
+        elif debit_amount > 0:
+            data['valor'] = debit_amount
+            data['tipo'] = 'saida'
+        else:
+            return None  # Skip rows with no amount
+    
+    # Extract description
+    desc_col = column_mapping.get('description')
+    if desc_col is not None and desc_col < len(row):
+        data['descricao'] = row[desc_col].strip()[:200]  # Limit to model max length
+    else:
+        data['descricao'] = 'Importado do CSV'
+    
+    # Extract/create beneficiary
+    beneficiary_col = column_mapping.get('beneficiary')
+    if beneficiary_col is not None and beneficiary_col < len(row):
+        beneficiary_name = row[beneficiary_col].strip()[:255]  # Limit to model max length
+        if beneficiary_name:
+            beneficiary, created = Beneficiary.objects.get_or_create(
+                workspace=workspace,
+                nome=beneficiary_name,
+                defaults={
+                    'user': user,
+                    'tipo': 'estabelecimento',
+                    'descricao': 'Auto-criado durante importação CSV'
+                }
+            )
+            data['beneficiario'] = beneficiary
+    
+    # Set other required fields
+    data['workspace'] = workspace
+    data['user'] = user
+    data['account'] = account
+    data['confirmada'] = True  # Import as confirmed since they exist in bank
+    
+    return data
+
+
+def _is_duplicate_transaction(transaction_data, workspace):
+    """Check if transaction already exists to avoid duplicates"""
+    return Transaction.objects.filter(
+        workspace=workspace,
+        account=transaction_data.get('account'),
+        data=transaction_data.get('data'),
+        valor=transaction_data.get('valor'),
+        descricao=transaction_data.get('descricao'),
+        tipo=transaction_data.get('tipo')
+    ).exists()
 
 
 @api_view(['GET'])

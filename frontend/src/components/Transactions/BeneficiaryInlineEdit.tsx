@@ -30,10 +30,13 @@ const BeneficiaryInlineEdit: React.FC<BeneficiaryInlineEditProps> = ({
     const loadBeneficiaries = async () => {
       try {
         setLoading(true);
+        console.log('🔄 Loading beneficiaries for inline edit...');
         const data = await beneficiaryService.list();
-        setBeneficiaries(data);
+        console.log('✅ Loaded beneficiaries:', data);
+        setBeneficiaries(data || []);
       } catch (error) {
-        console.error('Error loading beneficiaries:', error);
+        console.error('❌ Error loading beneficiaries:', error);
+        setBeneficiaries([]); // Fallback to empty array
       } finally {
         setLoading(false);
       }

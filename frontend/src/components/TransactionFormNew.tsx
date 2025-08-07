@@ -273,8 +273,8 @@ const TransactionFormNew: React.FC<TransactionFormProps> = ({ isOpen, onClose, o
         payload.account = data.account;
       } else if (data.tipoPagamento === 'cartao') {
         payload.credit_card = data.credit_card;
-        // Transações de cartão sempre confirmadas (não ficam pendentes)
-        payload.confirmada = true;
+        // Transações de cartão ficam pendentes até fechamento da fatura
+        payload.confirmada = false;
       }
 
       await transactionsAPI.create(payload);
@@ -866,14 +866,14 @@ const TransactionFormNew: React.FC<TransactionFormProps> = ({ isOpen, onClose, o
                         <span className="text-blue-600">ℹ️</span>
                         <span className="text-sm text-blue-700 font-medium">
                           {tipoPagamento === 'cartao' 
-                            ? 'Transações de cartão de crédito são sempre confirmadas'
+                            ? 'Transações de cartão ficam pendentes até fechamento da fatura'
                             : 'Transferências são sempre confirmadas'
                           }
                         </span>
                       </div>
                       <p className="text-xs text-blue-600 mt-1">
                         {tipoPagamento === 'cartao'
-                          ? 'O valor será incluído na fatura do cartão automaticamente'
+                          ? 'A transação será confirmada automaticamente quando a fatura for fechada'
                           : 'A transferência movimenta os saldos imediatamente'
                         }
                       </p>

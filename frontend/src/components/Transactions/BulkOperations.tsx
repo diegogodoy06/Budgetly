@@ -3,11 +3,6 @@ import React from 'react';
 interface BulkOperationsProps {
   isSelectionMode: boolean;
   selectedTransactions: Set<number>;
-  transactions: Array<{ id: number; valor: string; confirmada: boolean }>;
-  transacoesFiltradas: Array<any>;
-  totalCount: number;
-  formatarMoeda: (valor: string | number) => string;
-  selectAll: () => void;
   clearSelection: () => void;
   confirmSelectedTransactions: () => void;
   deleteSelectedTransactions: () => void;
@@ -20,11 +15,6 @@ interface BulkOperationsProps {
 const BulkOperations: React.FC<BulkOperationsProps> = ({
   isSelectionMode,
   selectedTransactions,
-  transactions,
-  transacoesFiltradas,
-  totalCount,
-  formatarMoeda,
-  selectAll,
   clearSelection,
   confirmSelectedTransactions,
   deleteSelectedTransactions,
@@ -42,31 +32,6 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({
           <span className="text-sm font-medium text-blue-900">
             {selectedTransactions.size} selecionada(s)
           </span>
-          <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
-            {transacoesFiltradas.length}/{totalCount}
-          </span>
-          {selectedTransactions.size > 0 && (
-            <>
-              <span className="text-sm text-blue-700">
-                {formatarMoeda(
-                  transactions
-                    .filter(t => selectedTransactions.has(t.id))
-                    .reduce((sum, t) => sum + parseFloat(t.valor), 0)
-                )}
-              </span>
-              {transactions.filter(t => selectedTransactions.has(t.id) && !t.confirmada).length > 0 && (
-                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                  {transactions.filter(t => selectedTransactions.has(t.id) && !t.confirmada).length} pendente(s)
-                </span>
-              )}
-            </>
-          )}
-          <button
-            onClick={selectAll}
-            className="text-xs text-blue-600 hover:text-blue-800 underline"
-          >
-            {selectedTransactions.size === transacoesFiltradas.length ? 'Desmarcar' : 'Selecionar'} todas
-          </button>
         </div>
         
         <div className="flex items-center space-x-2">
