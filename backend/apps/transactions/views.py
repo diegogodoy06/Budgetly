@@ -5,21 +5,24 @@ from django.db.models import Sum, Q
 from datetime import datetime, date
 from .models import Transaction, CreditCardInvoice
 from .serializers import TransactionSerializer, CreditCardInvoiceSerializer
-from apps.accounts.workspace_mixins import WorkspaceRequiredMixin
+from apps.accounts.mixins import WorkspaceViewMixin
 from apps.beneficiaries.models import Beneficiary
 
 
-class TransactionViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
+class TransactionViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
     """ViewSet para gerenciar transações"""
     serializer_class = TransactionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Usar o método do workspace mixin
-        queryset = Transaction.objects.select_related(
-            'account', 'to_account', 'credit_card', 'category', 'beneficiario'
-        )
-        queryset = self.get_workspace_queryset(queryset)
+        # Get base queryset from mixin (already filtered by workspace)
+        queryset = super().get_queryset()
+        
+        # Add select_related optimization
+        if queryset is not None:
+            queryset = queryset.select_related(
+                'account', 'to_account', 'credit_card', 'category', 'beneficiario'
+            )
         
         # Filtros opcionais
         account_id = self.request.query_params.get('account')
@@ -637,6 +640,37 @@ def get_best_purchase_date(request):
         )
 
 
+def _get_user_workspace(request):
+    """
+    Helper function to get user workspace for standalone API views
+    """
+    from apps.accounts.models import WorkspaceMember
+    from rest_framework.exceptions import ValidationError
+    
+    # Check if workspace is already set on request (by middleware)
+    workspace = getattr(request, 'workspace', None)
+    
+    if workspace:
+        return workspace
+        
+    # Fallback: get first active workspace for user
+    try:
+        workspace_member = WorkspaceMember.objects.filter(
+            user=request.user,
+            is_active=True
+        ).first()
+        
+        if workspace_member:
+            # Set on request for future use
+            request.workspace = workspace_member.workspace
+            return workspace_member.workspace
+            
+    except Exception as e:
+        print(f"❌ Erro ao buscar workspace: {e}")
+        
+    raise ValidationError("Usuário não tem acesso a nenhum workspace ativo")
+
+
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def upload_csv_preview(request):
@@ -723,6 +757,16 @@ def import_csv_transactions(request):
     from django.db import transaction as db_transaction
     from apps.beneficiaries.models import Beneficiary
     from datetime import datetime
+    
+    try:
+        # Get workspace for this user
+        workspace = _get_user_workspace(request)
+        request.workspace = workspace  # Set on request for consistency
+    except Exception as e:
+        return Response(
+            {'error': f'Erro ao acessar workspace: {str(e)}'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     
     if 'file' not in request.FILES:
         return Response(
