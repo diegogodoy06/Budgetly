@@ -3,7 +3,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.db.models import Sum, Q
 from datetime import datetime, date
-from .models import Transaction, CreditCardInvoice
+from .models import Transaction, CreditCardInvoice, TransactionType
 from .serializers import TransactionSerializer, CreditCardInvoiceSerializer
 from apps.accounts.mixins import WorkspaceViewMixin
 from apps.beneficiaries.models import Beneficiary
