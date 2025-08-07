@@ -24,6 +24,7 @@ import AppSettings from './pages/AppSettings';
 import CategoriesManagement from './pages/CategoriesManagement';
 import CostCentersManagement from './pages/CostCentersManagement';
 import BeneficiariesPage from './pages/BeneficiariesPage';
+import AutomationRulesPage from './pages/AutomationRulesPage';
 import WorkspacesPage from './pages/WorkspacesPage';
 
 const AppRoutes: React.FC = () => {
@@ -142,6 +143,15 @@ const AppRoutes: React.FC = () => {
           <WorkspaceGuard>
             <Layout>
               <BeneficiariesPage />
+            </Layout>
+          </WorkspaceGuard>
+        </ProtectedRouteComponent>
+      } />
+      <Route path="/settings/automation-rules" element={
+        <ProtectedRouteComponent>
+          <WorkspaceGuard>
+            <Layout>
+              <AutomationRulesPage />
             </Layout>
           </WorkspaceGuard>
         </ProtectedRouteComponent>

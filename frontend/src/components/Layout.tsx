@@ -20,6 +20,7 @@ import {
   UserGroupIcon,
   MapIcon,
   UserIcon,
+  CommandLineIcon,
 } from '@heroicons/react/24/outline';
 
 interface LayoutProps {
@@ -88,6 +89,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Categorias', href: '/settings/categories', icon: TagIcon },
     { name: 'Centros de Custo', href: '/settings/cost-centers', icon: MapIcon },
     { name: 'Beneficiários', href: '/settings/beneficiaries', icon: UserGroupIcon },
+    { name: 'Automação', href: '/settings/automation-rules', icon: CommandLineIcon },
   ];
 
   const handleLogout = () => {

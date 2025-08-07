@@ -265,3 +265,6 @@ export interface AuthResponse {
 
 // Beneficiaries
 export * from './beneficiary';
+
+// Automation Rules
+export * from './automation';
