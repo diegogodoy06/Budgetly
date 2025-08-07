@@ -1,5 +1,6 @@
 import React from 'react';
 import BeneficiaryInlineEdit from './BeneficiaryInlineEdit';
+import InlineEditInput from './InlineEditInput';
 
 interface Transaction {
   id: number;
@@ -140,32 +141,26 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
       {/* Conta/Cartão */}
       <td className="px-4 py-2 whitespace-nowrap text-sm">
         {editingTransaction === transaction.id && editingField === 'account' ? (
-          <div className="flex items-center space-x-2 min-w-[200px]">
-            <select
-              value={editValue}
-              onChange={(e) => handleSelectChange(transaction.id, 'account', e.target.value)}
-              onBlur={() => handleAutoSave(transaction.id)}
-              onKeyDown={(e) => handleKeyDown(e, transaction.id)}
-              className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
-              autoFocus
-            >
-              <option value="">Selecione uma conta/cartão</option>
-              <optgroup label="Contas">
-                {accounts.map((account) => (
-                  <option key={`account-${account.id}`} value={`account-${account.id}`}>
-                    {account.nome}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="Cartões de Crédito">
-                {creditCards.map((card) => (
-                  <option key={`card-${card.id}`} value={`card-${card.id}`}>
-                    {card.nome}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
-          </div>
+          <InlineEditInput
+            type="select"
+            value={editValue}
+            options={[
+              ...accounts.map(account => ({
+                id: `account-${account.id}`,
+                nome: account.nome,
+                label: account.nome
+              })),
+              ...creditCards.map(card => ({
+                id: `card-${card.id}`,
+                nome: card.nome,
+                label: card.nome
+              }))
+            ]}
+            placeholder="Selecione uma conta/cartão"
+            onSave={(value) => handleSelectChange(transaction.id, 'account', value)}
+            onCancel={cancelEditing}
+            onKeyDown={(e) => handleKeyDown(e, transaction.id)}
+          />
         ) : (
           <div 
             className={`${!isSelectionMode ? 'cursor-pointer hover:bg-gray-100' : ''} px-2 py-1 rounded`}
@@ -215,19 +210,19 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
       {/* Descrição */}
       <td className="px-4 py-2 text-sm text-gray-900">
         {editingTransaction === transaction.id && editingField === 'descricao' ? (
-          <div className="flex items-center space-x-2">
-            <input
-              type="text"
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              onBlur={() => handleAutoSave(transaction.id)}
-              onKeyDown={(e) => handleKeyDown(e, transaction.id)}
-              className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
-              maxLength={200}
-              autoFocus
-              title="Pressione Enter para salvar ou Escape para cancelar"
-            />
-          </div>
+          <InlineEditInput
+            type="text"
+            value={editValue}
+            placeholder="Descrição da transação"
+            onSave={(value) => {
+              setEditValue(value);
+              setTimeout(() => handleAutoSave(transaction.id), 50);
+            }}
+            onCancel={cancelEditing}
+            onKeyDown={(e) => handleKeyDown(e, transaction.id)}
+            maxLength={200}
+            className="min-w-[200px]"
+          />
         ) : (
           <div>
             <div 
@@ -253,38 +248,18 @@ const TransactionRow: React.FC<TransactionRowProps> = ({
       {/* Categoria */}
       <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
         {editingTransaction === transaction.id && editingField === 'category' ? (
-          <div className="flex items-center space-x-2 min-w-[200px]">
-            <div className="flex-1">
-              <select
-                value={editValue || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setEditValue(value);
-                  // Auto-salvar após seleção
-                  if (value) {
-                    setTimeout(() => handleAutoSave(transaction.id), 100);
-                  }
-                }}
-                onBlur={() => handleAutoSave(transaction.id)}
-                className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-                autoFocus
-              >
-                <option value="">Selecionar categoria...</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              onClick={cancelEditing}
-              className="text-red-600 hover:text-red-800 text-xs"
-              title="Fechar"
-            >
-              ✕
-            </button>
-          </div>
+          <InlineEditInput
+            type="select"
+            value={editValue || ''}
+            options={categories.map(category => ({
+              id: category.id,
+              nome: category.nome
+            }))}
+            placeholder="Selecionar categoria..."
+            onSave={(value) => handleSelectChange(transaction.id, 'category', value)}
+            onCancel={cancelEditing}
+            onKeyDown={(e) => handleKeyDown(e, transaction.id)}
+          />
         ) : (
           <span 
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 ${!isSelectionMode ? 'cursor-pointer hover:bg-blue-200' : ''} transition-colors`}

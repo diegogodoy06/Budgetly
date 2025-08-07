@@ -20,8 +20,8 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      // Use Bearer format for JWT tokens (current backend setup)
-      config.headers.Authorization = `Bearer ${token}`;
+      // Try Token format first (for DRF TokenAuthentication), fallback to Bearer (for JWT)
+      config.headers.Authorization = `Token ${token}`;
     }
     
     // Não adicionar workspace ID para endpoints de autenticação

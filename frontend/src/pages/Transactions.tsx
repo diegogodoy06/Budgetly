@@ -615,27 +615,52 @@ const Transactions: React.FC = () => {
   };
 
   const saveInlineEdit = async (transactionId: number) => {
-    if (!editingField) return;
+    if (!editingField) {
+      console.log('⚠️ No editing field specified');
+      return;
+    }
 
     try {
       const transaction = transactions.find(t => t.id === transactionId);
-      if (!transaction) return;
+      if (!transaction) {
+        console.log('⚠️ Transaction not found:', transactionId);
+        return;
+      }
+
+      console.log('💾 Saving inline edit:', {
+        transactionId,
+        field: editingField,
+        value: editValue,
+        transaction: transaction.descricao
+      });
 
       // Prepare update data with only the changed field
       const updateData: any = {};
       
       if (editingField === 'descricao') {
-        if (editValue.trim() === '') return; // Não salvar descrição vazia
+        if (editValue.trim() === '') {
+          console.log('⚠️ Empty description, not saving');
+          cancelEditing();
+          return;
+        }
         updateData.descricao = editValue.trim();
       } else if (editingField === 'valor') {
-        updateData.valor = parseValorEdicaoInline(editValue);
+        const parsedValue = parseValorEdicaoInline(editValue);
+        if (parsedValue <= 0) {
+          console.log('⚠️ Invalid value, not saving:', parsedValue);
+          toast.error('Valor deve ser maior que zero');
+          return;
+        }
+        updateData.valor = parsedValue;
       } else if (editingField === 'data') {
         // Ensure the date is saved correctly without timezone issues
         updateData.data = editValue; // Keep it as YYYY-MM-DD format
       } else if (editingField === 'category') {
         updateData.category = editValue ? parseInt(editValue) : null;
+        console.log('💾 Category update:', updateData.category);
       } else if (editingField === 'beneficiario') {
         // This should be handled by handleBeneficiaryChange instead
+        console.log('⚠️ Beneficiary should use handleBeneficiaryChange');
         return;
       } else if (editingField === 'confirmada') {
         updateData.confirmada = editValue === 'true';
@@ -649,14 +674,16 @@ const Transactions: React.FC = () => {
         } else if (editValue.startsWith('card-')) {
           updateData.credit_card = parseInt(editValue.replace('card-', ''));
         }
+        console.log('💾 Account update:', updateData);
       }
 
+      console.log('📤 Sending update data:', updateData);
       const updated = await transactionsAPI.update(transactionId, updateData);
       setTransactions(transactions.map(t => t.id === transactionId ? updated : t));
-      toast.success('Transação atualizada com sucesso!');
+      toast.success('✅ Transação atualizada com sucesso!');
       cancelEditing();
     } catch (error) {
-      console.error('Erro ao atualizar transação:', error);
+      console.error('❌ Erro ao atualizar transação:', error);
       toast.error('Erro ao atualizar transação');
       cancelEditing();
     }
@@ -717,16 +744,22 @@ const Transactions: React.FC = () => {
     setEditValue(cleanValue);
   };
 
-  // Função para salvar automaticamente quando selecionar em dropdowns
+  // Função unificada para salvar automaticamente quando selecionar em dropdowns
   const handleSelectChange = async (transactionId: number, field: string, value: string) => {
-    setEditValue(value);
-    
-    // Para selects, salva automaticamente após um pequeno delay
-    setTimeout(async () => {
-      if (editingTransaction === transactionId && editingField === field) {
-        await saveInlineEdit(transactionId);
+    try {
+      setEditValue(value);
+      
+      // Para selects, salva imediatamente se o valor é válido
+      if (value && value.trim() !== '') {
+        // Se estivermos editando este campo, salvar imediatamente
+        if (editingTransaction === transactionId && editingField === field) {
+          await saveInlineEdit(transactionId);
+        }
       }
-    }, 100);
+    } catch (error) {
+      console.error('Erro ao processar mudança de seleção:', error);
+      toast.error('Erro ao salvar alteração');
+    }
   };
 
   // Nova função para lidar com mudanças no beneficiário
