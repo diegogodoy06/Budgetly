@@ -205,6 +205,8 @@ class AutomationRuleViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
                     'message': 'Nenhuma regra foi sugerida para esta mudança'
                 })
                 
+        except Exception as e:
+            return Response({
                 'error': f'Erro ao processar sugestão: {str(e)}'
             }, status=status.HTTP_400_BAD_REQUEST)
 

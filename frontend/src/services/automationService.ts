@@ -9,48 +9,48 @@ import type {
 export const automationService = {
   // Rules CRUD
   async getRules(): Promise<AutomationRule[]> {
-    const response = await api.get('/api/automation-rules/rules/');
+    const response = await api.get('/api/automation-rules/');
     return response.data;
   },
 
   async getRulesByStage(): Promise<Record<string, AutomationRule[]>> {
-    const response = await api.get('/api/automation-rules/rules/by_stage/');
+    const response = await api.get('/api/automation-rules/by_stage/');
     return response.data;
   },
 
   async getRule(id: number): Promise<AutomationRule> {
-    const response = await api.get(`/api/automation-rules/rules/${id}/`);
+    const response = await api.get(`/api/automation-rules/${id}/`);
     return response.data;
   },
 
   async createRule(data: AutomationRuleFormData): Promise<AutomationRule> {
-    const response = await api.post('/api/automation-rules/rules/', data);
+    const response = await api.post('/api/automation-rules/', data);
     return response.data;
   },
 
   async updateRule(id: number, data: Partial<AutomationRuleFormData>): Promise<AutomationRule> {
-    const response = await api.patch(`/api/automation-rules/rules/${id}/`, data);
+    const response = await api.patch(`/api/automation-rules/${id}/`, data);
     return response.data;
   },
 
   async deleteRule(id: number): Promise<void> {
-    await api.delete(`/api/automation-rules/rules/${id}/`);
+    await api.delete(`/api/automation-rules/${id}/`);
   },
 
   // Rule management operations
   async reorderRules(rules: { id: number; priority: number }[]): Promise<void> {
-    await api.post('/api/automation-rules/rules/reorder_rules/', { rules });
+    await api.post('/api/automation-rules/reorder_rules/', { rules });
   },
 
   async toggleRulesStatus(ruleIds: number[], isActive: boolean): Promise<void> {
-    await api.post('/api/automation-rules/rules/bulk_toggle/', {
+    await api.post('/api/automation-rules/bulk_toggle/', {
       rule_ids: ruleIds,
       is_active: isActive
     });
   },
 
   async testRules(transactionData: any): Promise<any> {
-    const response = await api.post('/api/automation-rules/rules/test_all_rules/', transactionData);
+    const response = await api.post('/api/automation-rules/test_all_rules/', transactionData);
     return response.data;
   },
 

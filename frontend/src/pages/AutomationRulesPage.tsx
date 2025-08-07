@@ -44,15 +44,19 @@ const AutomationRulesPage: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Carregando dados de automação...');
       const [rulesData, settingsData] = await Promise.all([
         automationService.getRules(),
         automationService.getSettings().catch(() => null), // Settings might not exist yet
       ]);
-      setRules(rulesData);
+      console.log('📊 Dados recebidos:', { rulesData, settingsData });
+      setRules(Array.isArray(rulesData) ? rulesData : []);
       setSettings(settingsData);
     } catch (error) {
       console.error('Error loading automation data:', error);
       toast.error('Erro ao carregar regras de automação');
+      // Definir um array vazio em caso de erro
+      setRules([]);
     } finally {
       setLoading(false);
     }
@@ -172,7 +176,7 @@ const AutomationRulesPage: React.FC = () => {
     );
   };
 
-  const groupedRules = rules.reduce((acc, rule) => {
+  const groupedRules = (Array.isArray(rules) ? rules : []).reduce((acc, rule) => {
     if (!acc[rule.stage]) {
       acc[rule.stage] = [];
     }

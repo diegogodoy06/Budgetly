@@ -394,4 +394,44 @@ export const invoicesAPI = {
     api.get(`/api/accounts/credit-cards/${creditCardId}/invoice_preview/`).then(res => res.data),
 };
 
+// Automation Rules API
+export const automationRulesAPI = {
+  getAll: (): Promise<any[]> =>
+    api.get('/api/automation-rules/').then(res => res.data.results || res.data),
+  
+  getById: (id: number): Promise<any> =>
+    api.get(`/api/automation-rules/${id}/`).then(res => res.data),
+  
+  create: (data: any): Promise<any> =>
+    api.post('/api/automation-rules/', data).then(res => res.data),
+  
+  update: (id: number, data: any): Promise<any> =>
+    api.patch(`/api/automation-rules/${id}/`, data).then(res => res.data),
+  
+  delete: (id: number): Promise<void> =>
+    api.delete(`/api/automation-rules/${id}/`).then(res => res.data),
+  
+  toggleActive: (id: number): Promise<any> =>
+    api.post(`/api/automation-rules/${id}/toggle_active/`).then(res => res.data),
+  
+  testRules: (data: any): Promise<any> =>
+    api.post('/api/automation-rules/test_all_rules/', data).then(res => res.data),
+  
+  applyToTransactions: (data: any): Promise<any> =>
+    api.post('/api/automation-rules/apply_to_transactions/', data).then(res => res.data),
+  
+  getByStage: (): Promise<any> =>
+    api.get('/api/automation-rules/by_stage/').then(res => res.data),
+  
+  bulkToggle: (data: { rule_ids: number[], is_active: boolean }): Promise<any> =>
+    api.post('/api/automation-rules/bulk_toggle/', data).then(res => res.data),
+  
+  // Settings
+  getSettings: (): Promise<any> =>
+    api.get('/api/automation-rules/settings/').then(res => res.data),
+  
+  updateSettings: (data: any): Promise<any> =>
+    api.patch('/api/automation-rules/settings/', data).then(res => res.data),
+};
+
 export default api;
