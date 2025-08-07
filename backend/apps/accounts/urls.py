@@ -2,13 +2,13 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from . import views
-from .workspace_views import WorkspaceViewSet
+# from .workspace_views import WorkspaceViewSet  # TODO: Create this
 
 # Router para ViewSets
 router = DefaultRouter()
 router.register(r'accounts', views.AccountViewSet, basename='account')
 router.register(r'credit-cards', views.CreditCardViewSet, basename='creditcard')
-router.register(r'workspaces', WorkspaceViewSet, basename='workspace')
+# router.register(r'workspaces', WorkspaceViewSet, basename='workspace')  # TODO: Uncomment when created
 
 urlpatterns = [
     # Authentication

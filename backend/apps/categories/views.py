@@ -3,10 +3,10 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import Category, CostCenter
 from .serializers import CategorySerializer, CostCenterSerializer
-from apps.accounts.workspace_mixins import WorkspaceRequiredMixin
+from apps.accounts.mixins import WorkspaceViewMixin
 
 
-class CategoryViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
+class CategoryViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
     """ViewSet para gerenciar categorias"""
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -71,7 +71,7 @@ class CategoryViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
         return Response(result)
 
 
-class CostCenterViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
+class CostCenterViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
     """ViewSet para gerenciar centros de custo"""
     serializer_class = CostCenterSerializer
     permission_classes = [permissions.IsAuthenticated]

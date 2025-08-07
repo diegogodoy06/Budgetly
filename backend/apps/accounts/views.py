@@ -13,7 +13,7 @@ from .serializers import (
     CreditCardSerializer, CreditCardBalanceSerializer,
     ChangePasswordSerializer
 )
-from .workspace_mixins import WorkspaceMixin, WorkspaceRequiredMixin
+from .mixins import WorkspaceViewMixin
 
 
 class CustomJWTLoginView(TokenObtainPairView):
@@ -86,7 +86,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
-class AccountViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
+class AccountViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
     """ViewSet para gerenciar contas financeiras"""
     serializer_class = AccountSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -101,8 +101,9 @@ class AccountViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         """Salva a conta com workspace e user"""
+        workspace = self.get_user_workspace()
         serializer.save(
-            workspace=self.request.workspace,
+            workspace=workspace,
             user=self.request.user
         )
 
@@ -309,7 +310,7 @@ class AccountViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
         })
 
 
-class CreditCardViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
+class CreditCardViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
     """ViewSet para gerenciar cartões de crédito"""
     serializer_class = CreditCardSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -321,8 +322,9 @@ class CreditCardViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         """Salva o cartão com workspace e user"""
+        workspace = self.get_user_workspace()
         serializer.save(
-            workspace=self.request.workspace,
+            workspace=workspace,
             user=self.request.user
         )
 

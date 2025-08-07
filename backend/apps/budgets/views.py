@@ -4,10 +4,10 @@ from rest_framework.response import Response
 from django.db.models import Sum, Q, F
 from .models import Budget, BudgetAlert
 from .serializers import BudgetSerializer, BudgetAlertSerializer, BudgetSummarySerializer
-from apps.accounts.workspace_mixins import WorkspaceRequiredMixin
+from apps.accounts.mixins import WorkspaceViewMixin
 
 
-class BudgetListCreateView(WorkspaceRequiredMixin, generics.ListCreateAPIView):
+class BudgetListCreateView(WorkspaceViewMixin, generics.ListCreateAPIView):
     serializer_class = BudgetSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -30,7 +30,7 @@ class BudgetListCreateView(WorkspaceRequiredMixin, generics.ListCreateAPIView):
         return queryset
 
 
-class BudgetDetailView(WorkspaceRequiredMixin, generics.RetrieveUpdateDestroyAPIView):
+class BudgetDetailView(WorkspaceViewMixin, generics.RetrieveUpdateDestroyAPIView):
     serializer_class = BudgetSerializer
     permission_classes = [permissions.IsAuthenticated]
 

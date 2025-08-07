@@ -4,10 +4,10 @@ from rest_framework.response import Response
 from django.db.models import Q
 from .models import Beneficiary
 from .serializers import BeneficiarySerializer, BeneficiaryCreateSerializer
-from apps.accounts.workspace_mixins import WorkspaceRequiredMixin
+from apps.accounts.mixins import WorkspaceViewMixin
 
 
-class BeneficiaryViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
+class BeneficiaryViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
     """ViewSet para gerenciar beneficiários"""
     serializer_class = BeneficiarySerializer
     permission_classes = [permissions.IsAuthenticated]
