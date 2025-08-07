@@ -6,7 +6,6 @@ import {
   TrashIcon,
   PlayIcon,
   PauseIcon,
-  Cog6ToothIcon,
   ArrowUpIcon,
   ArrowDownIcon,
   EyeIcon,
@@ -16,20 +15,17 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import automationService from '../services/automationService';
-import type { AutomationRule, AutomationSettings } from '../types/automation';
+import type { AutomationRule } from '../types/automation';
 import { RULE_STAGES, RULE_TYPES } from '../types/automation';
 import CreateRuleModal from '../components/CreateRuleModal';
 import EditRuleModal from '../components/EditRuleModal';
-import AutomationSettingsModal from '../components/AutomationSettingsModal';
 
 const AutomationRulesPage: React.FC = () => {
   const [rules, setRules] = useState<AutomationRule[]>([]);
-  const [settings, setSettings] = useState<AutomationSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedRules, setSelectedRules] = useState<number[]>([]);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<AutomationRule | null>(null);
   const [expandedStages, setExpandedStages] = useState<Record<string, boolean>>({
     pre: true,
@@ -45,13 +41,9 @@ const AutomationRulesPage: React.FC = () => {
     try {
       setLoading(true);
       console.log('🔄 Carregando dados de automação...');
-      const [rulesData, settingsData] = await Promise.all([
-        automationService.getRules(),
-        automationService.getSettings().catch(() => null), // Settings might not exist yet
-      ]);
-      console.log('📊 Dados recebidos:', { rulesData, settingsData });
+      const rulesData = await automationService.getRules();
+      console.log('📊 Dados recebidos:', { rulesData });
       setRules(Array.isArray(rulesData) ? rulesData : []);
-      setSettings(settingsData);
     } catch (error) {
       console.error('Error loading automation data:', error);
       toast.error('Erro ao carregar regras de automação');
@@ -230,13 +222,6 @@ const AutomationRulesPage: React.FC = () => {
           </p>
         </div>
         <div className="flex space-x-3">
-          <button
-            onClick={() => setSettingsModalOpen(true)}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <Cog6ToothIcon className="h-4 w-4 mr-2" />
-            Configurações
-          </button>
           <button
             onClick={() => setCreateModalOpen(true)}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -486,15 +471,6 @@ const AutomationRulesPage: React.FC = () => {
           onClose={() => setEditModalOpen(false)}
           onSubmit={handleEditRule}
           rule={editingRule}
-        />
-      )}
-
-      {settingsModalOpen && (
-        <AutomationSettingsModal
-          isOpen={settingsModalOpen}
-          onClose={() => setSettingsModalOpen(false)}
-          settings={settings}
-          onSettingsChange={setSettings}
         />
       )}
     </div>
