@@ -28,11 +28,15 @@ const CreateRuleModal: React.FC<CreateRuleModalProps> = ({ isOpen, onClose, onSu
     is_active: true,
     stage: 'default',
     rule_type: 'categorization',
-    conditions: [{ field: 'description', condition_type: 'contains', value: '' }],
+    conditions: [{ field: 'description', condition_type: 'description_contains', value: '' }],
     actions: [{ action_type: 'set_category', value: '' }]
   });
 
-  const [availableOptions, setAvailableOptions] = useState({
+  const [availableOptions, setAvailableOptions] = useState<{
+    categories: any[];
+    accounts: any[];
+    beneficiaries: any[];
+  }>({
     categories: [],
     accounts: [],
     beneficiaries: []
@@ -46,19 +50,37 @@ const CreateRuleModal: React.FC<CreateRuleModalProps> = ({ isOpen, onClose, onSu
 
   const loadOptions = async () => {
     try {
+      console.log('🔄 Carregando opções para regras...');
       const [categories, accounts, beneficiaries] = await Promise.all([
-        automationService.getAvailableCategories().catch(() => []),
-        automationService.getAvailableAccounts().catch(() => []),
-        automationService.getAvailableBeneficiaries().catch(() => [])
+        automationService.getAvailableCategories().catch((error) => {
+          console.error('Erro ao carregar categorias:', error);
+          return [];
+        }),
+        automationService.getAvailableAccounts().catch((error) => {
+          console.error('Erro ao carregar contas:', error);
+          return [];
+        }),
+        automationService.getAvailableBeneficiaries().catch((error) => {
+          console.error('Erro ao carregar beneficiários:', error);
+          return [];
+        })
       ]);
       
+      console.log('📊 Opções carregadas:', { categories, accounts, beneficiaries });
+      
       setAvailableOptions({
-        categories,
-        accounts,
-        beneficiaries
+        categories: Array.isArray(categories) ? categories : [],
+        accounts: Array.isArray(accounts) ? accounts : [],
+        beneficiaries: Array.isArray(beneficiaries) ? beneficiaries : []
       });
     } catch (error) {
       console.error('Error loading options:', error);
+      // Garantir que sempre temos arrays vazios em caso de erro
+      setAvailableOptions({
+        categories: [],
+        accounts: [],
+        beneficiaries: []
+      });
     }
   };
 
@@ -102,7 +124,7 @@ const CreateRuleModal: React.FC<CreateRuleModalProps> = ({ isOpen, onClose, onSu
   const addCondition = () => {
     setFormData(prev => ({
       ...prev,
-      conditions: [...prev.conditions, { field: 'description', condition_type: 'contains', value: '' }]
+      conditions: [...prev.conditions, { field: 'description', condition_type: 'description_contains', value: '' }]
     }));
   };
 
@@ -146,28 +168,35 @@ const CreateRuleModal: React.FC<CreateRuleModalProps> = ({ isOpen, onClose, onSu
   };
 
   const getConditionTypes = (field: string) => {
-    const textTypes = ['is', 'is_not', 'contains', 'not_contains', 'matches', 'one_of', 'not_one_of'];
-    const numericTypes = ['equals', 'greater', 'less', 'range'];
-    const dateTypes = ['before', 'after', 'date_range'];
-
     switch (field) {
+      case 'description':
+        return ['description_is', 'description_is_not', 'description_contains', 'description_not_contains', 'description_matches', 'description_one_of', 'description_not_one_of'];
       case 'amount':
-        return numericTypes;
+        return ['amount_is', 'amount_is_not', 'amount_greater', 'amount_less', 'amount_range'];
+      case 'category':
+        return ['category_is', 'category_is_not', 'category_one_of', 'category_not_one_of'];
+      case 'payee':
+        return ['beneficiary_is', 'beneficiary_is_not', 'beneficiary_contains', 'beneficiary_not_contains', 'beneficiary_one_of', 'beneficiary_not_one_of'];
+      case 'account':
+        return ['account_is', 'account_is_not', 'account_one_of', 'account_not_one_of'];
       case 'date':
-        return dateTypes;
+        return ['date_is', 'date_is_not', 'date_after', 'date_before', 'date_range'];
       default:
-        return textTypes;
+        return ['description_contains'];
     }
   };
 
   const getActionOptions = (actionType: string) => {
     switch (actionType) {
       case 'set_category':
-        return availableOptions.categories.map((cat: any) => ({ value: cat.id, label: cat.nome }));
+        return (Array.isArray(availableOptions.categories) ? availableOptions.categories : [])
+          .map((cat: any) => ({ value: cat.id, label: cat.nome }));
       case 'set_account':
-        return availableOptions.accounts.map((acc: any) => ({ value: acc.id, label: acc.nome }));
-      case 'set_payee':
-        return availableOptions.beneficiaries.map((ben: any) => ({ value: ben.id, label: ben.nome }));
+        return (Array.isArray(availableOptions.accounts) ? availableOptions.accounts : [])
+          .map((acc: any) => ({ value: acc.id, label: acc.nome }));
+      case 'set_beneficiary':
+        return (Array.isArray(availableOptions.beneficiaries) ? availableOptions.beneficiaries : [])
+          .map((ben: any) => ({ value: ben.id, label: ben.nome }));
       default:
         return [];
     }

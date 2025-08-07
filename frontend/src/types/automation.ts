@@ -18,17 +18,43 @@ export interface AutomationRule {
 
 export interface RuleCondition {
   id?: number;
-  field: string;
+  field?: string;
   condition_type: string;
-  value: string;
+  condition_type_display?: string;
+  text_value?: string;
+  text_values?: string[];
+  numeric_value?: number;
+  numeric_value_max?: number;
+  date_value?: string;
+  date_value_max?: string;
+  boolean_value?: boolean;
+  case_sensitive?: boolean;
+  condition_value?: string;
+  value?: string; // for form compatibility
   rule?: number;
+  created_at?: string;
+  category_refs?: any[];
+  beneficiary_refs?: any[];
+  account_refs?: any[];
 }
 
 export interface RuleAction {
   id?: number;
   action_type: string;
-  value: string;
+  action_type_display?: string;
+  category?: any;
+  beneficiary?: any;
+  account?: any;
+  tag?: string;
+  text_value?: string;
+  numeric_value?: number;
+  date_value?: string;
+  boolean_value?: boolean;
+  overwrite_existing?: boolean;
+  action_value?: string;
+  value?: string; // for form compatibility
   rule?: number;
+  created_at?: string;
 }
 
 export interface AutomationSettings {
@@ -87,30 +113,56 @@ export const CONDITION_FIELDS = {
 
 // Available condition types
 export const CONDITION_TYPES = {
-  // Text conditions
-  is: 'é',
-  is_not: 'não é',
-  contains: 'contém',
-  not_contains: 'não contém',
-  matches: 'regex',
-  one_of: 'é uma de',
-  not_one_of: 'não é uma de',
+  // Description conditions
+  description_is: 'é',
+  description_is_not: 'não é',
+  description_contains: 'contém',
+  description_not_contains: 'não contém',
+  description_matches: 'regex',
+  description_one_of: 'é uma de',
+  description_not_one_of: 'não é uma de',
   
-  // Numeric conditions
-  equals: 'igual a',
-  greater: 'maior que',
-  less: 'menor que',
-  range: 'entre',
+  // Amount conditions
+  amount_is: 'é',
+  amount_is_not: 'não é',
+  amount_greater: 'maior que',
+  amount_less: 'menor que',
+  amount_range: 'entre',
+  
+  // Category conditions
+  category_is: 'é',
+  category_is_not: 'não é',
+  category_one_of: 'é uma de',
+  category_not_one_of: 'não é uma de',
+  
+  // Beneficiary conditions
+  beneficiary_is: 'é',
+  beneficiary_is_not: 'não é',
+  beneficiary_contains: 'contém',
+  beneficiary_not_contains: 'não contém',
+  beneficiary_one_of: 'é um de',
+  beneficiary_not_one_of: 'não é um de',
+  
+  // Account conditions
+  account_is: 'é',
+  account_is_not: 'não é',
+  account_one_of: 'é uma de',
+  account_not_one_of: 'não é uma de',
   
   // Date conditions
-  before: 'antes de',
-  after: 'depois de',
-  date_range: 'no período'
+  date_is: 'é',
+  date_is_not: 'não é',
+  date_after: 'depois de',
+  date_before: 'antes de',
+  date_range: 'no período',
+  
+  // Transaction type
+  transaction_type: 'tipo de transação'
 };
 
 // Available action types
 export const ACTION_TYPES = {
-  set_payee: 'Definir beneficiário',
+  set_beneficiary: 'Definir beneficiário',
   set_category: 'Definir categoria',
   set_account: 'Definir conta',
   set_description: 'Definir descrição',

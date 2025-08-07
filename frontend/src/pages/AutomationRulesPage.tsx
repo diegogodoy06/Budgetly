@@ -188,9 +188,10 @@ const AutomationRulesPage: React.FC = () => {
     if (!rule.conditions || rule.conditions.length === 0) return 'Sem condições';
     
     return rule.conditions.map(condition => {
-      const field = condition.field;
-      const type = condition.condition_type;
-      const value = condition.value;
+      // Use the correct field names from the API response
+      const field = condition.field || 'descrição';
+      const type = condition.condition_type_display || condition.condition_type;
+      const value = condition.text_value || condition.condition_value || condition.value || '';
       return `${field} ${type} "${value}"`;
     }).join(' E ');
   };
@@ -199,8 +200,10 @@ const AutomationRulesPage: React.FC = () => {
     if (!rule.actions || rule.actions.length === 0) return 'Sem ações';
     
     return rule.actions.map(action => {
-      const type = action.action_type;
-      const value = action.value;
+      // Use the correct field names from the API response
+      const type = action.action_type_display || action.action_type;
+      const value = action.text_value || action.action_value || action.value || 
+                   (action.category?.name) || (action.beneficiary?.name) || (action.account?.name) || '';
       return `${type}: ${value}`;
     }).join(', ');
   };
