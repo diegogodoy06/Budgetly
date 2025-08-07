@@ -39,6 +39,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({
   const [columnMapping, setColumnMapping] = useState<ColumnMapping>({});
   const [selectedAccount, setSelectedAccount] = useState<number | null>(null);
   const [importing, setImporting] = useState(false);
+  const [valueTypeTab, setValueTypeTab] = useState<'single' | 'separate'>('single');
   const [importResults, setImportResults] = useState<{
     imported_count: number;
     skipped_count: number;
@@ -89,8 +90,13 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({
       return false;
     }
     
-    if (!columnMapping.amount && (!columnMapping.credit || !columnMapping.debit)) {
-      toast.error('É necessário mapear a coluna de valor ou as colunas de crédito e débito');
+    // Validação simplificada: deve ter pelo menos uma configuração de valor
+    const hasAmountColumn = columnMapping.amount !== undefined && columnMapping.amount !== null;
+    const hasCreditColumn = columnMapping.credit !== undefined && columnMapping.credit !== null;
+    const hasDebitColumn = columnMapping.debit !== undefined && columnMapping.debit !== null;
+    
+    if (!hasAmountColumn && !hasCreditColumn && !hasDebitColumn) {
+      toast.error('É necessário mapear pelo menos uma coluna de valor (valor único, crédito ou débito)');
       return false;
     }
     
@@ -130,7 +136,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({
   };
 
   const handleClose = () => {
-    if (step === 'success' && importResults?.imported_count > 0) {
+    if (step === 'success' && importResults && importResults.imported_count > 0) {
       onImportSuccess();
     }
     
@@ -141,6 +147,7 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({
     setColumnMapping({});
     setSelectedAccount(null);
     setImportResults(null);
+    setValueTypeTab('single');
     onClose();
   };
 
@@ -289,22 +296,81 @@ const CSVImportModal: React.FC<CSVImportModalProps> = ({
                     {renderColumnSelect('Data', columnMapping.date, (value) => handleColumnMappingChange('date', value), true)}
                     
                     <div className="border-t pt-4 mb-4">
-                      <p className="text-sm text-gray-600 mb-2">
-                        Escolha <strong>uma</strong> das opções abaixo:
-                      </p>
+                      <h5 className="text-sm font-medium text-gray-900 mb-3">
+                        Configuração de Valores
+                      </h5>
+                      
+                      {/* Tabs para tipos de valor */}
+                      <div className="flex border-b border-gray-200 mb-4">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setValueTypeTab('single');
+                            // Limpar crédito/débito quando mudar para valor único
+                            setColumnMapping(prev => ({
+                              ...prev,
+                              credit: undefined,
+                              debit: undefined
+                            }));
+                          }}
+                          className={`px-4 py-2 text-sm font-medium border-b-2 ${
+                            valueTypeTab === 'single'
+                              ? 'border-blue-500 text-blue-600'
+                              : 'border-transparent text-gray-500 hover:text-gray-700'
+                          }`}
+                        >
+                          Valor Único
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setValueTypeTab('separate');
+                            // Limpar valor único quando mudar para crédito/débito
+                            setColumnMapping(prev => ({
+                              ...prev,
+                              amount: undefined
+                            }));
+                          }}
+                          className={`px-4 py-2 text-sm font-medium border-b-2 ${
+                            valueTypeTab === 'separate'
+                              ? 'border-blue-500 text-blue-600'
+                              : 'border-transparent text-gray-500 hover:text-gray-700'
+                          }`}
+                        >
+                          Crédito + Débito
+                        </button>
+                      </div>
+                      
+                      {/* Conteúdo baseado na aba selecionada */}
+                      {valueTypeTab === 'single' ? (
+                        <div>
+                          {renderColumnSelect('Valor', columnMapping.amount, (value) => handleColumnMappingChange('amount', value))}
+                          <p className="text-xs text-gray-500 -mt-3 mb-4">
+                            Para CSVs com uma coluna contendo valores positivos/negativos
+                          </p>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="grid grid-cols-2 gap-3">
+                            {renderColumnSelect('Crédito/Entrada', columnMapping.credit, (value) => handleColumnMappingChange('credit', value))}
+                            {renderColumnSelect('Débito/Saída', columnMapping.debit, (value) => handleColumnMappingChange('debit', value))}
+                          </div>
+                          <p className="text-xs text-gray-500 -mt-3 mb-4">
+                            Para CSVs com colunas separadas de entrada e saída
+                          </p>
+                        </div>
+                      )}
                     </div>
                     
-                    {renderColumnSelect('Valor (coluna única)', columnMapping.amount, (value) => handleColumnMappingChange('amount', value))}
-                    
-                    <div className="text-center text-gray-500 my-2">ou</div>
-                    
-                    <div className="grid grid-cols-2 gap-2">
-                      {renderColumnSelect('Crédito/Entrada', columnMapping.credit, (value) => handleColumnMappingChange('credit', value))}
-                      {renderColumnSelect('Débito/Saída', columnMapping.debit, (value) => handleColumnMappingChange('debit', value))}
+                    <div className="border-t pt-4 mt-4">
+                      <h5 className="text-sm font-medium text-gray-900 mb-3">
+                        Campos Opcionais
+                      </h5>
+                      <div className="grid grid-cols-2 gap-3">
+                        {renderColumnSelect('Descrição', columnMapping.description, (value) => handleColumnMappingChange('description', value))}
+                        {renderColumnSelect('Beneficiário', columnMapping.beneficiary, (value) => handleColumnMappingChange('beneficiary', value))}
+                      </div>
                     </div>
-                    
-                    {renderColumnSelect('Descrição', columnMapping.description, (value) => handleColumnMappingChange('description', value))}
-                    {renderColumnSelect('Beneficiário', columnMapping.beneficiary, (value) => handleColumnMappingChange('beneficiary', value))}
                   </div>
 
                   {/* Preview */}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { XMarkIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 import CategorySelector from '../CategorySelector';
 import TransactionFormNew from '../TransactionFormNew';
 
@@ -62,7 +62,6 @@ interface TransactionModalsProps {
 
 const TransactionModals: React.FC<TransactionModalsProps> = ({
   mostrarPopup,
-  setMostrarPopup,
   transactionEditando,
   isRecorrente,
   setIsRecorrente,
@@ -71,7 +70,6 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
   mostrarNovoModal,
   setMostrarNovoModal,
   showBulkEditModal,
-  setShowBulkEditModal,
   bulkEditField,
   bulkEditValue,
   setBulkEditValue,
@@ -81,15 +79,86 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
   categories,
   handleSubmit,
   fecharPopup,
-  handleValorChange,
-  formatarValorDisplay,
   carregarDados,
   closeBulkEditModal,
   bulkEditTransactions
 }) => {
   const formatCurrency = (value: number | string): string => {
     const num = Number(value) || 0;
-    return num.toFixed(2);
+    if (num === 0) return '0,00';
+    return num.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+
+  // Estado local para controlar a entrada de valor
+  const [valorString, setValorString] = React.useState('');
+
+  // Atualiza o valorString quando formData.valor muda externamente
+  React.useEffect(() => {
+    if (formData.valor === 0) {
+      setValorString('');
+    } else if (formData.valor && valorString === '') {
+      // Converte valor numérico para string de centavos para edição
+      const centavos = Math.round(formData.valor * 100);
+      setValorString(centavos.toString());
+    }
+  }, [formData.valor, valorString]);
+
+  // Reset do valorString quando o modal abre/fecha
+  React.useEffect(() => {
+    if (!mostrarPopup) {
+      setValorString('');
+    }
+  }, [mostrarPopup]);
+
+  // Função para lidar com mudanças no campo de valor (máscara de centavos correta)
+  const handleValorChangeLocal = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    
+    // Remove tudo que não é número
+    const numericValue = inputValue.replace(/\D/g, '');
+    
+    // Atualiza o string de trabalho
+    setValorString(numericValue);
+    
+    // Se está vazio, define como 0
+    if (!numericValue) {
+      setFormData(prev => ({ ...prev, valor: 0 }));
+      return;
+    }
+    
+    // Converte para centavos (divide por 100 para ter o valor em reais)
+    const valorEmCentavos = parseInt(numericValue, 10);
+    const valorEmReais = valorEmCentavos / 100;
+    
+    // Atualiza o estado
+    setFormData(prev => ({ ...prev, valor: valorEmReais }));
+  };
+
+  // Função para exibir valor formatado no input
+  const getDisplayValue = (): string => {
+    if (!valorString) return '';
+    
+    // Se tem apenas 1 dígito: 0,0X
+    if (valorString.length === 1) {
+      return `0,0${valorString}`;
+    }
+    // Se tem 2 dígitos: 0,XY
+    else if (valorString.length === 2) {
+      return `0,${valorString}`;
+    }
+    // Se tem 3 ou mais dígitos: XX,YZ ou XXX,YZ etc.
+    else {
+      const reais = valorString.slice(0, -2);
+      const centavos = valorString.slice(-2);
+      
+      // Adiciona pontos nos milhares
+      const reaisFormatados = reais.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      
+      return `${reaisFormatados},${centavos}`;
+    }
   };
 
   return (
@@ -159,8 +228,8 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={formatarValorDisplay(formData.valor)}
-                      onChange={handleValorChange}
+                      value={getDisplayValue()}
+                      onChange={handleValorChangeLocal}
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="0,00"
                       required
@@ -375,11 +444,15 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
                   
                   {bulkEditField === 'valor' && (
                     <input
-                      type="number"
-                      step="0.01"
+                      type="text"
                       value={bulkEditValue}
-                      onChange={(e) => setBulkEditValue(e.target.value)}
-                      placeholder="Novo valor"
+                      onChange={(e) => {
+                        const inputValue = e.target.value;
+                        // Remove tudo que não é número, vírgula ou ponto
+                        const cleanValue = inputValue.replace(/[^\d.,]/g, '');
+                        setBulkEditValue(cleanValue);
+                      }}
+                      placeholder="Novo valor (ex: 150,00)"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   )}

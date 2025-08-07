@@ -127,24 +127,26 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
       {/* Simplified Summary Display */}
       <div className="mb-6">
         <div className="flex items-center space-x-4">
-          <div className="text-sm text-gray-600">
-            {transacoesFiltradas.length} transações
-          </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setShowTotalBreakdown(!showTotalBreakdown)}
-              className="text-2xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-200"
+              className="flex items-center space-x-2 text-2xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-200 group"
             >
-              {formatarMoeda(calcularSaldoFiltrado())}
+              <span>{formatarMoeda(calcularSaldoFiltrado())}</span>
+              <ChevronDownIcon 
+                className={`h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-all duration-200 ${
+                  showTotalBreakdown ? 'rotate-180' : ''
+                }`} 
+              />
             </button>
             
             {/* Inline Breakdown */}
             {showTotalBreakdown && (
               <div className="flex items-center space-x-3 text-sm">
-                <span className="text-green-600 font-medium">
+                <span className="text-emerald-700 font-medium">
                   Confirmadas: {formatarMoeda(confirmed)}
                 </span>
-                <span className="text-orange-600 font-medium">
+                <span className="text-amber-700 font-medium">
                   Pendentes: {formatarMoeda(unconfirmed)}
                 </span>
               </div>
