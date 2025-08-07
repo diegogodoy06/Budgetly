@@ -24,10 +24,10 @@ class Command(BaseCommand):
         # Buscar todas as faturas que devem ser fechadas hoje
         faturas_para_fechar = []
         
-        # Para cada cartão ativo, verificar se hoje é dia de fechamento
+        # Para cada cartão ativo, verificar se hoje é dia de fechamento OU se a data de fechamento já passou
         for cartao in CreditCard.objects.filter(is_active=True):
-            # Se hoje é o dia de fechamento, verificar se há fatura aberta para fechar
-            if today.day == cartao.dia_fechamento:
+            # Se hoje é igual ou posterior ao dia de fechamento, verificar se há fatura aberta para fechar
+            if today.day >= cartao.dia_fechamento:
                 # Buscar fatura do mês atual que ainda está aberta
                 fatura_atual = CreditCardInvoice.objects.filter(
                     credit_card=cartao,
@@ -37,7 +37,14 @@ class Command(BaseCommand):
                 ).first()
                 
                 if fatura_atual:
-                    faturas_para_fechar.append(fatura_atual)
+                    # Verificar se a data de fechamento realmente passou
+                    data_fechamento_fatura = date(today.year, today.month, cartao.dia_fechamento)
+                    if today >= data_fechamento_fatura:
+                        faturas_para_fechar.append(fatura_atual)
+                        self.stdout.write(
+                            f"📅 Fatura {cartao.nome} {today.month:02d}/{today.year} será fechada "
+                            f"(data fechamento: {data_fechamento_fatura}, hoje: {today})"
+                        )
                 else:
                     # Se não existe fatura aberta para este mês, criar uma nova
                     # (isso pode acontecer se não houve transações no cartão)

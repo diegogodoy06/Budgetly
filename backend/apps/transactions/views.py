@@ -433,6 +433,61 @@ class CreditCardInvoiceViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
             )
 
     @action(detail=True, methods=['post'])
+    def reopen(self, request, pk=None):
+        """Reabre uma fatura fechada, voltando transações para status pendente"""
+        invoice = self.get_object()
+        
+        if invoice.status != 'fechada':
+            return Response(
+                {'error': 'Apenas faturas fechadas podem ser reabertas'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Verificar se há transações de pagamento da fatura que precisam ser removidas
+            workspace = self.get_user_workspace()
+            pagamento_fatura = Transaction.objects.filter(
+                user=self.request.user,
+                workspace=workspace,
+                descricao__icontains=f"Pagamento fatura {invoice.credit_card.nome} {invoice.mes:02d}/{invoice.ano}",
+                tipo=TransactionType.SAIDA,
+                valor=invoice.valor_total,
+                confirmada=False  # Apenas transações pendentes de pagamento
+            ).first()
+            
+            if pagamento_fatura:
+                pagamento_fatura.delete()
+                
+            # Voltar todas as transações de cartão desta fatura para status pendente
+            from datetime import date
+            data_inicio = date(invoice.ano, invoice.mes, 1)
+            data_fim = date(invoice.ano, invoice.mes, invoice.credit_card.dia_fechamento)
+            
+            transacoes_rebertas = Transaction.objects.filter(
+                credit_card=invoice.credit_card,
+                data__gte=data_inicio,
+                data__lte=data_fim,
+                workspace=workspace
+            ).update(confirmada=False)
+            
+            # Resetar status da fatura para aberta
+            invoice.status = 'aberta'
+            invoice.valor_total = 0
+            invoice.valor_pago = 0
+            invoice.save()
+            
+            return Response({
+                'message': f'Fatura reaberta com sucesso. {transacoes_rebertas} transações voltaram para status pendente.',
+                'invoice': CreditCardInvoiceSerializer(invoice).data
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Erro ao reabrir fatura: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['post'])
     def pay(self, request, pk=None):
         """Registra pagamento de uma fatura"""
         invoice = self.get_object()

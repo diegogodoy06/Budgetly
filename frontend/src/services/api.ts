@@ -329,6 +329,10 @@ export const invoicesAPI = {
   close: (invoiceId: number): Promise<{ message: string; invoice: CreditCardInvoice }> =>
     api.post(`/api/transactions/invoices/${invoiceId}/close/`).then(res => res.data),
   
+  // Reabrir fatura
+  reopen: (invoiceId: number): Promise<{ message: string; invoice: CreditCardInvoice }> =>
+    api.post(`/api/transactions/invoices/${invoiceId}/reopen/`).then(res => res.data),
+  
   // Pagar fatura
   pay: (invoiceId: number, data: { valor: number; conta_origem: number }): Promise<{ message: string; invoice: CreditCardInvoice }> =>
     api.post(`/api/transactions/invoices/${invoiceId}/pay/`, data).then(res => res.data),
