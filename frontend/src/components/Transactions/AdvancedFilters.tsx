@@ -32,6 +32,7 @@ interface AdvancedFiltersProps {
   categories: Array<{ id: number; nome: string }>;
   onFiltersChange: (filters: ActiveFilter[]) => void;
   activeFilters: ActiveFilter[];
+  showActiveFilters?: boolean; // Control whether to show active filters inside this component
 }
 
 const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
@@ -39,9 +40,10 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   creditCards,
   categories,
   onFiltersChange,
-  activeFilters
+  activeFilters,
+  showActiveFilters = true
 }) => {
-  const [showFieldDropdown, setShowFieldDropdown] = useState(false);
+  const [showFieldDropdown, setShowFieldDropdown] = useState(true); // Start with field dropdown open
   const [showOperationDropdown, setShowOperationDropdown] = useState(false);
   const [selectedField, setSelectedField] = useState<FilterField | null>(null);
   const [selectedOperation, setSelectedOperation] = useState<FilterOperation | null>(null);
@@ -151,7 +153,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         // Close all dropdowns and reset selection
-        setShowFieldDropdown(false);
+        setShowFieldDropdown(true);
         setShowOperationDropdown(false);
         setSelectedField(null);
         setSelectedOperation(null);
@@ -163,7 +165,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         // Close all dropdowns and reset selection
-        setShowFieldDropdown(false);
+        setShowFieldDropdown(true);
         setShowOperationDropdown(false);
         setSelectedField(null);
         setSelectedOperation(null);
@@ -197,7 +199,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   };
 
   const resetSelection = () => {
-    setShowFieldDropdown(false);
+    setShowFieldDropdown(true); // Return to field selection
     setShowOperationDropdown(false);
     setSelectedField(null);
     setSelectedOperation(null);
@@ -239,7 +241,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
     onFiltersChange([...activeFilters, newFilter]);
     
-    // Reset selection after adding filter
+    // Reset selection after adding filter - back to field selection
     resetSelection();
   };
 
@@ -347,8 +349,8 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Active Filters Display - Always visible outside dropdowns */}
-      {activeFilters.length > 0 && (
+      {/* Active Filters Display - Only show if showActiveFilters is true */}
+      {showActiveFilters && activeFilters.length > 0 && (
         <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
           <div className="flex items-center justify-between mb-3">
             <div className="text-sm font-medium text-gray-700">
@@ -388,21 +390,11 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
         </div>
       )}
 
-      {/* Advanced Filters Button */}
+      {/* Filter Creation Interface */}
       <div className="relative" ref={dropdownRef}>
-        <button
-          onClick={() => {
-            setShowFieldDropdown(!showFieldDropdown);
-            setShowOperationDropdown(false);
-          }}
-          className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          + Adicionar Filtro Avançado
-        </button>
-
-        {/* Field Selection Dropdown - Vertical */}
+        {/* Field Selection - Always visible when component is active */}
         {showFieldDropdown && (
-          <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-300 rounded-md shadow-lg z-50">
+          <div className="w-full bg-white border border-gray-300 rounded-md shadow-lg">
             <div className="p-2">
               <div className="text-sm font-medium text-gray-700 mb-2">Selecione o campo:</div>
               <div className="space-y-1">
@@ -422,7 +414,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
         {/* Operation Selection Dropdown - Grid Layout */}
         {showOperationDropdown && selectedField && (
-          <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-gray-300 rounded-md shadow-lg z-50">
+          <div className="w-full bg-white border border-gray-300 rounded-md shadow-lg">
             <div className="p-4">
               <div className="text-sm font-medium text-gray-700 mb-3">
                 {selectedField.label} - Selecione a operação:

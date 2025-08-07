@@ -6,7 +6,8 @@ import {
   MagnifyingGlassIcon,
   ChevronDownIcon,
   DocumentTextIcon,
-  ArrowUpTrayIcon
+  ArrowUpTrayIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import InvoiceManagementModal from './InvoiceManagementModal';
 import AdvancedFilters from './AdvancedFilters';
@@ -175,9 +176,9 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
             >
               <FunnelIcon className="h-5 w-5 mr-2" />
               Filtros Avançados
-              {contarFiltrosAtivos() > 0 && (
+              {(advancedFilters?.length || 0) > 0 && (
                 <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  {contarFiltrosAtivos()}
+                  {advancedFilters?.length || 0}
                 </span>
               )}
             </button>
@@ -192,6 +193,7 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
                     categories={categories}
                     onFiltersChange={setAdvancedFilters}
                     activeFilters={advancedFilters}
+                    showActiveFilters={false}
                   />
                 </div>
               </div>
@@ -253,6 +255,51 @@ const TransactionHeader: React.FC<TransactionHeaderProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Active Advanced Filters Display */}
+      {advancedFilters && advancedFilters.length > 0 && (
+        <div className="mt-4 bg-gray-50 border border-gray-200 rounded-md p-3">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-medium text-gray-700">
+              Filtros ativos ({advancedFilters.length}):
+            </div>
+            <button
+              onClick={() => setAdvancedFilters && setAdvancedFilters([])}
+              className="text-sm text-red-600 hover:text-red-800 font-medium"
+            >
+              Limpar todos
+            </button>
+          </div>
+          
+          {/* Compact filter display - horizontal layout */}
+          <div className="flex flex-wrap gap-2">
+            {advancedFilters.map(filter => (
+              <div
+                key={filter.id}
+                className="inline-flex items-center justify-between px-3 py-1 bg-blue-50 border border-blue-200 rounded-full text-sm"
+              >
+                <div className="text-blue-800">
+                  <span className="font-medium">{filter.fieldLabel}</span>
+                  {' '}
+                  <span>{filter.operationLabel}</span>
+                  {' '}
+                  <span className="font-medium">{filter.valueLabel}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    if (setAdvancedFilters) {
+                      setAdvancedFilters(advancedFilters.filter(f => f.id !== filter.id));
+                    }
+                  }}
+                  className="ml-2 text-blue-600 hover:text-blue-800"
+                >
+                  <XMarkIcon className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Invoice Management Modal */}
       {showInvoiceModal && selectedCreditCard && (
