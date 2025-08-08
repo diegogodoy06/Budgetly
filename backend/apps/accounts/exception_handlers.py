@@ -4,7 +4,7 @@ Exception handlers para workspace
 from rest_framework.views import exception_handler
 from rest_framework.response import Response
 from rest_framework import status
-from apps.accounts.workspace_mixins import WorkspaceRequiredException
+from rest_framework.exceptions import ValidationError
 
 
 def workspace_exception_handler(exc, context):
@@ -15,7 +15,7 @@ def workspace_exception_handler(exc, context):
     response = exception_handler(exc, context)
 
     # Se é uma exception de workspace, customizar a resposta
-    if isinstance(exc, WorkspaceRequiredException):
+    if isinstance(exc, ValidationError):
         return Response(
             {'detail': str(exc)},
             status=status.HTTP_400_BAD_REQUEST

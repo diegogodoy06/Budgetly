@@ -13,7 +13,7 @@ from .serializers import (
     CreditCardSerializer, CreditCardBalanceSerializer,
     ChangePasswordSerializer
 )
-from .workspace_mixins import WorkspaceMixin, WorkspaceRequiredMixin
+from .mixins import WorkspaceViewMixin
 
 
 class CustomJWTLoginView(TokenObtainPairView):
@@ -86,7 +86,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
-class AccountViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
+class AccountViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
     """ViewSet para gerenciar contas financeiras"""
     serializer_class = AccountSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -101,8 +101,9 @@ class AccountViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         """Salva a conta com workspace e user"""
+        workspace = self.get_user_workspace()
         serializer.save(
-            workspace=self.request.workspace,
+            workspace=workspace,
             user=self.request.user
         )
 
@@ -309,7 +310,7 @@ class AccountViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
         })
 
 
-class CreditCardViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
+class CreditCardViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
     """ViewSet para gerenciar cartões de crédito"""
     serializer_class = CreditCardSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -321,8 +322,9 @@ class CreditCardViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         """Salva o cartão com workspace e user"""
+        workspace = self.get_user_workspace()
         serializer.save(
-            workspace=self.request.workspace,
+            workspace=workspace,
             user=self.request.user
         )
 
@@ -366,12 +368,25 @@ class CreditCardViewSet(WorkspaceRequiredMixin, viewsets.ModelViewSet):
             )
         except CreditCardInvoice.DoesNotExist:
             # Criar fatura atual se não existir
+            data_fechamento = date(current_year, current_month, card.dia_fechamento)
+            
+            # Calcular data de vencimento corretamente
+            if card.dia_vencimento <= card.dia_fechamento:
+                # Se vencimento é antes/igual ao fechamento, vai para próximo mês
+                if current_month == 12:
+                    data_vencimento = date(current_year + 1, 1, card.dia_vencimento)
+                else:
+                    data_vencimento = date(current_year, current_month + 1, card.dia_vencimento)
+            else:
+                # Se vencimento é depois do fechamento, fica no mesmo mês
+                data_vencimento = date(current_year, current_month, card.dia_vencimento)
+                
             current_invoice = CreditCardInvoice.objects.create(
                 credit_card=card,
                 mes=current_month,
                 ano=current_year,
-                data_fechamento=date(current_year, current_month, card.dia_fechamento),
-                data_vencimento=date(current_year, current_month, card.dia_vencimento)
+                data_fechamento=data_fechamento,
+                data_vencimento=data_vencimento
             )
         
         # Calcular valor atual da fatura (transações até hoje)

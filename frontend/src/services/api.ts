@@ -239,24 +239,6 @@ export const categoriesAPI = {
     api.get('/api/categories/categories/flat-list/').then(res => res.data)
 };
 
-// Cost Centers API
-export const costCentersAPI = {
-  getAll: (): Promise<any[]> =>
-    api.get('/api/categories/cost-centers/').then(res => res.data.results || res.data),
-  
-  getById: (id: number): Promise<any> =>
-    api.get(`/api/categories/cost-centers/${id}/`).then(res => res.data),
-  
-  create: (data: any): Promise<any> =>
-    api.post('/api/categories/cost-centers/', data).then(res => res.data),
-  
-  update: (id: number, data: any): Promise<any> =>
-    api.patch(`/api/categories/cost-centers/${id}/`, data).then(res => res.data),
-  
-  delete: (id: number): Promise<void> =>
-    api.delete(`/api/categories/cost-centers/${id}/`).then(res => res.data),
-};
-
 // Tags API
 export const tagsAPI = {
   getAll: (): Promise<Tag[]> =>
@@ -392,6 +374,46 @@ export const invoicesAPI = {
   // Preview da fatura atual do cartão
   getPreview: (creditCardId: number): Promise<any> =>
     api.get(`/api/accounts/credit-cards/${creditCardId}/invoice_preview/`).then(res => res.data),
+};
+
+// Automation Rules API
+export const automationRulesAPI = {
+  getAll: (): Promise<any[]> =>
+    api.get('/api/automation-rules/rules/').then(res => res.data.results || res.data),
+  
+  getById: (id: number): Promise<any> =>
+    api.get(`/api/automation-rules/rules/${id}/`).then(res => res.data),
+  
+  create: (data: any): Promise<any> =>
+    api.post('/api/automation-rules/rules/', data).then(res => res.data),
+  
+  update: (id: number, data: any): Promise<any> =>
+    api.patch(`/api/automation-rules/rules/${id}/`, data).then(res => res.data),
+  
+  delete: (id: number): Promise<void> =>
+    api.delete(`/api/automation-rules/rules/${id}/`).then(res => res.data),
+  
+  toggleActive: (id: number): Promise<any> =>
+    api.post(`/api/automation-rules/rules/${id}/toggle_active/`).then(res => res.data),
+  
+  testRules: (data: any): Promise<any> =>
+    api.post('/api/automation-rules/rules/test_all_rules/', data).then(res => res.data),
+  
+  applyToTransactions: (data: any): Promise<any> =>
+    api.post('/api/automation-rules/rules/apply_to_transactions/', data).then(res => res.data),
+  
+  getByStage: (): Promise<any> =>
+    api.get('/api/automation-rules/rules/by_stage/').then(res => res.data),
+  
+  bulkToggle: (data: { rule_ids: number[], is_active: boolean }): Promise<any> =>
+    api.post('/api/automation-rules/rules/bulk_toggle/', data).then(res => res.data),
+  
+  // Settings
+  getSettings: (): Promise<any> =>
+    api.get('/api/automation-rules/settings/').then(res => res.data),
+  
+  updateSettings: (data: any): Promise<any> =>
+    api.patch('/api/automation-rules/settings/', data).then(res => res.data),
 };
 
 export default api;

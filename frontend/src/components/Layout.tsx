@@ -18,8 +18,8 @@ import {
   CheckIcon,
   TagIcon,
   UserGroupIcon,
-  MapIcon,
   UserIcon,
+  CommandLineIcon,
 } from '@heroicons/react/24/outline';
 
 interface LayoutProps {
@@ -86,8 +86,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const settingsNavigation = [
     { name: 'Categorias', href: '/settings/categories', icon: TagIcon },
-    { name: 'Centros de Custo', href: '/settings/cost-centers', icon: MapIcon },
     { name: 'Beneficiários', href: '/settings/beneficiaries', icon: UserGroupIcon },
+    { name: 'Automação', href: '/settings/automation-rules', icon: CommandLineIcon },
+    { name: 'Workspace', href: '/settings/workspace', icon: CogIcon },
   ];
 
   const handleLogout = () => {
@@ -116,7 +117,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <XMarkIcon className="h-6 w-6 text-gray-600" />
             </button>
           </div>
-          <div className="flex-1 h-0 pt-6 pb-4 overflow-y-auto">
+          <div className="flex-1 h-0 pt-6 pb-4 overflow-y-auto sidebar-scroll">
             <div className="flex-shrink-0 flex items-center px-6">
               <div className="flex items-center">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
@@ -364,7 +365,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="hidden md:flex md:flex-shrink-0">
         <div className="flex flex-col w-64">
           <div className="flex flex-col h-0 flex-1 bg-white border-r border-gray-200 shadow-sm">
-            <div className="flex-1 flex flex-col pt-6 pb-4 overflow-y-auto">
+            <div className="flex-1 flex flex-col pt-6 pb-4 overflow-y-auto sidebar-scroll">
               <div className="flex items-center flex-shrink-0 px-6">
                 <div className="flex items-center">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">

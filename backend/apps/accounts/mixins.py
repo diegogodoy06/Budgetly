@@ -107,3 +107,10 @@ class WorkspaceViewMixin:
             workspace=workspace,
             user=self.request.user
         )
+    
+    def get_workspace_queryset(self, queryset):
+        """
+        Filtra um queryset pelo workspace atual
+        """
+        workspace = self.get_user_workspace()
+        return queryset.filter(workspace=workspace)
