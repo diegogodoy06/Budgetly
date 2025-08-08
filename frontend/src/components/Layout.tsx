@@ -85,10 +85,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   ];
 
   const settingsNavigation = [
-    { name: 'Workspace', href: '/settings/workspace', icon: CogIcon },
     { name: 'Categorias', href: '/settings/categories', icon: TagIcon },
     { name: 'Beneficiários', href: '/settings/beneficiaries', icon: UserGroupIcon },
     { name: 'Automação', href: '/settings/automation-rules', icon: CommandLineIcon },
+    { name: 'Workspace', href: '/settings/workspace', icon: CogIcon },
   ];
 
   const handleLogout = () => {

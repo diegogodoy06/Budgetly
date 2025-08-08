@@ -19,8 +19,6 @@ import { EditWorkspaceModal } from '../components/EditWorkspaceModal';
 import { Workspace } from '../types/workspace';
 
 export default function WorkspacesPage() {
-  console.log('🔄 WorkspacesPage: Inicializando componente');
-  
   const { user } = useAuth();
   const { 
     workspaces, 
@@ -38,23 +36,14 @@ export default function WorkspacesPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
 
-  console.log('🔍 WorkspacesPage: Estado atual', {
-    user: !!user,
-    workspacesCount: workspaces?.length || 0,
-    currentWorkspace: currentWorkspace?.nome || 'nenhum',
-    loading,
-    error
-  });
-
   // Remover useEffect desnecessário que estava causando loop infinito
   // O WorkspaceContext já carrega os workspaces automaticamente
 
   const handleSelectWorkspace = (workspace: Workspace) => {
     try {
-      console.log('🎯 Selecionando workspace:', workspace);
       setCurrentWorkspace(workspace);
     } catch (error) {
-      console.error('❌ Erro ao selecionar workspace:', error);
+      // Error is handled by WorkspaceContext
     }
   };
 
@@ -63,7 +52,7 @@ export default function WorkspacesPage() {
       try {
         await deleteWorkspace(workspace.id);
       } catch (error) {
-        console.error('❌ Erro ao excluir workspace:', error);
+        // Error is handled by WorkspaceContext
       }
     }
   };
@@ -98,10 +87,7 @@ export default function WorkspacesPage() {
     }
   };
 
-  console.log('🎨 WorkspacesPage: Renderizando página');
-
   if (loading && workspaces.length === 0) {
-    console.log('⏳ WorkspacesPage: Exibindo loading');
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
@@ -113,7 +99,6 @@ export default function WorkspacesPage() {
   }
 
   if (error) {
-    console.log('❌ WorkspacesPage: Exibindo erro:', error);
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
@@ -131,15 +116,8 @@ export default function WorkspacesPage() {
     );
   }
 
-  console.log('✅ WorkspacesPage: Renderizando conteúdo principal');
-
   return (
     <div className="space-y-6">
-      {/* Debug info - remover em produção */}
-      <div className="bg-gray-100 rounded p-2 text-xs text-gray-600">
-        Debug: {workspaces?.length || 0} workspaces, loading: {loading ? 'sim' : 'não'}
-      </div>
-
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
