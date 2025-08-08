@@ -1,8 +1,8 @@
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Category, CostCenter
-from .serializers import CategorySerializer, CostCenterSerializer
+from .models import Category
+from .serializers import CategorySerializer
 from apps.accounts.mixins import WorkspaceViewMixin
 
 
@@ -69,21 +69,3 @@ class CategoryViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
             result.append(category_data)
         
         return Response(result)
-
-
-class CostCenterViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
-    """ViewSet para gerenciar centros de custo"""
-    serializer_class = CostCenterSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        """Retorna centros de custo filtrados por workspace"""
-        queryset = CostCenter.objects.all()
-        return self.get_workspace_queryset(queryset)
-    
-    def perform_create(self, serializer):
-        """Salva o centro de custo com workspace e user"""
-        serializer.save(
-            workspace=self.request.workspace,
-            user=self.request.user
-        )

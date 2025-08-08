@@ -22,7 +22,6 @@ import Reports from './pages/Reports';
 import UserProfile from './pages/UserProfile';
 import AppSettings from './pages/AppSettings';
 import CategoriesManagement from './pages/CategoriesManagement';
-import CostCentersManagement from './pages/CostCentersManagement';
 import BeneficiariesPage from './pages/BeneficiariesPage';
 import AutomationRulesPage from './pages/AutomationRulesPage';
 import WorkspaceSettingsPage from './pages/WorkspaceSettingsPage';
@@ -126,15 +125,6 @@ const AppRoutes: React.FC = () => {
           <WorkspaceGuard>
             <Layout>
               <CategoriesManagement />
-            </Layout>
-          </WorkspaceGuard>
-        </ProtectedRouteComponent>
-      } />
-      <Route path="/settings/cost-centers" element={
-        <ProtectedRouteComponent>
-          <WorkspaceGuard>
-            <Layout>
-              <CostCentersManagement />
             </Layout>
           </WorkspaceGuard>
         </ProtectedRouteComponent>

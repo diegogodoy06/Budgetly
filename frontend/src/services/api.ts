@@ -239,24 +239,6 @@ export const categoriesAPI = {
     api.get('/api/categories/categories/flat-list/').then(res => res.data)
 };
 
-// Cost Centers API
-export const costCentersAPI = {
-  getAll: (): Promise<any[]> =>
-    api.get('/api/categories/cost-centers/').then(res => res.data.results || res.data),
-  
-  getById: (id: number): Promise<any> =>
-    api.get(`/api/categories/cost-centers/${id}/`).then(res => res.data),
-  
-  create: (data: any): Promise<any> =>
-    api.post('/api/categories/cost-centers/', data).then(res => res.data),
-  
-  update: (id: number, data: any): Promise<any> =>
-    api.patch(`/api/categories/cost-centers/${id}/`, data).then(res => res.data),
-  
-  delete: (id: number): Promise<void> =>
-    api.delete(`/api/categories/cost-centers/${id}/`).then(res => res.data),
-};
-
 // Tags API
 export const tagsAPI = {
   getAll: (): Promise<Tag[]> =>

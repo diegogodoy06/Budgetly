@@ -101,7 +101,7 @@ export const automationService = {
   },
 
   async updateSettings(data: Partial<AutomationSettings>): Promise<AutomationSettings> {
-    const response = await api.patch('/api/automation-rules/settings/', data);
+    const response = await api.patch('/api/automation-rules/settings/update_workspace_settings/', data);
     return response.data;
   },
 

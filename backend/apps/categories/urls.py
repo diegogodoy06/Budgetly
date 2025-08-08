@@ -5,7 +5,6 @@ from . import views
 # Router para ViewSets
 router = DefaultRouter()
 router.register(r'categories', views.CategoryViewSet, basename='category')
-router.register(r'cost-centers', views.CostCenterViewSet, basename='costcenter')
 
 urlpatterns = [
     # ViewSets via router

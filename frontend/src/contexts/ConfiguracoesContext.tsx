@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { categoriesAPI, costCentersAPI } from '@/services/api';
+import { categoriesAPI } from '@/services/api';
 import type { Category } from '@/types';
 import toast from 'react-hot-toast';
 import { debugAPIState } from '@/utils/debugAPI';
@@ -19,12 +19,6 @@ export interface Categoria {
   icone?: string;
 }
 
-export interface CentroCusto {
-  id: number;
-  nome: string;
-  ativo: boolean;
-}
-
 interface ConfiguracoesContextType {
   // Estado
   loading: boolean;
@@ -36,14 +30,6 @@ interface ConfiguracoesContextType {
   editarCategoria: (id: number, categoria: Partial<Categoria>) => void;
   excluirCategoria: (id: number) => void;
   toggleCategoriaAtiva: (id: number) => void;
-  
-  // Centros de Custo
-  centrosCusto: CentroCusto[];
-  centrosCustoAtivos: CentroCusto[];
-  adicionarCentroCusto: (centroCusto: Omit<CentroCusto, 'id'>) => void;
-  editarCentroCusto: (id: number, centroCusto: Partial<CentroCusto>) => void;
-  excluirCentroCusto: (id: number) => void;
-  toggleCentroCustoAtivo: (id: number) => void;
 }
 
 const ConfiguracoesContext = createContext<ConfiguracoesContextType | undefined>(undefined);
@@ -54,7 +40,6 @@ interface ConfiguracoesProviderProps {
 
 export const ConfiguracoesProvider: React.FC<ConfiguracoesProviderProps> = ({ children }) => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [centrosCusto, setCentrosCusto] = useState<CentroCusto[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Carrega dados da API quando o provider é montado
@@ -124,31 +109,6 @@ export const ConfiguracoesProvider: React.FC<ConfiguracoesProviderProps> = ({ ch
           { id: 3, nome: 'Lazer', ativa: true, considerarDashboard: true, importancia: 'superfluo' },
         ]);
       }
-      
-      // Carrega centros de custo da API
-      try {
-        const centrosCustoAPI = await costCentersAPI.getAll();
-        console.log('Resposta da API de centros de custo:', centrosCustoAPI);
-        
-        if (Array.isArray(centrosCustoAPI)) {
-          const centrosCustoConvertidos = centrosCustoAPI.map(convertCostCenterToCentroCusto);
-          setCentrosCusto(centrosCustoConvertidos);
-        } else {
-          console.warn('API de centros de custo não retornou um array, usando dados mock');
-          setCentrosCusto([
-            { id: 1, nome: 'Pessoal', ativo: true },
-            { id: 2, nome: 'Casa', ativo: true },
-            { id: 3, nome: 'Trabalho', ativo: true },
-          ]);
-        }
-      } catch (error) {
-        console.warn('Erro ao carregar centros de custo, usando dados mock:', error);
-        setCentrosCusto([
-          { id: 1, nome: 'Pessoal', ativo: true },
-          { id: 2, nome: 'Casa', ativo: true },
-          { id: 3, nome: 'Trabalho', ativo: true },
-        ]);
-      }
     } catch (error) {
       console.error('Erro ao carregar configurações:', error);
       toast.error('Erro ao carregar configurações');
@@ -169,13 +129,6 @@ export const ConfiguracoesProvider: React.FC<ConfiguracoesProviderProps> = ({ ch
     is_parent: category.is_parent,
     cor: category.cor,
     icone: category.icone
-  });
-
-  // Converte CostCenter (API) para CentroCusto (contexto)
-  const convertCostCenterToCentroCusto = (costCenter: any): CentroCusto => ({
-    id: costCenter.id,
-    nome: costCenter.nome,
-    ativo: costCenter.is_active || true
   });
 
   // Converte Categoria (contexto) para Category (API)
@@ -249,34 +202,8 @@ export const ConfiguracoesProvider: React.FC<ConfiguracoesProviderProps> = ({ ch
     }
   };
 
-  // Funções para Centros de Custo
-  const adicionarCentroCusto = (novoCentroCusto: Omit<CentroCusto, 'id'>) => {
-    const centroCusto: CentroCusto = {
-      ...novoCentroCusto,
-      id: Date.now()
-    };
-    setCentrosCusto(prev => [...prev, centroCusto]);
-  };
-
-  const editarCentroCusto = (id: number, dadosCentroCusto: Partial<CentroCusto>) => {
-    setCentrosCusto(prev => prev.map(centro => 
-      centro.id === id ? { ...centro, ...dadosCentroCusto } : centro
-    ));
-  };
-
-  const excluirCentroCusto = (id: number) => {
-    setCentrosCusto(prev => prev.filter(centro => centro.id !== id));
-  };
-
-  const toggleCentroCustoAtivo = (id: number) => {
-    setCentrosCusto(prev => prev.map(centro => 
-      centro.id === id ? { ...centro, ativo: !centro.ativo } : centro
-    ));
-  };
-
   // Computed values
   const categoriasAtivas = categorias.filter(cat => cat.ativa);
-  const centrosCustoAtivos = centrosCusto.filter(centro => centro.ativo);
 
   const value: ConfiguracoesContextType = {
     // Estado
@@ -289,14 +216,6 @@ export const ConfiguracoesProvider: React.FC<ConfiguracoesProviderProps> = ({ ch
     editarCategoria,
     excluirCategoria,
     toggleCategoriaAtiva,
-    
-    // Centros de Custo
-    centrosCusto,
-    centrosCustoAtivos,
-    adicionarCentroCusto,
-    editarCentroCusto,
-    excluirCentroCusto,
-    toggleCentroCustoAtivo,
   };
 
   return (

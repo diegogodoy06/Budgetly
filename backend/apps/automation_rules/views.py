@@ -259,6 +259,15 @@ class AutomationSettingsViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
         serializer.save()
         return Response(serializer.data)
     
+    @action(detail=False, methods=['patch', 'put'])
+    def update_workspace_settings(self, request):
+        """Update settings for the current workspace without requiring ID"""
+        settings = self.get_object()
+        serializer = self.get_serializer(settings, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+    
     @action(detail=False, methods=['post'])
     def toggle_learning_for_beneficiary(self, request):
         """Toggle auto-learning for a specific beneficiary"""

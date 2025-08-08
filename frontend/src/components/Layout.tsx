@@ -18,7 +18,6 @@ import {
   CheckIcon,
   TagIcon,
   UserGroupIcon,
-  MapIcon,
   UserIcon,
   CommandLineIcon,
 } from '@heroicons/react/24/outline';
@@ -88,7 +87,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const settingsNavigation = [
     { name: 'Workspace', href: '/settings/workspace', icon: CogIcon },
     { name: 'Categorias', href: '/settings/categories', icon: TagIcon },
-    { name: 'Centros de Custo', href: '/settings/cost-centers', icon: MapIcon },
     { name: 'Beneficiários', href: '/settings/beneficiaries', icon: UserGroupIcon },
     { name: 'Automação', href: '/settings/automation-rules', icon: CommandLineIcon },
   ];

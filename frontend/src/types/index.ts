@@ -155,7 +155,6 @@ export interface TransactionFormData {
   descricao: string;
   data: string;
   category?: number;
-  cost_center?: number;
   tags?: number[];
   total_parcelas: number;
   tipo_recorrencia: 'nenhuma' | 'diaria' | 'semanal' | 'mensal' | 'anual';

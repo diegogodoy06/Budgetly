@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, CostCenter
+from .models import Category
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -8,16 +8,6 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = [
             'id', 'nome', 'descricao', 'cor', 'icone', 'parent',
             'nivel_importancia', 'considerar_dashboard', 'is_active',
-            'created_at', 'updated_at'
-        ]
-        read_only_fields = ('id', 'created_at', 'updated_at')
-
-
-class CostCenterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CostCenter
-        fields = [
-            'id', 'nome', 'descricao', 'is_active',
             'created_at', 'updated_at'
         ]
         read_only_fields = ('id', 'created_at', 'updated_at')
