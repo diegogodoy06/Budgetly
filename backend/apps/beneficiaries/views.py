@@ -25,11 +25,13 @@ class BeneficiaryViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         """Salva o beneficiário com workspace e user"""
+        workspace = self.get_user_workspace()
+        
         # Verificar se já existe beneficiário com mesmo nome
         nome = serializer.validated_data['nome']
         existing = Beneficiary.objects.filter(
             nome__iexact=nome,
-            workspace=self.request.workspace,
+            workspace=workspace,
             is_active=True
         ).exists()
         
@@ -39,7 +41,7 @@ class BeneficiaryViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
             })
         
         serializer.save(
-            workspace=self.request.workspace,
+            workspace=workspace,
             user=self.request.user
         )
 
