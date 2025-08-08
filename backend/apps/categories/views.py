@@ -13,13 +13,13 @@ class CategoryViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retorna categorias filtradas por workspace"""
-        queryset = Category.objects.all()
-        return self.get_workspace_queryset(queryset)
+        return self.get_workspace_queryset(Category.objects.all())
     
     def perform_create(self, serializer):
         """Salva a categoria com workspace e user"""
+        workspace = self.get_user_workspace()
         serializer.save(
-            workspace=self.request.workspace,
+            workspace=workspace,
             user=self.request.user
         )
 
