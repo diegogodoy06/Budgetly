@@ -67,14 +67,19 @@ class Command(BaseCommand):
             try:
                 # Calcular datas de fechamento e vencimento
                 data_fechamento = date(ano, mes, card.dia_fechamento)
-                data_vencimento = date(ano, mes, card.dia_vencimento)
-
-                # Se a data de vencimento é antes do fechamento, vai para próximo mês
-                if data_vencimento <= data_fechamento:
+                
+                # O vencimento deve ser sempre DEPOIS do fechamento
+                # Se o dia de vencimento for menor ou igual ao dia de fechamento,
+                # o vencimento vai para o próximo mês
+                if card.dia_vencimento <= card.dia_fechamento:
                     if mes == 12:
                         data_vencimento = date(ano + 1, 1, card.dia_vencimento)
                     else:
                         data_vencimento = date(ano, mes + 1, card.dia_vencimento)
+                else:
+                    # Se o dia de vencimento é maior que o dia de fechamento,
+                    # fica no mesmo mês
+                    data_vencimento = date(ano, mes, card.dia_vencimento)
 
                 # Criar a fatura
                 invoice = CreditCardInvoice.objects.create(

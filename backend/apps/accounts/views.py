@@ -368,12 +368,25 @@ class CreditCardViewSet(WorkspaceViewMixin, viewsets.ModelViewSet):
             )
         except CreditCardInvoice.DoesNotExist:
             # Criar fatura atual se não existir
+            data_fechamento = date(current_year, current_month, card.dia_fechamento)
+            
+            # Calcular data de vencimento corretamente
+            if card.dia_vencimento <= card.dia_fechamento:
+                # Se vencimento é antes/igual ao fechamento, vai para próximo mês
+                if current_month == 12:
+                    data_vencimento = date(current_year + 1, 1, card.dia_vencimento)
+                else:
+                    data_vencimento = date(current_year, current_month + 1, card.dia_vencimento)
+            else:
+                # Se vencimento é depois do fechamento, fica no mesmo mês
+                data_vencimento = date(current_year, current_month, card.dia_vencimento)
+                
             current_invoice = CreditCardInvoice.objects.create(
                 credit_card=card,
                 mes=current_month,
                 ano=current_year,
-                data_fechamento=date(current_year, current_month, card.dia_fechamento),
-                data_vencimento=date(current_year, current_month, card.dia_vencimento)
+                data_fechamento=data_fechamento,
+                data_vencimento=data_vencimento
             )
         
         # Calcular valor atual da fatura (transações até hoje)

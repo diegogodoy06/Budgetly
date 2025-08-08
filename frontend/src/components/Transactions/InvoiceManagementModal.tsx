@@ -103,8 +103,22 @@ const InvoiceManagementModal: React.FC<InvoiceManagementModalProps> = ({
     }
   };
 
-  const formatCurrency = (value: string) => {
-    const num = parseFloat(value);
+  const formatCurrency = (value: string | number) => {
+    // Converter para número, lidando com diferentes formatos
+    let num: number;
+    if (typeof value === 'string') {
+      // Remove caracteres não numéricos, exceto ponto e vírgula
+      const cleanValue = value.toString().replace(/[^\d.,-]/g, '');
+      num = parseFloat(cleanValue.replace(',', '.'));
+    } else {
+      num = Number(value);
+    }
+    
+    // Verificar se é um número válido
+    if (isNaN(num)) {
+      num = 0;
+    }
+    
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
