@@ -295,23 +295,23 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header com Saudação e Workspace */}
-      <div className="p-6">
+      <div className="p-8">
         <div className="flex justify-between items-center">
           <div className="text-left">
-            <span className="text-3xl text-gray-700 font-light">Olá, </span>
-            <span className="text-3xl text-gray-700 font-bold">{user?.first_name || 'Usuário'}</span>
+            <span className="text-4xl text-gray-700 dark:text-gray-300 font-extralight">Olá, </span>
+            <span className="text-4xl text-gradient font-black">{user?.first_name || 'Usuário'}</span>
           </div>
           {currentWorkspace && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+            <div className="glass-card px-6 py-4 float-card">
               <div className="flex items-center">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-blue-600 text-sm font-bold">W</span>
+                <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                  <span className="text-white text-sm font-black">W</span>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-blue-900">{currentWorkspace.nome}</p>
-                  <p className="text-xs text-blue-600">Workspace Ativo</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{currentWorkspace.nome}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Workspace Ativo</p>
                 </div>
               </div>
             </div>
@@ -320,37 +320,37 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Seção Principal - Financeiro + Notícias */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Coluna Esquerda - Dados Financeiros (2/3) */}
-        <div className="xl:col-span-2 space-y-6">
+        <div className="xl:col-span-2 space-y-8">
           {/* Filtros de Período */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-medium text-gray-700">Filtragem por Mês</h2>
-              <div className="flex items-center space-x-2">
+          <div className="glass-card p-6 float-card">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">Filtragem por Mês</h2>
+              <div className="flex items-center space-x-3">
                 <button
                   onClick={() => setShowValues(!showValues)}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-2 rounded-lg hover:bg-white/30 dark:hover:bg-white/10 transition-colors"
                   title={showValues ? 'Ocultar valores' : 'Mostrar valores'}
                 >
                   {showValues ? (
-                    <EyeIcon className="h-4 w-4 text-gray-500" />
+                    <EyeIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                   ) : (
-                    <EyeSlashIcon className="h-4 w-4 text-gray-500" />
+                    <EyeSlashIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                   )}
                 </button>
                 <button
                   onClick={() => setShowDateFilter(!showDateFilter)}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-2 rounded-lg hover:bg-white/30 dark:hover:bg-white/10 transition-colors"
                   title="Filtro personalizado"
                 >
-                  <CalendarIcon className="h-4 w-4 text-gray-500" />
+                  <CalendarIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                 </button>
               </div>
             </div>
 
             {/* Navegação de Meses */}
-            <div className="flex items-center justify-center space-x-2">
+            <div className="flex items-center justify-center space-x-3">
               <button
                 onClick={() => {
                   if (currentMonth === 0) {
@@ -360,20 +360,20 @@ const Dashboard: React.FC = () => {
                     setCurrentMonth(currentMonth - 1);
                   }
                 }}
-                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-lg hover:bg-white/30 dark:hover:bg-white/10 transition-colors"
               >
-                <ChevronLeftIcon className="h-4 w-4 text-gray-500" />
+                <ChevronLeftIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
               </button>
 
-              <div className="flex space-x-1">
+              <div className="flex space-x-2">
                 {getVisibleMonths().map(({ month, year, offset }) => (
                   <button
                     key={`${month}-${year}`}
                     onClick={() => handleMonthSelect(month, year)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    className={`px-4 py-2 rounded-button text-sm font-bold transition-all duration-300 ${
                       offset === 0
-                        ? 'bg-gray-800 text-white shadow-sm'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg'
+                        : 'bg-white/30 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/20'
                     }`}
                   >
                     {getMonthName(month)} {year}
@@ -390,46 +390,46 @@ const Dashboard: React.FC = () => {
                     setCurrentMonth(currentMonth + 1);
                   }
                 }}
-                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-lg hover:bg-white/30 dark:hover:bg-white/10 transition-colors"
               >
-                <ChevronRightIcon className="h-4 w-4 text-gray-500" />
+                <ChevronRightIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
               </button>
             </div>
 
             {/* Filtro de Data Personalizado */}
             {showDateFilter && (
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                <h3 className="text-xs font-medium text-gray-700 mb-2">Período Personalizado</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="mt-6 glass-card p-4">
+                <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Período Personalizado</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Data Início</label>
+                    <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Data Início</label>
                     <input
                       type="date"
                       value={dateRange.start}
                       onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                      className="form-input"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Data Fim</label>
+                    <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Data Fim</label>
                     <input
                       type="date"
                       value={dateRange.end}
                       onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                      className="form-input"
                     />
                   </div>
                 </div>
-                <div className="mt-3 flex justify-end space-x-2">
+                <div className="mt-4 flex justify-end space-x-3">
                   <button
                     onClick={() => setShowDateFilter(false)}
-                    className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="btn-secondary"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={() => setShowDateFilter(false)}
-                    className="px-3 py-1.5 text-xs font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-900"
+                    className="btn-primary"
                   >
                     Aplicar
                   </button>
@@ -439,22 +439,22 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Saldo Previsto */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-sm border border-blue-200 p-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-sm">
-                <CurrencyDollarIcon className="h-6 w-6 text-white" />
+          <div className="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-card p-8 float-card border border-primary-200/50 dark:border-primary-700/50">
+            <div className="flex items-center space-x-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg animate-float">
+                <CurrencyDollarIcon className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h3 className="text-base font-medium text-gray-700 mb-1">Saldo Previsto</h3>
+                <h3 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-2">Saldo Previsto</h3>
                 {loadingDashboard ? (
                   <div className="animate-pulse">
-                    <div className="h-8 bg-gray-200 rounded w-32 mb-1"></div>
-                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                    <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-40 mb-2"></div>
+                    <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
                   </div>
                 ) : (
                   <>
-                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(dashboardData.saldoPrevisto)}</p>
-                    <p className="text-xs text-gray-600 mt-1">{getMonthName(currentMonth)} {currentYear}</p>
+                    <p className="text-3xl font-black text-gradient">{formatCurrency(dashboardData.saldoPrevisto)}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{getMonthName(currentMonth)} {currentYear}</p>
                   </>
                 )}
               </div>
@@ -462,24 +462,24 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Grid de Entradas e Saídas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Entradas Realizadas */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-                  <ArrowUpIcon className="h-5 w-5 text-white" />
+            <div className="glass-card p-6 float-card">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <ArrowUpIcon className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-sm font-medium text-gray-600">Entradas</h3>
+                  <h3 className="text-sm font-bold text-gray-600 dark:text-gray-400">Entradas</h3>
                   {loadingDashboard ? (
                     <div className="animate-pulse">
-                      <div className="h-6 bg-gray-200 rounded w-24 mb-1"></div>
-                      <div className="h-3 bg-gray-200 rounded w-16"></div>
+                      <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-28 mb-1"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
                     </div>
                   ) : (
                     <>
-                      <p className="text-xl font-bold text-green-600">{formatCurrency(dashboardData.totalEntradas)}</p>
-                      <p className="text-xs text-gray-500">Realizadas</p>
+                      <p className="text-2xl font-black text-green-600 dark:text-green-400">{formatCurrency(dashboardData.totalEntradas)}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Realizadas</p>
                     </>
                   )}
                 </div>
@@ -487,22 +487,22 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Saídas Realizadas */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
-                  <ArrowDownIcon className="h-5 w-5 text-white" />
+            <div className="glass-card p-6 float-card">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <ArrowDownIcon className="h-6 w-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-sm font-medium text-gray-600">Saídas</h3>
+                  <h3 className="text-sm font-bold text-gray-600 dark:text-gray-400">Saídas</h3>
                   {loadingDashboard ? (
                     <div className="animate-pulse">
-                      <div className="h-6 bg-gray-200 rounded w-24 mb-1"></div>
-                      <div className="h-3 bg-gray-200 rounded w-16"></div>
+                      <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-28 mb-1"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
                     </div>
                   ) : (
                     <>
-                      <p className="text-xl font-bold text-red-600">{formatCurrency(dashboardData.totalSaidas)}</p>
-                      <p className="text-xs text-gray-500">Realizadas</p>
+                      <p className="text-2xl font-black text-red-600 dark:text-red-400">{formatCurrency(dashboardData.totalSaidas)}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Realizadas</p>
                     </>
                   )}
                 </div>
@@ -510,22 +510,22 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Entradas Previstas */}
-            <div className="bg-white rounded-xl shadow-sm border-2 border-dashed border-green-200 p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center border-2 border-dashed border-green-300">
-                  <ArrowUpIcon className="h-5 w-5 text-green-600" />
+            <div className="card-flat p-6 float-card border-2 border-dashed border-green-200 dark:border-green-700">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-700 rounded-xl flex items-center justify-center border-2 border-dashed border-green-300 dark:border-green-600">
+                  <ArrowUpIcon className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-sm font-medium text-gray-600">Entradas Previstas</h3>
+                  <h3 className="text-sm font-bold text-gray-600 dark:text-gray-400">Entradas Previstas</h3>
                   {loadingDashboard ? (
                     <div className="animate-pulse">
-                      <div className="h-6 bg-gray-200 rounded w-24 mb-1"></div>
-                      <div className="h-3 bg-gray-200 rounded w-16"></div>
+                      <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-28 mb-1"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
                     </div>
                   ) : (
                     <>
-                      <p className="text-xl font-bold text-green-600">{formatCurrency(dashboardData.previsaoEntradas)}</p>
-                      <p className="text-xs text-gray-500">A receber</p>
+                      <p className="text-2xl font-black text-green-600 dark:text-green-400">{formatCurrency(dashboardData.previsaoEntradas)}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">A receber</p>
                     </>
                   )}
                 </div>
@@ -533,22 +533,22 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Saídas Previstas */}
-            <div className="bg-white rounded-xl shadow-sm border-2 border-dashed border-red-200 p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-red-100 to-red-200 rounded-lg flex items-center justify-center border-2 border-dashed border-red-300">
-                  <ArrowDownIcon className="h-5 w-5 text-red-600" />
+            <div className="card-flat p-6 float-card border-2 border-dashed border-red-200 dark:border-red-700">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-800 dark:to-red-700 rounded-xl flex items-center justify-center border-2 border-dashed border-red-300 dark:border-red-600">
+                  <ArrowDownIcon className="h-6 w-6 text-red-600 dark:text-red-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-sm font-medium text-gray-600">Saídas Previstas</h3>
+                  <h3 className="text-sm font-bold text-gray-600 dark:text-gray-400">Saídas Previstas</h3>
                   {loadingDashboard ? (
                     <div className="animate-pulse">
-                      <div className="h-6 bg-gray-200 rounded w-24 mb-1"></div>
-                      <div className="h-3 bg-gray-200 rounded w-16"></div>
+                      <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-28 mb-1"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
                     </div>
                   ) : (
                     <>
-                      <p className="text-xl font-bold text-red-600">{formatCurrency(dashboardData.previsaoSaidas)}</p>
-                      <p className="text-xs text-gray-500">A pagar</p>
+                      <p className="text-2xl font-black text-red-600 dark:text-red-400">{formatCurrency(dashboardData.previsaoSaidas)}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">A pagar</p>
                     </>
                   )}
                 </div>
@@ -557,21 +557,21 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Gráfico de Categorias */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <ChartBarIcon className="h-5 w-5 text-white" />
+          <div className="glass-card p-8 float-card">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <ChartBarIcon className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">Gastos por Categoria</h3>
+                <h3 className="text-xl font-black text-gray-900 dark:text-gray-100">Gastos por Categoria</h3>
               </div>
               
               {/* Filtro por tipo de transação */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
                 <select
                   value={transactionTypeFilter}
                   onChange={(e) => setTransactionTypeFilter(e.target.value as 'todas' | 'bancos' | 'cartoes')}
-                  className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="form-select"
                 >
                   <option value="todas">Todas</option>
                   <option value="bancos">Bancos</option>
@@ -581,10 +581,10 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Gráfico de barras horizontais */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               {loadingCategories ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
                 </div>
               ) : categoriesData.length > 0 ? (
                 categoriesData.map((item, index) => {
@@ -592,22 +592,22 @@ const Dashboard: React.FC = () => {
                   const percentage = (item.value / maxValue) * 100;
                   
                   return (
-                    <div key={item.category} className="space-y-2">
+                    <div key={item.category} className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700 truncate flex-1">
+                        <span className="text-sm font-bold text-gray-700 dark:text-gray-300 truncate flex-1">
                           {item.category}
                         </span>
-                        <span className="text-sm font-bold text-gray-900 ml-2">
+                        <span className="text-sm font-black text-gray-900 dark:text-gray-100 ml-3">
                           {formatCurrency(item.value)}
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                         <div
-                          className={`h-2 rounded-full transition-all duration-500 ${
-                            index === 0 ? 'bg-purple-600' :
-                            index === 1 ? 'bg-purple-500' :
-                            index === 2 ? 'bg-purple-400' :
-                            'bg-purple-300'
+                          className={`h-3 rounded-full transition-all duration-700 ${
+                            index === 0 ? 'bg-gradient-to-r from-purple-600 to-purple-500' :
+                            index === 1 ? 'bg-gradient-to-r from-purple-500 to-purple-400' :
+                            index === 2 ? 'bg-gradient-to-r from-purple-400 to-purple-300' :
+                            'bg-gradient-to-r from-purple-300 to-purple-200'
                           }`}
                           style={{ width: `${percentage}%` }}
                         ></div>
@@ -616,10 +616,10 @@ const Dashboard: React.FC = () => {
                   );
                 })
               ) : (
-                <div className="text-center py-8">
-                  <ChartBarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Nenhuma movimentação encontrada para este período</p>
-                  <p className="text-sm text-gray-500">
+                <div className="text-center py-12">
+                  <ChartBarIcon className="h-16 w-16 text-gray-400 dark:text-gray-500 mx-auto mb-6" />
+                  <p className="text-gray-600 dark:text-gray-400 font-medium">Nenhuma movimentação encontrada para este período</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
                     {getMonthName(currentMonth)} {currentYear}
                   </p>
                 </div>
@@ -630,25 +630,25 @@ const Dashboard: React.FC = () => {
 
         {/* Coluna Direita - Notícias (1/3) */}
         <div className="xl:col-span-1">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+          <div className="glass-card p-8 h-full float-card">
+            <h3 className="text-xl font-black text-gray-900 dark:text-gray-100 mb-6 flex items-center">
+              <div className="w-3 h-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-full mr-3 animate-pulse"></div>
               Notícias & Dicas
             </h3>
             
-            <div className="space-y-4">
+            <div className="space-y-6">
               {/* Card de Notícia 1 */}
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-blue-900 mb-2">Nova ferramenta de análise</h4>
-                <p className="text-xs text-blue-700 mb-3">Descubra insights sobre seus gastos mensais com nossa nova funcionalidade de categorização automática.</p>
-                <span className="text-xs text-blue-600 font-medium">Há 2 horas</span>
+              <div className="bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 border border-primary-200/50 dark:border-primary-700/50 rounded-card p-6 float-card">
+                <h4 className="text-sm font-bold text-primary-900 dark:text-primary-100 mb-3">Nova ferramenta de análise</h4>
+                <p className="text-xs text-primary-700 dark:text-primary-300 mb-4 leading-relaxed">Descubra insights sobre seus gastos mensais com nossa nova funcionalidade de categorização automática.</p>
+                <span className="text-xs text-primary-600 dark:text-primary-400 font-bold">Há 2 horas</span>
               </div>
 
               {/* Card de Notícia 2 */}
-              <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-green-900 mb-2">Dica: Economia doméstica</h4>
-                <p className="text-xs text-green-700 mb-3">5 estratégias simples para reduzir gastos fixos e aumentar sua reserva de emergência.</p>
-                <span className="text-xs text-green-600 font-medium">Há 5 horas</span>
+              <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200/50 dark:border-green-700/50 rounded-card p-6 float-card">
+                <h4 className="text-sm font-bold text-green-900 dark:text-green-100 mb-3">Dica: Economia doméstica</h4>
+                <p className="text-xs text-green-700 dark:text-green-300 mb-4 leading-relaxed">5 estratégias simples para reduzir gastos fixos e aumentar sua reserva de emergência.</p>
+                <span className="text-xs text-green-600 dark:text-green-400 font-bold">Há 5 horas</span>
               </div>
             </div>
           </div>
@@ -656,18 +656,18 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Seção de Resumo - Contas a Pagar e Receber */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Resumo</h2>
+      <div className="glass-card p-8 float-card">
+        <h2 className="text-2xl font-black text-gray-900 dark:text-gray-100 mb-8">Resumo</h2>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Contas a Pagar */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-800">Contas a Pagar</h3>
+              <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">Contas a Pagar</h3>
               <select
                 value={filtroContasPagar}
                 onChange={(e) => setFiltroContasPagar(e.target.value)}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="form-select"
               >
                 <option value="todas">Todas</option>
                 <option value="hoje">Hoje</option>
@@ -677,19 +677,19 @@ const Dashboard: React.FC = () => {
               </select>
             </div>
 
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="space-y-3 max-h-80 overflow-y-auto">
               {loadingDashboard ? (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {[...Array(3)].map((_, index) => (
-                    <div key={index} className="animate-pulse bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <div key={index} className="animate-pulse glass-card p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <div className="h-4 bg-gray-200 rounded w-32 mb-1"></div>
-                          <div className="h-3 bg-gray-200 rounded w-20"></div>
+                          <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-40 mb-2"></div>
+                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
                         </div>
                         <div className="text-right">
-                          <div className="h-4 bg-gray-200 rounded w-20 mb-1"></div>
-                          <div className="h-5 bg-gray-200 rounded w-16"></div>
+                          <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-2"></div>
+                          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
                         </div>
                       </div>
                     </div>
@@ -697,15 +697,15 @@ const Dashboard: React.FC = () => {
                 </div>
               ) : (
                 filtrarContas(contasPagar, filtroContasPagar).map((conta) => (
-                  <div key={conta.id} className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <div key={conta.id} className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border border-red-200/50 dark:border-red-700/50 rounded-card p-4 float-card">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{conta.descricao}</p>
-                        <p className="text-xs text-gray-600">{new Date(conta.vencimento).toLocaleDateString('pt-BR')}</p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{conta.descricao}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">{new Date(conta.vencimento).toLocaleDateString('pt-BR')}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-bold text-red-600">{formatCurrency(conta.valor)}</p>
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(conta.status)}`}>
+                        <p className="text-sm font-black text-red-600 dark:text-red-400">{formatCurrency(conta.valor)}</p>
+                        <span className={`inline-flex px-3 py-1 text-xs font-bold rounded-full ${getStatusColor(conta.status)}`}>
                           {getStatusLabel(conta.status)}
                         </span>
                       </div>
@@ -717,13 +717,13 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Contas a Receber */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-800">Contas a Receber</h3>
+              <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">Contas a Receber</h3>
               <select
                 value={filtroContasReceber}
                 onChange={(e) => setFiltroContasReceber(e.target.value)}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="form-select"
               >
                 <option value="todas">Todas</option>
                 <option value="hoje">Hoje</option>
@@ -733,19 +733,19 @@ const Dashboard: React.FC = () => {
               </select>
             </div>
 
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="space-y-3 max-h-80 overflow-y-auto">
               {loadingDashboard ? (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {[...Array(3)].map((_, index) => (
-                    <div key={index} className="animate-pulse bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <div key={index} className="animate-pulse glass-card p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <div className="h-4 bg-gray-200 rounded w-32 mb-1"></div>
-                          <div className="h-3 bg-gray-200 rounded w-20"></div>
+                          <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-40 mb-2"></div>
+                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
                         </div>
                         <div className="text-right">
-                          <div className="h-4 bg-gray-200 rounded w-20 mb-1"></div>
-                          <div className="h-5 bg-gray-200 rounded w-16"></div>
+                          <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-2"></div>
+                          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
                         </div>
                       </div>
                     </div>
@@ -753,15 +753,15 @@ const Dashboard: React.FC = () => {
                 </div>
               ) : (
                 filtrarContas(contasReceber, filtroContasReceber).map((conta) => (
-                  <div key={conta.id} className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div key={conta.id} className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200/50 dark:border-green-700/50 rounded-card p-4 float-card">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{conta.descricao}</p>
-                        <p className="text-xs text-gray-600">{new Date(conta.vencimento).toLocaleDateString('pt-BR')}</p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{conta.descricao}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">{new Date(conta.vencimento).toLocaleDateString('pt-BR')}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-bold text-green-600">{formatCurrency(conta.valor)}</p>
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(conta.status)}`}>
+                        <p className="text-sm font-black text-green-600 dark:text-green-400">{formatCurrency(conta.valor)}</p>
+                        <span className={`inline-flex px-3 py-1 text-xs font-bold rounded-full ${getStatusColor(conta.status)}`}>
                           {getStatusLabel(conta.status)}
                         </span>
                       </div>
