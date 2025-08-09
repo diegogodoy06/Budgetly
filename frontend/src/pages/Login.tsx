@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLoginRedirect } from '@/hooks/useAuth';
-import AuthLayout from '@/components/AuthLayout';
+import { EyeIcon, EyeSlashIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('admin@budgetly.com');
@@ -10,9 +10,31 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   
   const { login } = useAuth();
   useLoginRedirect(); // Hook para redirecionar após login
+
+  // Initialize dark mode from localStorage
+  useEffect(() => {
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,91 +58,120 @@ const Login: React.FC = () => {
   };
 
   return (
-    <AuthLayout>
-      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-        <div>
-          <h2 className="text-center text-3xl font-extrabold text-gray-900">
-            Entrar na sua conta
-          </h2>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-soft-100 to-primary-100 dark:from-dark-600 dark:via-dark-500 dark:to-dark-400 transition-colors duration-300">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-32 w-80 h-80 bg-primary-300 dark:bg-primary-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-float"></div>
+        <div className="absolute -bottom-32 -left-40 w-80 h-80 bg-primary-200 dark:bg-primary-900 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-70 animate-float" style={{ animationDelay: '2s' }}></div>
+      </div>
 
-        {error && (
-          <div className="rounded-md bg-red-50 p-4">
-            <div className="text-sm text-red-700">{error}</div>
-          </div>
+      {/* Theme toggle button */}
+      <button
+        onClick={toggleDarkMode}
+        className="absolute top-6 right-6 p-3 rounded-full glass-card hover:scale-105 transition-all duration-300 z-10"
+        title={darkMode ? 'Modo claro' : 'Modo escuro'}
+      >
+        {darkMode ? (
+          <SunIcon className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+        ) : (
+          <MoonIcon className="h-6 w-6 text-gray-600 dark:text-gray-300" />
         )}
+      </button>
 
-        <div className="rounded-md shadow-sm -space-y-px">
+      {/* Login card */}
+      <div className="relative w-full max-w-md p-8 glass-card float-card z-10">
+        {/* Logo and title */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <span className="text-white font-black text-2xl">B</span>
+          </div>
+          <h1 className="text-3xl font-black text-gradient mb-2">Budgetly</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+            Sistema de Controle Financeiro Pessoal
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="sr-only">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-6">
+              Entrar na sua conta
+            </h2>
           </div>
-          <div className="relative">
-            <label htmlFor="password" className="sr-only">
-              Senha
-            </label>
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              required
-              className="appearance-none rounded-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-              placeholder="Senha"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 px-3 flex items-center"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? (
-                <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.642 6.642m4.242 4.242L15.12 15.12m-4.242-4.242L9.88 9.88" />
-                </svg>
-              ) : (
-                <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-              )}
-            </button>
-          </div>
-        </div>
 
-        {/* Demo credentials info */}
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-blue-800 font-medium">Credenciais de Demonstração</p>
-              <p className="text-xs text-blue-600">admin@budgetly.com / admin123</p>
+          {error && (
+            <div className="p-4 rounded-button bg-danger-50/80 dark:bg-danger-900/30 border border-danger-200/50 dark:border-danger-800/50 backdrop-blur-sm">
+              <div className="text-sm text-danger-700 dark:text-danger-400 font-medium">{error}</div>
             </div>
-            <button
-              type="button"
-              onClick={fillDemoCredentials}
-              className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded transition-colors"
-            >
-              Usar
-            </button>
-          </div>
-        </div>
+          )}
 
-        <div>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="email" className="form-label">
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                className="form-input"
+                placeholder="Digite seu email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="password" className="form-label">
+                Senha
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  className="form-input pr-10"
+                  placeholder="Digite sua senha"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeSlashIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Demo credentials info */}
+          <div className="p-4 rounded-button bg-primary-50/80 dark:bg-primary-900/30 border border-primary-200/50 dark:border-primary-800/50 backdrop-blur-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-primary-800 dark:text-primary-200 font-semibold">Credenciais de Demonstração</p>
+                <p className="text-xs text-primary-600 dark:text-primary-300 font-medium">admin@budgetly.com / admin123</p>
+              </div>
+              <button
+                type="button"
+                onClick={fillDemoCredentials}
+                className="btn-secondary text-xs px-3 py-1.5"
+              >
+                Usar
+              </button>
+            </div>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="btn-primary w-full"
           >
             {loading && (
               <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -130,18 +181,18 @@ const Login: React.FC = () => {
             )}
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
-        </div>
 
-        <div className="text-center">
-          <span className="text-sm text-gray-600">
-            Não tem uma conta?{' '}
-            <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
-              Cadastre-se aqui
-            </Link>
-          </span>
-        </div>
-      </form>
-    </AuthLayout>
+          <div className="text-center">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Não tem uma conta?{' '}
+              <Link to="/register" className="font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors">
+                Cadastre-se aqui
+              </Link>
+            </span>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };
 

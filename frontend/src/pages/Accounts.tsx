@@ -213,17 +213,17 @@ const Accounts: React.FC = () => {
       {/* Loading State */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">Carregando contas...</span>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          <span className="ml-3 text-gray-600 dark:text-gray-400">Carregando contas...</span>
         </div>
       )}
 
       {/* Error State */}
       {error && !loading && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="glass-card p-4 border border-danger-200/50 dark:border-danger-800/50">
           <div className="flex items-center">
-            <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mr-2" />
-            <p className="text-red-800">{error}</p>
+            <ExclamationTriangleIcon className="h-5 w-5 text-danger-400 mr-2" />
+            <p className="text-danger-800 dark:text-danger-400">{error}</p>
           </div>
         </div>
       )}
@@ -234,10 +234,10 @@ const Accounts: React.FC = () => {
           {/* Header */}
           <div className="md:flex md:items-center md:justify-between">
         <div className="flex-1 min-w-0">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+          <h2 className="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:text-3xl sm:truncate">
             Carteiras
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Gerencie suas carteiras, contas bancárias, investimentos e mais
           </p>
         </div>
@@ -246,7 +246,7 @@ const Accounts: React.FC = () => {
             type="button"
             onClick={resetInitialBalances}
             disabled={loading}
-            className="inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-danger disabled:opacity-50 disabled:cursor-not-allowed"
             title="Zerar saldos iniciais de contas sem transações"
           >
             <XCircleIcon className={`h-4 w-4 mr-2 ${loading ? 'animate-pulse' : ''}`} />
@@ -256,7 +256,7 @@ const Accounts: React.FC = () => {
             type="button"
             onClick={recalculateAllBalances}
             disabled={loading}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
             title="Recalcular saldos das contas baseado nas transações"
           >
             <ArrowPathIcon className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
@@ -265,7 +265,7 @@ const Accounts: React.FC = () => {
           <button
             type="button"
             onClick={() => setMostrarModal(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="btn-primary"
           >
             <PlusIcon className="h-4 w-4 mr-2" />
             Adicionar Carteira
@@ -276,7 +276,7 @@ const Accounts: React.FC = () => {
       {/* Lista de Carteiras */}
       <div className="space-y-8">
         {/* Card de Resumo Total */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="glass-card bg-gradient-to-r from-primary-500/80 to-primary-600/80 dark:from-primary-600/80 dark:to-primary-700/80 p-6 text-white float-card">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold">Todas as Contas</h3>
