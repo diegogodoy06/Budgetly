@@ -504,7 +504,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
 
             {/* Center - Search bar */}
-            <div className="flex-1 max-w-2xl mx-8">
+            <div className="flex-1 max-w-lg mx-8">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
@@ -569,7 +569,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                 {/* Profile dropdown menu */}
                 {profileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-64 glass-card py-2 z-50 animate-slide-in">
+                  <div className="absolute right-0 mt-2 w-64 glass-card py-2 z-50 animate-slide-in backdrop-blur-2xl">
                     <button
                       onClick={() => {
                         setProfileDropdownOpen(false);
@@ -583,12 +583,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <button
                       onClick={() => {
                         setProfileDropdownOpen(false);
-                        handleNavigation('/settings');
+                        handleNavigation('/settings/categories');
                       }}
                       className="w-full flex items-center px-6 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-white/10 transition-colors text-left"
                     >
                       <CogIcon className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
-                      Configurações Gerais
+                      Configurações
                     </button>
                     <div className="border-t border-gray-200/50 dark:border-gray-700/50 my-2"></div>
                     <button

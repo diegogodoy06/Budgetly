@@ -295,14 +295,23 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header com Saudação e Workspace */}
-      <div className="p-8">
-        <div className="flex justify-between items-center">
-          <div className="text-left">
-            <span className="text-4xl text-gray-700 dark:text-gray-300 font-extralight">Olá, </span>
-            <span className="text-4xl text-gradient font-black">{user?.first_name || 'Usuário'}</span>
-          </div>
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary-50/30 via-purple-50/20 to-pink-50/30 dark:from-primary-900/10 dark:via-purple-900/5 dark:to-pink-900/10 pointer-events-none" />
+      
+      <div className="relative z-10 space-y-8">
+        {/* Header com Saudação e Workspace */}
+        <div className="p-8">
+          <div className="flex justify-between items-center">
+            <div className="text-left">
+              <span className="text-4xl text-gray-700 dark:text-gray-300 font-extralight">Olá, </span>
+              <span className="text-4xl text-gradient font-black">
+                {user?.first_name && user?.last_name 
+                  ? `${user.first_name} ${user.last_name}`
+                  : user?.first_name || 'Usuário'
+                }
+              </span>
+            </div>
           {currentWorkspace && (
             <div className="glass-card px-6 py-4 float-card">
               <div className="flex items-center">
@@ -772,6 +781,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -126,7 +126,12 @@
 
   /* Sidebar styles */
   .sidebar {
-    @apply bg-white/90 dark:bg-dark-500/90 backdrop-blur-2xl border-r border-gray-200/50 dark:border-gray-700/50;
+    @apply bg-white/95 dark:bg-dark-500/95 backdrop-blur-3xl border-r-0;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
+  }
+  
+  .dark .sidebar {
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
   }
 
   .sidebar-collapsed {
@@ -173,6 +178,25 @@
   .profile-image img {
     @apply w-full h-full rounded-full object-cover bg-white;
   }
+
+  /* Modal overlay improvements */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50;
+  }
+
+  .modal-content {
+    @apply glass-card m-4 max-w-2xl mx-auto mt-20;
+  }
+
+  /* Z-index improvements for modals */
+  .modal-backdrop {
+    z-index: 9999;
+  }
+
+  .modal-content-glass {
+    @apply glass-card backdrop-blur-3xl;
+    z-index: 10000;
+  }
 }
 
 @layer utilities {
@@ -204,5 +228,50 @@
 
   .dark .border-glass {
     border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Custom border radius */
+  .rounded-glass {
+    border-radius: 1rem;
+  }
+
+  .rounded-card {
+    border-radius: 0.75rem;
+  }
+
+  .rounded-button {
+    border-radius: 0.5rem;
+  }
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
   }
 }
