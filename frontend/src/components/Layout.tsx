@@ -33,7 +33,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false); // Default to icon mode
   const [darkMode, setDarkMode] = useState(false);
   const [workspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
   const [settingsDropdownOpen, setSettingsDropdownOpen] = useState(false);
@@ -127,6 +127,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const handleWorkspaceChange = (workspace: any) => {
     setCurrentWorkspace(workspace);
     setWorkspaceDropdownOpen(false);
+  };
+
+  const handleNavigation = (href: string) => {
+    // Close mobile sidebar when navigating
+    setSidebarOpen(false);
+    navigate(href);
   };
 
   return (
@@ -227,16 +233,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {navigation.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
-                  <Link
+                  <button
                     key={item.name}
-                    to={item.href}
-                    className={`nav-item ${
+                    onClick={() => handleNavigation(item.href)}
+                    className={`nav-item w-full text-left ${
                       isActive ? 'nav-item-active' : 'nav-item-inactive'
                     }`}
                   >
                     <item.icon className="mr-3 flex-shrink-0 h-5 w-5" />
                     {item.name}
-                  </Link>
+                  </button>
                 );
               })}
 
@@ -266,14 +272,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     {settingsNavigation.map((item) => {
                       const isActive = location.pathname === item.href;
                       return (
-                        <Link
+                        <button
                           key={item.name}
-                          to={item.href}
-                          className={`${
+                          onClick={() => handleNavigation(item.href)}
+                          className={`w-full ${
                             isActive
                               ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-l-2 border-primary-500'
                               : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100'
-                          } group flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200`}
+                          } group flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-left`}
                         >
                           <item.icon
                             className={`${
@@ -281,7 +287,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                             } mr-3 flex-shrink-0 h-4 w-4`}
                           />
                           {item.name}
-                        </Link>
+                        </button>
                       );
                     })}
                   </div>
@@ -307,22 +313,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <h1 className="ml-3 text-2xl font-black text-gradient animate-fade-in">Budgetly</h1>
                   )}
                 </div>
-              </div>
-              
-              {/* Sidebar toggle button */}
-              <div className="px-4 mb-6">
-                <button
-                  onClick={() => setSidebarExpanded(!sidebarExpanded)}
-                  className="w-full glass-card p-3 hover:scale-105 transition-all duration-300 group"
-                >
-                  <div className="flex items-center justify-center">
-                    <ChevronRightIcon 
-                      className={`h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform duration-300 ${
-                        sidebarExpanded ? 'rotate-180' : ''
-                      }`} 
-                    />
-                  </div>
-                </button>
               </div>
 
               {/* Desktop workspace selector */}
@@ -395,57 +385,66 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 {navigation.map((item) => {
                   const isActive = location.pathname === item.href;
                   return (
-                    <Link
+                    <button
                       key={item.name}
-                      to={item.href}
-                      className={`nav-item ${
+                      onClick={() => handleNavigation(item.href)}
+                      className={`nav-item w-full ${
                         isActive ? 'nav-item-active' : 'nav-item-inactive'
-                      } ${!sidebarExpanded ? 'justify-center' : ''}`}
+                      } ${!sidebarExpanded ? 'justify-center px-4' : ''}`}
                       title={!sidebarExpanded ? item.name : undefined}
                     >
                       <item.icon className={`flex-shrink-0 h-5 w-5 ${sidebarExpanded ? 'mr-3' : ''}`} />
                       {sidebarExpanded && (
                         <span className="animate-fade-in">{item.name}</span>
                       )}
-                    </Link>
+                    </button>
                   );
                 })}
 
                 {/* Desktop settings submenu */}
                 <div className="space-y-1">
-                  <button
-                    onClick={() => setSettingsDropdownOpen(!settingsDropdownOpen)}
-                    className={`nav-item w-full text-left ${
-                      location.pathname.startsWith('/settings') ? 'nav-item-active' : 'nav-item-inactive'
-                    } ${!sidebarExpanded ? 'justify-center' : ''}`}
-                    title={!sidebarExpanded ? 'Configurações' : undefined}
-                  >
-                    <div className={`flex items-center w-full ${!sidebarExpanded ? 'justify-center' : 'justify-between'}`}>
-                      <div className="flex items-center">
-                        <CogIcon className={`flex-shrink-0 h-5 w-5 ${sidebarExpanded ? 'mr-3' : ''}`} />
-                        {sidebarExpanded && (
+                  {sidebarExpanded ? (
+                    /* Expanded mode - show dropdown */
+                    <button
+                      onClick={() => setSettingsDropdownOpen(!settingsDropdownOpen)}
+                      className={`nav-item w-full text-left ${
+                        location.pathname.startsWith('/settings') ? 'nav-item-active' : 'nav-item-inactive'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center">
+                          <CogIcon className="flex-shrink-0 h-5 w-5 mr-3" />
                           <span className="animate-fade-in">Configurações</span>
-                        )}
-                      </div>
-                      {sidebarExpanded && (
+                        </div>
                         <ChevronDownIcon 
                           className={`h-4 w-4 transition-transform duration-200 ${
                             settingsDropdownOpen ? 'rotate-180' : ''
                           }`} 
                         />
-                      )}
-                    </div>
-                  </button>
+                      </div>
+                    </button>
+                  ) : (
+                    /* Icon mode - direct navigation to main settings */
+                    <button
+                      onClick={() => handleNavigation('/settings/categories')}
+                      className={`nav-item w-full justify-center px-4 ${
+                        location.pathname.startsWith('/settings') ? 'nav-item-active' : 'nav-item-inactive'
+                      }`}
+                      title="Configurações"
+                    >
+                      <CogIcon className="flex-shrink-0 h-5 w-5" />
+                    </button>
+                  )}
                   
                   {settingsDropdownOpen && sidebarExpanded && (
                     <div className="ml-4 space-y-1">
                       {settingsNavigation.map((item) => {
                         const isActive = location.pathname === item.href;
                         return (
-                          <Link
+                          <button
                             key={item.name}
-                            to={item.href}
-                            className={`${
+                            onClick={() => handleNavigation(item.href)}
+                            className={`w-full ${
                               isActive
                                 ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-l-2 border-primary-500'
                                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100'
@@ -457,13 +456,32 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                               } mr-3 flex-shrink-0 h-4 w-4`}
                             />
                             <span className="animate-fade-in">{item.name}</span>
-                          </Link>
+                          </button>
                         );
                       })}
                     </div>
                   )}
                 </div>
               </nav>
+              
+              {/* Sidebar toggle button - moved to bottom */}
+              <div className="px-4 mt-6">
+                <button
+                  onClick={() => setSidebarExpanded(!sidebarExpanded)}
+                  className={`w-full glass-card p-3 hover:scale-105 transition-all duration-300 group ${
+                    !sidebarExpanded ? 'justify-center' : ''
+                  }`}
+                  title={!sidebarExpanded ? (sidebarExpanded ? 'Recolher menu' : 'Expandir menu') : undefined}
+                >
+                  <div className="flex items-center justify-center">
+                    <ChevronRightIcon 
+                      className={`h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform duration-300 ${
+                        sidebarExpanded ? 'rotate-180' : ''
+                      }`} 
+                    />
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -552,22 +570,26 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 {/* Profile dropdown menu */}
                 {profileDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-64 glass-card py-2 z-50 animate-slide-in">
-                    <Link
-                      to="/profile"
-                      onClick={() => setProfileDropdownOpen(false)}
-                      className="flex items-center px-6 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-white/10 transition-colors"
+                    <button
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        handleNavigation('/profile');
+                      }}
+                      className="w-full flex items-center px-6 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-white/10 transition-colors text-left"
                     >
                       <UserIcon className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
                       Ver Perfil
-                    </Link>
-                    <Link
-                      to="/settings"
-                      onClick={() => setProfileDropdownOpen(false)}
-                      className="flex items-center px-6 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-white/10 transition-colors"
+                    </button>
+                    <button
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        handleNavigation('/settings');
+                      }}
+                      className="w-full flex items-center px-6 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-white/10 transition-colors text-left"
                     >
                       <CogIcon className="h-4 w-4 mr-3 text-gray-400 dark:text-gray-500" />
                       Configurações Gerais
-                    </Link>
+                    </button>
                     <div className="border-t border-gray-200/50 dark:border-gray-700/50 my-2"></div>
                     <button
                       onClick={() => {

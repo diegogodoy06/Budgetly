@@ -64,13 +64,13 @@ export default function WorkspacesPage() {
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'admin':
-        return 'bg-red-100 text-red-800';
+        return 'bg-danger-100 dark:bg-danger-900/30 text-danger-800 dark:text-danger-400';
       case 'editor':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-400';
       case 'viewer':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300';
     }
   };
 
@@ -121,14 +121,14 @@ export default function WorkspacesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Meus Workspaces</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Meus Workspaces</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Gerencie seus espaços de trabalho financeiros
           </p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="btn-primary"
         >
           <PlusIcon className="h-5 w-5 mr-2" />
           Novo Workspace
@@ -137,15 +137,17 @@ export default function WorkspacesPage() {
 
       {/* Workspace Atual */}
       {currentWorkspace && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="glass-card p-6 hover:scale-105 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <BuildingOfficeIcon className="h-8 w-8 text-blue-600 mr-3" />
+              <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                <BuildingOfficeIcon className="h-6 w-6 text-white" />
+              </div>
               <div>
-                <h2 className="text-lg font-semibold text-blue-900">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {currentWorkspace.nome}
                 </h2>
-                <p className="text-sm text-blue-700">Workspace Ativo</p>
+                <p className="text-sm text-primary-600 dark:text-primary-400 font-medium">Workspace Ativo</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -159,22 +161,24 @@ export default function WorkspacesPage() {
       )}
 
       {/* Lista de Workspaces */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Todos os Workspaces</h3>
+      <div className="glass-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200/50 dark:border-gray-700/50">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Todos os Workspaces</h3>
         </div>
         
         {workspaces.length === 0 ? (
           <div className="text-center py-12">
-            <BuildingOfficeIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum workspace</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <BuildingOfficeIcon className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+            </div>
+            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">Nenhum workspace</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Comece criando seu primeiro workspace.
             </p>
             <div className="mt-6">
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                className="btn-primary"
               >
                 <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
                 Novo Workspace
@@ -182,20 +186,22 @@ export default function WorkspacesPage() {
             </div>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-200/50 dark:divide-gray-700/50">
             {workspaces.map((workspace) => (
               <div
                 key={workspace.id}
-                className={`p-6 hover:bg-gray-50 transition-colors ${
-                  currentWorkspace?.id === workspace.id ? 'bg-blue-50' : ''
+                className={`p-6 hover:bg-white/30 dark:hover:bg-white/10 transition-colors ${
+                  currentWorkspace?.id === workspace.id ? 'bg-primary-50/50 dark:bg-primary-900/30' : ''
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center">
-                      <BuildingOfficeIcon className="h-6 w-6 text-gray-400 mr-3" />
+                      <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-lg flex items-center justify-center mr-3">
+                        <BuildingOfficeIcon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                      </div>
                       <div>
-                        <h4 className="text-lg font-medium text-gray-900">
+                        <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                           {workspace.nome}
                         </h4>
                         <p className="text-sm text-gray-500 mt-1">
