@@ -11,6 +11,7 @@ import { WorkspaceGuard } from './components/WorkspaceGuard';
 import Layout from './components/Layout';
 
 // Pages
+import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -30,6 +31,9 @@ import WorkspacesPage from './pages/WorkspacesPage';
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
+      {/* Landing page */}
+      <Route path="/" element={<Landing />} />
+
       {/* Public routes */}
       <Route path="/login" element={
         <GuestRoute>
@@ -157,9 +161,8 @@ const AppRoutes: React.FC = () => {
         </ProtectedRouteComponent>
       } />
 
-      {/* Default redirect */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      {/* Default redirect for unmatched routes */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
