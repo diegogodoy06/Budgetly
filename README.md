@@ -1,6 +1,8 @@
 # Budgetly - Sistema de Controle Financeiro Pessoal
 
-Sistema completo de controle financeiro pessoal desenvolvido com Django REST Framework no backend e React no frontend.
+Sistema completo de controle financeiro pessoal desenvolvido com Django REST Framework no backend e React no frontend. 
+
+**Nova Arquitetura**: Landing page independente executando separadamente do sistema principal.
 
 ## 🚀 Funcionalidades
 
@@ -12,11 +14,13 @@ Sistema completo de controle financeiro pessoal desenvolvido com Django REST Fra
 - **Dashboard e Relatórios**: Gráficos e análises detalhadas
 - **Importação de Extratos**: Upload de arquivos CSV
 - **Sistema Multiusuário**: Cada usuário com seus próprios dados
+- **Landing Page Moderna**: Design glassmorphism com animações fluidas
 
 ## 🛠️ Tecnologias
 
 - **Backend**: Django + Django REST Framework
-- **Frontend**: React + TailwindCSS
+- **Frontend**: React + TailwindCSS + TypeScript
+- **Landing Page**: React + Vite + TailwindCSS (aplicação separada)
 - **Banco de Dados**: PostgreSQL
 - **Containerização**: Docker
 
@@ -24,24 +28,46 @@ Sistema completo de controle financeiro pessoal desenvolvido com Django REST Fra
 
 - Docker e Docker Compose
 - Git
+- Node.js 18+ (para desenvolvimento local)
 
 ## 🚀 Instalação e Execução
 
-1. Clone o repositório:
+### Método 1: Docker (Recomendado)
 ```bash
 git clone https://github.com/diegogodoy06/Budgetly.git
 cd Budgetly
-```
-
-2. Execute com Docker:
-```bash
 docker-compose up --build
 ```
 
-3. Acesse a aplicação:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- Admin Django: http://localhost:8000/admin
+### Método 2: Desenvolvimento Local com Script
+```bash
+# Executa landing page e sistema principal simultaneamente
+./start-all.sh
+```
+
+### Método 3: Aplicações Separadas
+```bash
+# Terminal 1 - Landing Page (porta 3001)
+cd landing-page
+npm install
+npm run dev
+
+# Terminal 2 - Sistema Principal (porta 3000)
+cd frontend
+npm install
+npm run dev
+
+# Terminal 3 - Backend (porta 8000)
+cd backend
+python manage.py runserver
+```
+
+## 🌐 URLs de Acesso
+
+- **Landing Page**: http://localhost:3001
+- **Sistema Principal**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **Admin Django**: http://localhost:8000/admin
 
 ## 📁 Estrutura do Projeto
 
@@ -56,13 +82,20 @@ Budgetly/
 │   │   ├── budgets/          # Orçamentos
 │   │   └── reports/          # Relatórios
 │   └── requirements.txt
-├── frontend/                  # React Application
+├── frontend/                  # Sistema Principal (React)
 │   ├── src/
 │   │   ├── components/        # Componentes React
 │   │   ├── pages/            # Páginas da aplicação
 │   │   ├── services/         # Serviços API
 │   │   └── utils/            # Utilitários
 │   └── package.json
+├── landing-page/             # Landing Page Separada (React + Vite)
+│   ├── src/
+│   │   ├── components/       # Componentes da landing
+│   │   └── index.css        # Estilos glassmorphism
+│   ├── tailwind.config.js   # Config customizada
+│   └── package.json
+├── start-all.sh             # Script para iniciar ambas aplicações
 └── docker-compose.yml
 ```
 
