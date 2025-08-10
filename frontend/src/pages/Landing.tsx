@@ -1,13 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  ChartBarIcon, 
-  CreditCardIcon, 
-  ShieldCheckIcon, 
+import {
+  ChartBarIcon,
+  CreditCardIcon,
+  ShieldCheckIcon,
   SparklesIcon,
   BanknotesIcon,
-  ClockIcon,
-  DevicePhoneMobileIcon,
   ArrowRightIcon,
   CheckCircleIcon,
   QuestionMarkCircleIcon
@@ -16,44 +14,33 @@ import {
 const Landing: React.FC = () => {
   const features = [
     {
-      icon: ChartBarIcon,
-      title: 'Controle Financeiro Completo',
-      description: 'Gerencie suas receitas, despesas e investimentos em uma plataforma unificada.'
+      icon: CreditCardIcon,
+      title: 'Controle total de cartões de crédito',
+      description: 'Veja faturas, limites, datas de vencimento e histórico de compras em um só lugar.'
     },
     {
-      icon: CreditCardIcon,
-      title: 'Gestão de Cartões',
-      description: 'Controle limites, faturas e gastos de todos os seus cartões de crédito.'
+      icon: ChartBarIcon,
+      title: 'Integração com Open Finance (em breve)',
+      description: 'Conecte contas bancárias e receba atualizações automáticas.'
     },
     {
       icon: BanknotesIcon,
-      title: 'Múltiplas Contas',
-      description: 'Organize suas finanças com contas bancárias, poupanças e investimentos.'
+      title: 'Gestão de finanças pessoais e em grupo',
+      description: 'Ideal para organizar sua vida financeira ou administrar fundos coletivos.'
     },
     {
       icon: ShieldCheckIcon,
-      title: 'Segurança Avançada',
-      description: 'Seus dados protegidos com criptografia de ponta e backup automático.'
+      title: 'Automações',
+      description: 'O sistema aprende com você e classifica automaticamente suas transações.'
     },
-    {
-      icon: ClockIcon,
-      title: 'Relatórios em Tempo Real',
-      description: 'Acompanhe seus gastos e ganhos com relatórios detalhados e atualizados.'
-    },
-    {
-      icon: DevicePhoneMobileIcon,
-      title: 'Acesso Multiplataforma',
-      description: 'Use em qualquer dispositivo - web, mobile ou tablet.'
-    }
+
   ];
 
   const benefits = [
-    'Organize suas finanças de forma simples e intuitiva',
-    'Tome decisões financeiras mais inteligentes',
-    'Economize tempo com automação de tarefas',
-    'Visualize onde seu dinheiro está sendo gasto',
+    'Saiba exatamente para onde seu dinheiro está indo',
+    'Automação para que você gaste menos tempo organizando',
+    'Gráficos e dashboards simples e objetivos',
     'Alcance suas metas financeiras mais rapidamente',
-    'Tenha controle total sobre seu orçamento'
   ];
 
   const faqs = [
@@ -71,8 +58,9 @@ const Landing: React.FC = () => {
     },
     {
       question: 'Preciso pagar para usar?',
-      answer: 'Oferecemos um plano gratuito com funcionalidades essenciais e planos pagos para recursos avançados.'
+      answer: 'Sim. Cobramos um valor fixo e acessível, destinado a cobrir os custos de infraestrutura, sem pegadinhas.'
     }
+
   ];
 
   return (
@@ -86,18 +74,22 @@ const Landing: React.FC = () => {
               <SparklesIcon className="h-8 w-8 text-primary-600" />
               <span className="text-2xl font-bold text-gray-900">Budgetly</span>
             </div>
+            <div className="hidden md:flex md:items-center md:space-x-8">
+              <Link
+                to="/about" className="text-gray-700 hover:text-primary-600 transition-colors duration-200">Sobre</Link>
+              <Link
+                to="/about" className="text-gray-700 hover:text-primary-600 transition-colors duration-200">Funcionalidades</Link>
+              <Link
+                to="/about" className="text-gray-700 hover:text-primary-600 transition-colors duration-200">Benefícios</Link>
+              <Link
+                to="/about" className="text-gray-700 hover:text-primary-600 transition-colors duration-200">Perguntas</Link>s
+            </div>
             <div className="flex items-center space-x-4">
               <Link
                 to="/login"
-                className="text-gray-700 hover:text-primary-600 transition-colors duration-200"
-              >
-                Entrar
-              </Link>
-              <Link
-                to="/register"
                 className="bg-primary-600 text-white px-6 py-2 rounded-full hover:bg-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
-                Cadastrar
+                Login
               </Link>
             </div>
           </div>
@@ -108,27 +100,21 @@ const Landing: React.FC = () => {
       <section className="relative py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="inline-block mb-6">
-              <div className="bg-white/40 backdrop-blur-lg rounded-full px-6 py-2 border border-white/20 shadow-lg">
-                <span className="text-primary-600 font-medium">✨ Controle Financeiro Inteligente</span>
-              </div>
-            </div>
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-gray-900 mb-6">
-              Suas Finanças Sob
+              O seu controle
               <span className="bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent block">
-                Controle Total
+                financeiro pessoal
               </span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-12 leading-relaxed">
-              Organize, monitore e otimize suas finanças com a plataforma mais completa 
-              e intuitiva do mercado. Tome decisões inteligentes e alcance seus objetivos financeiros.
+              Uma aplicação moderna, com automações inteligentes, pensada especialmente para o dia a dia dos brasileiros. Tome decisões inteligentes e alcance seus objetivos financeiros.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
                 to="/register"
                 className="group bg-gradient-to-r from-primary-600 to-purple-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:from-primary-700 hover:to-purple-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 flex items-center"
               >
-                Começar Gratuitamente
+                Demonstração
                 <ArrowRightIcon className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
               </Link>
               <Link
@@ -163,39 +149,17 @@ const Landing: React.FC = () => {
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/10">
                 <h3 className="text-2xl font-bold mb-4">Nossa Missão</h3>
                 <p className="text-gray-300 leading-relaxed">
-                  Democratizar o acesso a ferramentas de gestão financeira de qualidade, 
-                  ajudando pessoas e empresas a tomarem decisões mais inteligentes com seu dinheiro.
-                </p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/10">
-                <h3 className="text-2xl font-bold mb-4">Nossa Visão</h3>
-                <p className="text-gray-300 leading-relaxed">
-                  Ser a plataforma de referência em controle financeiro, oferecendo 
-                  uma experiência única, segura e eficiente para nossos usuários.
+                  Democratizar o acesso a ferramentas de qualidade,
+                  ajudando pessoas a tomarem decisões mais inteligentes com seu dinheiro.
                 </p>
               </div>
             </div>
-            <div className="relative">
-              <div className="bg-gradient-to-br from-primary-500/20 to-purple-500/20 backdrop-blur-lg rounded-3xl p-8 border border-white/10">
-                <div className="grid grid-cols-2 gap-6 text-center">
-                  <div>
-                    <div className="text-4xl font-bold text-primary-400">10k+</div>
-                    <div className="text-gray-300">Usuários Ativos</div>
-                  </div>
-                  <div>
-                    <div className="text-4xl font-bold text-purple-400">50M+</div>
-                    <div className="text-gray-300">Transações</div>
-                  </div>
-                  <div>
-                    <div className="text-4xl font-bold text-green-400">99.9%</div>
-                    <div className="text-gray-300">Uptime</div>
-                  </div>
-                  <div>
-                    <div className="text-4xl font-bold text-yellow-400">4.9</div>
-                    <div className="text-gray-300">Avaliação</div>
-                  </div>
-                </div>
-              </div>
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/10">
+              <h3 className="text-2xl font-bold mb-4">Nossa Visão</h3>
+              <p className="text-gray-300 leading-relaxed">
+                Ser a plataforma de referência em controle financeiro, oferecendo
+                uma experiência única, segura e eficiente para nossos usuários.
+              </p>
             </div>
           </div>
         </div>
@@ -206,13 +170,13 @@ const Landing: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Funcionalidades Principais
+              O que torna o Budgetly único?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Descubra como o Budgetly pode transformar a forma como você gerencia suas finanças.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
             {features.map((feature, index) => (
               <div
                 key={index}
@@ -237,7 +201,7 @@ const Landing: React.FC = () => {
               Benefícios do Budgetly
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Veja como nossa plataforma pode melhorar sua vida financeira.
+              Mais que controle, liberdade financeira.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
