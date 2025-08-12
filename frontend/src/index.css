@@ -167,8 +167,12 @@
 
   /* Floating effects */
   .float-card {
-    @apply transform transition-all duration-300 hover:scale-105 hover:shadow-float dark:hover:shadow-float-dark;
+    @apply transform transition-all duration-300 hover:shadow-float dark:hover:shadow-float-dark;
   }
+
+  .float-card:hover {
+  transform: scale(1.02);
+}
 
   /* Profile image with gradient border */
   .profile-image {
