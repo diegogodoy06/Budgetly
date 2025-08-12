@@ -396,26 +396,7 @@ const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* Cards Financeiros (2/3) */}
           <div className="xl:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              {/* Saldo Previsto */}
-              <div className="glass-card p-6 float-card border border-primary-200/50 dark:border-primary-700/50">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <CurrencyDollarIcon className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Saldo Previsto</h3>
-                    {loadingDashboard ? (
-                      <div className="animate-pulse">
-                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-                      </div>
-                    ) : (
-                      <p className="text-lg font-black text-gradient">{formatCurrency(dashboardData.saldoPrevisto)}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* Entradas */}
               <div className="glass-card p-6 float-card border border-green-200/50 dark:border-green-700/50">
                 <div className="flex items-center space-x-3">
