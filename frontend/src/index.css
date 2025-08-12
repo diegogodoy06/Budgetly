@@ -134,6 +134,12 @@
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
   }
 
+  /* Dock-like collapsed sidebar - no background */
+  .sidebar-collapsed .sidebar {
+    @apply bg-transparent dark:bg-transparent backdrop-blur-none border-r-0;
+    box-shadow: none;
+  }
+
   .sidebar-collapsed {
     @apply w-20;
   }

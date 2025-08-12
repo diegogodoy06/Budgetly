@@ -302,109 +302,104 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="hidden md:flex md:flex-shrink-0">
         <div className={`flex flex-col transition-all duration-300 ${sidebarExpanded ? 'sidebar-expanded' : 'sidebar-collapsed'}`}>
           <div className="flex flex-col h-0 flex-1 sidebar">
-            <div className="flex-1 flex flex-col pt-6 pb-4 overflow-y-auto sidebar-scroll">
-              {/* Desktop Logo */}
-              <div className="flex items-center flex-shrink-0 px-6 mb-8">
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <span className="text-white font-black text-lg">B</span>
-                  </div>
-                  {sidebarExpanded && (
+            {sidebarExpanded ? (
+              /* Expanded mode - normal layout */
+              <div className="flex-1 flex flex-col pt-6 pb-4 overflow-y-auto sidebar-scroll">
+                {/* Desktop Logo */}
+                <div className="flex items-center flex-shrink-0 px-6 mb-8">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <span className="text-white font-black text-lg">B</span>
+                    </div>
                     <h1 className="ml-3 text-2xl font-black text-gradient animate-fade-in">Budgetly</h1>
-                  )}
-                </div>
-              </div>
-
-              {/* Desktop workspace selector */}
-              {currentWorkspace && sidebarExpanded && (
-                <div className="px-4 mb-6">
-                  <div className="relative" ref={dropdownRefDesktop}>
-                    <button
-                      onClick={() => setWorkspaceDropdownOpen(!workspaceDropdownOpen)}
-                      className="w-full glass-card p-4 hover:scale-105 transition-all duration-300"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mr-3">
-                            <BuildingOfficeIcon className="h-4 w-4 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0 text-left">
-                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
-                              {currentWorkspace.nome}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Workspace Atual</p>
-                          </div>
-                        </div>
-                        <ChevronDownIcon className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${workspaceDropdownOpen ? 'rotate-180' : ''}`} />
-                      </div>
-                    </button>
-
-                    {/* Desktop workspace dropdown */}
-                    {workspaceDropdownOpen && Array.isArray(workspaces) && workspaces.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 z-50 glass-card mt-2 py-2 animate-slide-in">
-                        {workspaces.map((workspace) => (
-                          <button
-                            key={workspace.id}
-                            onClick={() => handleWorkspaceChange(workspace)}
-                            className={`w-full px-4 py-3 text-left hover:bg-white/30 dark:hover:bg-white/10 transition-colors first:rounded-t-glass last:rounded-b-glass ${
-                              currentWorkspace.id === workspace.id ? 'bg-primary-50 dark:bg-primary-900/30' : ''
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center">
-                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center mr-3 ${
-                                  currentWorkspace.id === workspace.id ? 'bg-primary-100 dark:bg-primary-800' : 'bg-gray-100 dark:bg-gray-700'
-                                }`}>
-                                  <BuildingOfficeIcon className={`h-3.5 w-3.5 ${
-                                    currentWorkspace.id === workspace.id ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'
-                                  }`} />
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                                    {workspace.nome}
-                                  </p>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    {workspace.membros_count} {workspace.membros_count === 1 ? 'membro' : 'membros'}
-                                  </p>
-                                </div>
-                              </div>
-                              {currentWorkspace.id === workspace.id && (
-                                <CheckIcon className="h-4 w-4 text-primary-600 dark:text-primary-400" />
-                              )}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </div>
-              )}
-              
-              {/* Desktop navigation */}
-              <nav className="flex-1 px-4 space-y-2">
-                {navigation.map((item) => {
-                  const isActive = location.pathname === item.href;
-                  return (
-                    <button
-                      key={item.name}
-                      onClick={() => handleNavigation(item.href)}
-                      className={`nav-item w-full ${
-                        isActive ? 'nav-item-active' : 'nav-item-inactive'
-                      } ${!sidebarExpanded ? 'justify-center px-4' : ''}`}
-                      title={!sidebarExpanded ? item.name : undefined}
-                    >
-                      <item.icon className={`flex-shrink-0 h-5 w-5 ${sidebarExpanded ? 'mr-3' : ''}`} />
-                      {sidebarExpanded && (
-                        <span className="animate-fade-in">{item.name}</span>
-                      )}
-                    </button>
-                  );
-                })}
 
-                {/* Desktop settings submenu */}
-                <div className="space-y-1">
-                  {sidebarExpanded ? (
-                    /* Expanded mode - show dropdown */
+                {/* Desktop workspace selector */}
+                {currentWorkspace && (
+                  <div className="px-4 mb-6">
+                    <div className="relative" ref={dropdownRefDesktop}>
+                      <button
+                        onClick={() => setWorkspaceDropdownOpen(!workspaceDropdownOpen)}
+                        className="w-full glass-card p-4 hover:scale-105 transition-all duration-300"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center mr-3">
+                              <BuildingOfficeIcon className="h-4 w-4 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0 text-left">
+                              <p className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
+                                {currentWorkspace.nome}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Workspace Atual</p>
+                            </div>
+                          </div>
+                          <ChevronDownIcon className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${workspaceDropdownOpen ? 'rotate-180' : ''}`} />
+                        </div>
+                      </button>
+
+                      {/* Desktop workspace dropdown */}
+                      {workspaceDropdownOpen && Array.isArray(workspaces) && workspaces.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 z-50 glass-card mt-2 py-2 animate-slide-in">
+                          {workspaces.map((workspace) => (
+                            <button
+                              key={workspace.id}
+                              onClick={() => handleWorkspaceChange(workspace)}
+                              className={`w-full px-4 py-3 text-left hover:bg-white/30 dark:hover:bg-white/10 transition-colors first:rounded-t-glass last:rounded-b-glass ${
+                                currentWorkspace.id === workspace.id ? 'bg-primary-50 dark:bg-primary-900/30' : ''
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center mr-3 ${
+                                    currentWorkspace.id === workspace.id ? 'bg-primary-100 dark:bg-primary-800' : 'bg-gray-100 dark:bg-gray-700'
+                                  }`}>
+                                    <BuildingOfficeIcon className={`h-3.5 w-3.5 ${
+                                      currentWorkspace.id === workspace.id ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'
+                                    }`} />
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                                      {workspace.nome}
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                      {workspace.membros_count} {workspace.membros_count === 1 ? 'membro' : 'membros'}
+                                    </p>
+                                  </div>
+                                </div>
+                                {currentWorkspace.id === workspace.id && (
+                                  <CheckIcon className="h-4 w-4 text-primary-600 dark:text-primary-400" />
+                                )}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Desktop navigation */}
+                <nav className="flex-1 px-4 space-y-2">
+                  {navigation.map((item) => {
+                    const isActive = location.pathname === item.href;
+                    return (
+                      <button
+                        key={item.name}
+                        onClick={() => handleNavigation(item.href)}
+                        className={`nav-item w-full ${
+                          isActive ? 'nav-item-active' : 'nav-item-inactive'
+                        }`}
+                      >
+                        <item.icon className="flex-shrink-0 h-5 w-5 mr-3" />
+                        <span className="animate-fade-in">{item.name}</span>
+                      </button>
+                    );
+                  })}
+
+                  {/* Desktop settings submenu */}
+                  <div className="space-y-1">
                     <button
                       onClick={() => setSettingsDropdownOpen(!settingsDropdownOpen)}
                       className={`nav-item w-full text-left ${
@@ -423,66 +418,101 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         />
                       </div>
                     </button>
-                  ) : (
-                    /* Icon mode - direct navigation to main settings */
-                    <button
-                      onClick={() => handleNavigation('/settings/categories')}
-                      className={`nav-item w-full justify-center px-4 ${
-                        location.pathname.startsWith('/settings') ? 'nav-item-active' : 'nav-item-inactive'
-                      }`}
-                      title="Configurações"
-                    >
-                      <CogIcon className="flex-shrink-0 h-5 w-5" />
-                    </button>
-                  )}
-                  
-                  {settingsDropdownOpen && sidebarExpanded && (
-                    <div className="ml-4 space-y-1">
-                      {settingsNavigation.map((item) => {
-                        const isActive = location.pathname === item.href;
-                        return (
-                          <button
-                            key={item.name}
-                            onClick={() => handleNavigation(item.href)}
-                            className={`w-full ${
-                              isActive
-                                ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-l-2 border-primary-500'
-                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100'
-                            } group flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200`}
-                          >
-                            <item.icon
-                              className={`${
-                                isActive ? 'text-primary-500 dark:text-primary-400' : 'text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'
-                              } mr-3 flex-shrink-0 h-4 w-4`}
-                            />
-                            <span className="animate-fade-in">{item.name}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </nav>
-              
-              {/* Sidebar toggle button - moved to bottom */}
-              <div className="px-4 mt-6">
-                <button
-                  onClick={() => setSidebarExpanded(!sidebarExpanded)}
-                  className={`w-full glass-card p-3 hover:scale-105 transition-all duration-300 group ${
-                    !sidebarExpanded ? 'justify-center' : ''
-                  }`}
-                  title={!sidebarExpanded ? (sidebarExpanded ? 'Recolher menu' : 'Expandir menu') : undefined}
-                >
-                  <div className="flex items-center justify-center">
-                    <ChevronRightIcon 
-                      className={`h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform duration-300 ${
-                        sidebarExpanded ? 'rotate-180' : ''
-                      }`} 
-                    />
+                    
+                    {settingsDropdownOpen && (
+                      <div className="ml-4 space-y-1">
+                        {settingsNavigation.map((item) => {
+                          const isActive = location.pathname === item.href;
+                          return (
+                            <button
+                              key={item.name}
+                              onClick={() => handleNavigation(item.href)}
+                              className={`w-full ${
+                                isActive
+                                  ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-l-2 border-primary-500'
+                                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100'
+                              } group flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200`}
+                            >
+                              <item.icon
+                                className={`${
+                                  isActive ? 'text-primary-500 dark:text-primary-400' : 'text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300'
+                                } mr-3 flex-shrink-0 h-4 w-4`}
+                              />
+                              <span className="animate-fade-in">{item.name}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                </button>
+                </nav>
+                
+                {/* Sidebar toggle button - moved to bottom */}
+                <div className="px-4 mt-6">
+                  <button
+                    onClick={() => setSidebarExpanded(!sidebarExpanded)}
+                    className="w-full glass-card p-3 hover:scale-105 transition-all duration-300 group"
+                  >
+                    <div className="flex items-center justify-center">
+                      <ChevronRightIcon 
+                        className={`h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform duration-300 ${
+                          sidebarExpanded ? 'rotate-180' : ''
+                        }`} 
+                      />
+                    </div>
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              /* Collapsed mode - dock-like centered layout */
+              <div className="flex flex-col h-full">
+                {/* Top spacer */}
+                <div className="flex-1"></div>
+                
+                {/* Centered dock navigation */}
+                <div className="flex flex-col items-center space-y-3 px-4">
+                  {navigation.map((item) => {
+                    const isActive = location.pathname === item.href;
+                    return (
+                      <button
+                        key={item.name}
+                        onClick={() => handleNavigation(item.href)}
+                        className={`nav-item w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                          isActive ? 'nav-item-active shadow-lg' : 'nav-item-inactive hover:bg-white/20 dark:hover:bg-white/10'
+                        }`}
+                        title={item.name}
+                      >
+                        <item.icon className="flex-shrink-0 h-6 w-6" />
+                      </button>
+                    );
+                  })}
+
+                  {/* Settings icon in dock */}
+                  <button
+                    onClick={() => handleNavigation('/settings/categories')}
+                    className={`nav-item w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                      location.pathname.startsWith('/settings') ? 'nav-item-active shadow-lg' : 'nav-item-inactive hover:bg-white/20 dark:hover:bg-white/10'
+                    }`}
+                    title="Configurações"
+                  >
+                    <CogIcon className="flex-shrink-0 h-6 w-6" />
+                  </button>
+                </div>
+                
+                {/* Bottom spacer and expand button */}
+                <div className="flex-1 flex flex-col justify-end">
+                  <div className="px-4 pb-6">
+                    <button
+                      onClick={() => setSidebarExpanded(!sidebarExpanded)}
+                      className="w-12 h-12 rounded-xl flex items-center justify-center hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300 mx-auto"
+                      title="Expandir menu"
+                    >
+                      <ChevronRightIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform duration-300" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
