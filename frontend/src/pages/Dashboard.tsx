@@ -279,15 +279,34 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Função para carregar transações recentes
-  const loadRecentTransactions = async () => {
+  // Paginação para transações recentes
+  const [transactionsPage, setTransactionsPage] = useState(1);
+  const transactionsPerPage = 5;
+  const [allRecentTransactions, setAllRecentTransactions] = useState<any[] | null>(null); // null = API paginada, array = paginação local
+
+  // Função para carregar transações recentes paginadas
+  const loadRecentTransactions = async (page = 1) => {
     if (!currentWorkspace) return;
-    
     setLoadingTransactions(true);
     try {
-      const transactions = await transactionsAPI.getAll({ limit: 5 });
-      setRecentTransactions(transactions);
+      const params = { limit: transactionsPerPage, offset: (page - 1) * transactionsPerPage };
+      const response = await transactionsAPI.getAll(params);
+      // Se a API retorna array grande, paginar no frontend
+      if (Array.isArray(response) && response.length > transactionsPerPage) {
+        setAllRecentTransactions(response);
+        setRecentTransactions(response.slice((page - 1) * transactionsPerPage, page * transactionsPerPage));
+      } else if (Array.isArray(response)) {
+        setAllRecentTransactions(null);
+        setRecentTransactions(response);
+      } else if (response && typeof response === 'object' && 'results' in response) {
+        setAllRecentTransactions(null);
+        setRecentTransactions((response as any).results || []);
+      } else {
+        setAllRecentTransactions(null);
+        setRecentTransactions([]);
+      }
     } catch (error) {
+      setAllRecentTransactions(null);
       console.error('Erro ao carregar transações recentes:', error);
     } finally {
       setLoadingTransactions(false);
@@ -299,8 +318,17 @@ const Dashboard: React.FC = () => {
     loadDashboardData();
     loadChartsData();
     loadCreditCards();
-    loadRecentTransactions();
+    setTransactionsPage(1); // Sempre volta para a primeira página ao trocar mês/workspace
   }, [currentMonth, currentYear, currentWorkspace]);
+
+  useEffect(() => {
+    if (allRecentTransactions) {
+      setRecentTransactions(allRecentTransactions.slice((transactionsPage - 1) * transactionsPerPage, transactionsPage * transactionsPerPage));
+    } else {
+      loadRecentTransactions(transactionsPage);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactionsPage, currentMonth, currentYear, currentWorkspace, allRecentTransactions]);
 
   // Cores para o gráfico de pizza
   const COLORS = ['#8B5CF6', '#A78BFA', '#C4B5FD', '#DDD6FE', '#EDE9FE', '#F3F4F6', '#E5E7EB', '#D1D5DB'];
@@ -392,135 +420,86 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Primeira Linha: Cards Financeiros + Meus Cartões */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          {/* Cards Financeiros (2/3) */}
-          <div className="xl:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {/* Entradas */}
-              <div className="glass-card p-6 float-card border border-green-200/50 dark:border-green-700/50">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <ArrowUpIcon className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Entradas</h3>
-                    {loadingDashboard ? (
-                      <div className="animate-pulse">
-                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-                      </div>
-                    ) : (
-                      <p className="text-lg font-black text-green-600 dark:text-green-400">{formatCurrency(dashboardData.totalEntradas)}</p>
-                    )}
-                  </div>
-                </div>
+        {/* Primeira Linha: Cards Financeiros */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          {/* Entradas */}
+          <div className="glass-card p-6 float-card border border-green-200/50 dark:border-green-700/50">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                <ArrowUpIcon className="h-5 w-5 text-white" />
               </div>
-
-              {/* Entradas Previstas */}
-              <div className="glass-card p-6 float-card border border-green-200/50 dark:border-green-700/50 border-dashed">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-700 rounded-xl flex items-center justify-center border-2 border-dashed border-green-300 dark:border-green-600">
-                    <ArrowUpIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <div>
+                <h3 className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Entradas</h3>
+                {loadingDashboard ? (
+                  <div className="animate-pulse">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
                   </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Entr. P.</h3>
-                    {loadingDashboard ? (
-                      <div className="animate-pulse">
-                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-                      </div>
-                    ) : (
-                      <p className="text-lg font-black text-green-600 dark:text-green-400">{formatCurrency(dashboardData.previsaoEntradas)}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Saídas */}
-              <div className="glass-card p-6 float-card border border-red-200/50 dark:border-red-700/50">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <ArrowDownIcon className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Saídas</h3>
-                    {loadingDashboard ? (
-                      <div className="animate-pulse">
-                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-                      </div>
-                    ) : (
-                      <p className="text-lg font-black text-red-600 dark:text-red-400">{formatCurrency(dashboardData.totalSaidas)}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Saídas Previstas */}
-              <div className="glass-card p-6 float-card border border-red-200/50 dark:border-red-700/50 border-dashed">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-800 dark:to-red-700 rounded-xl flex items-center justify-center border-2 border-dashed border-red-300 dark:border-red-600">
-                    <ArrowDownIcon className="h-5 w-5 text-red-600 dark:text-red-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Saídas P.</h3>
-                    {loadingDashboard ? (
-                      <div className="animate-pulse">
-                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-                      </div>
-                    ) : (
-                      <p className="text-lg font-black text-red-600 dark:text-red-400">{formatCurrency(dashboardData.previsaoSaidas)}</p>
-                    )}
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-lg font-black text-green-600 dark:text-green-400">{formatCurrency(dashboardData.totalEntradas)}</p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Meus Cartões (1/3) */}
-          <div className="xl:col-span-1">
-            <div className="glass-card p-6 float-card h-full">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <CreditCardIcon className="h-5 w-5 text-white" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Meus Cartões</h3>
+          {/* Entradas Previstas */}
+          <div className="glass-card p-6 float-card border border-green-200/50 dark:border-green-700/50 border-dashed">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-700 rounded-xl flex items-center justify-center border-2 border-dashed border-green-300 dark:border-green-600">
+                <ArrowUpIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
-              
-              <div className="space-y-4">
-                {loadingCards ? (
-                  <div className="space-y-3">
-                    {[...Array(3)].map((_, index) => (
-                      <div key={index} className="animate-pulse">
-                        <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-                      </div>
-                    ))}
+              <div>
+                <h3 className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Entr. P.</h3>
+                {loadingDashboard ? (
+                  <div className="animate-pulse">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
                   </div>
-                ) : creditCards.length > 0 ? (
-                  creditCards.map((card, index) => (
-                    <div key={card.id} className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200/50 dark:border-blue-700/50 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">{card.nome}</h4>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">**** {card.numero?.slice(-4) || '****'}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-black text-blue-600 dark:text-blue-400">{formatCurrency(card.limite || 0)}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Limite</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))
                 ) : (
-                  <div className="text-center py-8">
-                    <CreditCardIcon className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">Nenhum cartão cadastrado</p>
+                  <p className="text-lg font-black text-green-600 dark:text-green-400">{formatCurrency(dashboardData.previsaoEntradas)}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Saídas */}
+          <div className="glass-card p-6 float-card border border-red-200/50 dark:border-red-700/50">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                <ArrowDownIcon className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Saídas</h3>
+                {loadingDashboard ? (
+                  <div className="animate-pulse">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
                   </div>
+                ) : (
+                  <p className="text-lg font-black text-red-600 dark:text-red-400">{formatCurrency(dashboardData.totalSaidas)}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Saídas Previstas */}
+          <div className="glass-card p-6 float-card border border-red-200/50 dark:border-red-700/50 border-dashed">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-800 dark:to-red-700 rounded-xl flex items-center justify-center border-2 border-dashed border-red-300 dark:border-red-600">
+                <ArrowDownIcon className="h-5 w-5 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Saídas P.</h3>
+                {loadingDashboard ? (
+                  <div className="animate-pulse">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+                  </div>
+                ) : (
+                  <p className="text-lg font-black text-red-600 dark:text-red-400">{formatCurrency(dashboardData.previsaoSaidas)}</p>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Segunda Linha: Gráfico de Linhas + Meus Cartões (continuação) */}
+        {/* Segunda Linha: Money Flow + Meus Cartões */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* Gráfico de Linha - Money Flow (2/3) */}
           <div className="xl:col-span-2">
@@ -536,7 +515,6 @@ const Dashboard: React.FC = () => {
                   </div>
                   <span className="text-sm text-gray-500 dark:text-gray-400">{getMonthName(currentMonth)} {currentYear}</span>
                 </div>
-                
                 {/* Informações de Saldo no Cabeçalho */}
                 <div className="grid grid-cols-3 gap-6">
                   <div className="text-center">
@@ -553,7 +531,6 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-
               {/* Gráfico de Linha */}
               <div className="h-80">
                 {loadingCharts ? (
@@ -592,27 +569,45 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Espaço para Meus Cartões (continuação) - pode ser usado para mais cartões ou outras informações */}
+          {/* Meus Cartões (1/3) */}
           <div className="xl:col-span-1">
             <div className="glass-card p-6 float-card h-full">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">Resumo do Mês</h3>
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <CreditCardIcon className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Meus Cartões</h3>
+              </div>
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Total Entradas</span>
-                  <span className="text-sm font-bold text-green-600 dark:text-green-400">{formatCurrency(dashboardData.totalEntradas)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Total Saídas</span>
-                  <span className="text-sm font-bold text-red-600 dark:text-red-400">{formatCurrency(dashboardData.totalSaidas)}</span>
-                </div>
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-bold text-gray-900 dark:text-gray-100">Resultado</span>
-                    <span className={`text-sm font-bold ${(dashboardData.totalEntradas - dashboardData.totalSaidas) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                      {formatCurrency(dashboardData.totalEntradas - dashboardData.totalSaidas)}
-                    </span>
+                {loadingCards ? (
+                  <div className="space-y-3">
+                    {[...Array(3)].map((_, index) => (
+                      <div key={index} className="animate-pulse">
+                        <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                ) : creditCards.length > 0 ? (
+                  creditCards.map((card) => (
+                    <div key={card.id} className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200/50 dark:border-blue-700/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">{card.nome}</h4>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">**** {card.numero?.slice(-4) || '****'}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-black text-blue-600 dark:text-blue-400">{formatCurrency(card.limite || 0)}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Limite</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <CreditCardIcon className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">Nenhum cartão cadastrado</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -702,7 +697,7 @@ const Dashboard: React.FC = () => {
               <div className="space-y-3">
                 {loadingTransactions ? (
                   <div className="space-y-3">
-                    {[...Array(5)].map((_, index) => (
+                    {[...Array(transactionsPerPage)].map((_, index) => (
                       <div key={index} className="animate-pulse glass-card p-3">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
@@ -715,25 +710,50 @@ const Dashboard: React.FC = () => {
                     ))}
                   </div>
                 ) : recentTransactions.length > 0 ? (
-                  recentTransactions.map((transaction) => (
-                    <div key={transaction.id} className="glass-card p-3 hover:bg-white/50 dark:hover:bg-white/10 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                            {transaction.descricao}
-                          </p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            {new Date(transaction.data).toLocaleDateString('pt-BR')}
-                          </p>
-                        </div>
-                        <div className="text-right ml-3">
-                          <p className={`text-sm font-bold ${transaction.tipo === 'entrada' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                            {transaction.tipo === 'entrada' ? '+' : '-'}{formatCurrency(Math.abs(parseFloat(transaction.valor)))}
-                          </p>
+                  <>
+                    {recentTransactions.map((transaction) => (
+                      <div key={transaction.id} className="glass-card p-3 hover:bg-white/50 dark:hover:bg-white/10 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                              {transaction.descricao}
+                            </p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                              {new Date(transaction.data).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                          <div className="text-right ml-3">
+                            <p className={`text-sm font-bold ${transaction.tipo === 'entrada' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                              {transaction.tipo === 'entrada' ? '+' : '-'}{formatCurrency(Math.abs(parseFloat(transaction.valor)))}
+                            </p>
+                          </div>
                         </div>
                       </div>
+                    ))}
+                    {/* Paginação */}
+                    <div className="flex justify-between items-center mt-4">
+                      <button
+                        className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-xs font-bold disabled:opacity-50"
+                        onClick={() => setTransactionsPage((p) => Math.max(1, p - 1))}
+                        disabled={transactionsPage === 1 || loadingTransactions}
+                      >Anterior</button>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        Página {transactionsPage}
+                      </span>
+                      <button
+                        className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-xs font-bold disabled:opacity-50"
+                        onClick={() => setTransactionsPage((p) => p + 1)}
+                        disabled={
+                          loadingTransactions ||
+                          (
+                            allRecentTransactions
+                              ? (transactionsPage * transactionsPerPage >= allRecentTransactions.length)
+                              : (recentTransactions.length < transactionsPerPage)
+                          )
+                        }
+                      >Próxima</button>
                     </div>
-                  ))
+                  </>
                 ) : (
                   <div className="text-center py-8">
                     <ClockIcon className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
