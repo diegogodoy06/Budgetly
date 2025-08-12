@@ -64,6 +64,7 @@ const Dashboard: React.FC = () => {
   // Estados para cartões e transações
   const [creditCards, setCreditCards] = useState<any[]>([]);
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
   
   // Loading states
   const [loadingDashboard, setLoadingDashboard] = useState(false);
@@ -111,6 +112,51 @@ const Dashboard: React.FC = () => {
     setCurrentYear(year);
   };
 
+  // Função para calcular o saldo de fechamento de um mês específico
+  const calculateMonthClosingBalance = async (month: number, year: number, depth = 0): Promise<number> => {
+    // Limite de recursão para evitar loops infinitos - máximo 12 meses para trás
+    if (depth > 12) {
+      console.warn('Limite de recursão atingido ao calcular saldo inicial. Usando valor padrão.');
+      return 5000; // Valor base quando não conseguimos calcular mais
+    }
+
+    try {
+      const startDate = new Date(year, month, 1);
+      const endDate = new Date(year, month + 1, 0);
+      
+      const params = {
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
+      };
+
+      const transactions = await transactionsAPI.getAll(params);
+      const confirmedTransactions = transactions.filter(t => t.confirmada);
+      
+      const entradas = confirmedTransactions
+        .filter(t => t.tipo === 'entrada')
+        .reduce((sum, t) => sum + Math.abs(parseFloat(t.valor)), 0);
+      const saidas = confirmedTransactions
+        .filter(t => t.tipo === 'saida')
+        .reduce((sum, t) => sum + Math.abs(parseFloat(t.valor)), 0);
+
+      // Para calcular o saldo inicial do mês, precisamos do saldo de fechamento do mês anterior
+      let saldoInicialMes = 0;
+      if (month === 0) {
+        // Janeiro - usar dezembro do ano anterior
+        saldoInicialMes = await calculateMonthClosingBalance(11, year - 1, depth + 1);
+      } else {
+        // Mês anterior do mesmo ano
+        saldoInicialMes = await calculateMonthClosingBalance(month - 1, year, depth + 1);
+      }
+
+      return saldoInicialMes + entradas - saidas;
+    } catch (error) {
+      console.error(`Erro ao calcular saldo do mês ${month}/${year}:`, error);
+      // Base case: se não conseguir calcular, usar um valor padrão
+      return 5000;
+    }
+  };
+
   // Função para carregar dados principais do dashboard
   const loadDashboardData = async () => {
     if (!currentWorkspace) return;
@@ -154,8 +200,16 @@ const Dashboard: React.FC = () => {
         .filter(t => t.tipo === 'saida')
         .reduce((sum, t) => sum + Math.abs(parseFloat(t.valor)), 0);
 
-      // Calcular saldos
-      const saldoInicial = 5000; // TODO: Buscar saldo inicial real
+      // Calcular saldo inicial como fechamento do mês anterior
+      let saldoInicial = 0;
+      if (currentMonth === 0) {
+        // Janeiro - buscar fechamento de dezembro do ano anterior
+        saldoInicial = await calculateMonthClosingBalance(11, currentYear - 1);
+      } else {
+        // Mês anterior do mesmo ano
+        saldoInicial = await calculateMonthClosingBalance(currentMonth - 1, currentYear);
+      }
+      
       const saldoAtual = saldoInicial + totalEntradas - totalSaidas;
       const saldoPrevisto = saldoAtual + previsaoEntradas - previsaoSaidas;
 
@@ -271,12 +325,22 @@ const Dashboard: React.FC = () => {
     setLoadingCards(true);
     try {
       const cards = await creditCardsAPI.getAll();
-      setCreditCards(cards.slice(0, 3)); // Mostrar apenas 3 cartões
+      setCreditCards(cards); // Carregar todos os cartões para o carousel
+      setCurrentCardIndex(0); // Reset carousel position
     } catch (error) {
       console.error('Erro ao carregar cartões:', error);
     } finally {
       setLoadingCards(false);
     }
+  };
+
+  // Funções para navegação no carousel de cartões
+  const handlePreviousCard = () => {
+    setCurrentCardIndex((prev) => (prev > 0 ? prev - 1 : creditCards.length - 1));
+  };
+
+  const handleNextCard = () => {
+    setCurrentCardIndex((prev) => (prev < creditCards.length - 1 ? prev + 1 : 0));
   };
 
   // Paginação para transações recentes
@@ -572,36 +636,107 @@ const Dashboard: React.FC = () => {
           {/* Meus Cartões (1/3) */}
           <div className="xl:col-span-1">
             <div className="glass-card p-6 float-card h-full">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <CreditCardIcon className="h-5 w-5 text-white" />
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <CreditCardIcon className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Meus Cartões</h3>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Meus Cartões</h3>
+                
+                {/* Navegação do Carousel - só aparece se houver mais de 1 cartão */}
+                {creditCards.length > 1 && (
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={handlePreviousCard}
+                      className="p-1.5 rounded-lg hover:bg-white/30 dark:hover:bg-white/10 transition-colors"
+                      disabled={loadingCards}
+                    >
+                      <ChevronLeftIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    </button>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                      {currentCardIndex + 1}/{creditCards.length}
+                    </span>
+                    <button
+                      onClick={handleNextCard}
+                      className="p-1.5 rounded-lg hover:bg-white/30 dark:hover:bg-white/10 transition-colors"
+                      disabled={loadingCards}
+                    >
+                      <ChevronRightIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    </button>
+                  </div>
+                )}
               </div>
-              <div className="space-y-4">
+              
+              <div className="relative">
                 {loadingCards ? (
-                  <div className="space-y-3">
-                    {[...Array(3)].map((_, index) => (
-                      <div key={index} className="animate-pulse">
-                        <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-                      </div>
-                    ))}
+                  <div className="animate-pulse">
+                    <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
                   </div>
                 ) : creditCards.length > 0 ? (
-                  creditCards.map((card) => (
-                    <div key={card.id} className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200/50 dark:border-blue-700/50 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">{card.nome}</h4>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">**** {card.numero?.slice(-4) || '****'}</p>
+                  <div className="relative overflow-hidden">
+                    {/* Carousel Container */}
+                    <div 
+                      className="flex transition-transform duration-300 ease-in-out"
+                      style={{ transform: `translateX(-${currentCardIndex * 100}%)` }}
+                    >
+                      {creditCards.map((card, index) => (
+                        <div key={card.id} className="w-full flex-shrink-0 px-1">
+                          {/* Card estilo similar ao da página de cartões */}
+                          <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-4 text-white shadow-lg relative overflow-hidden">
+                            {/* Background Pattern */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent"></div>
+                            <div className="absolute -top-4 -right-4 w-20 h-20 bg-white/10 rounded-full"></div>
+                            <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-white/10 rounded-full"></div>
+                            
+                            <div className="relative z-10">
+                              {/* Card Header */}
+                              <div className="flex items-center justify-between mb-4">
+                                <div>
+                                  <h4 className="text-sm font-bold text-white">{card.nome}</h4>
+                                  <p className="text-xs text-blue-100">**** {card.numero?.slice(-4) || '****'}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xs text-blue-100">Limite</p>
+                                  <p className="text-sm font-black text-white">{formatCurrency(card.limite || 0)}</p>
+                                </div>
+                              </div>
+                              
+                              {/* Card Bottom */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-8 h-6 bg-white/20 rounded backdrop-blur-sm flex items-center justify-center">
+                                    <span className="text-xs font-bold text-white">💳</span>
+                                  </div>
+                                  <span className="text-xs text-blue-100">{card.bandeira || 'Visa'}</span>
+                                </div>
+                                <div className="text-xs text-blue-100">
+                                  {card.vencimento || '12/28'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-black text-blue-600 dark:text-blue-400">{formatCurrency(card.limite || 0)}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">Limite</p>
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                  ))
+                    
+                    {/* Indicadores de pontos (dots) */}
+                    {creditCards.length > 1 && (
+                      <div className="flex justify-center space-x-2 mt-4">
+                        {creditCards.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setCurrentCardIndex(index)}
+                            className={`w-2 h-2 rounded-full transition-colors ${
+                              index === currentCardIndex 
+                                ? 'bg-blue-600 dark:bg-blue-400' 
+                                : 'bg-gray-300 dark:bg-gray-600'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <div className="text-center py-8">
                     <CreditCardIcon className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
