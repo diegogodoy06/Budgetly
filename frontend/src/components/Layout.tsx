@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useWorkspace } from '../contexts/WorkspaceContext';
+import Logo from './Logo';
 import {
   Bars3Icon,
   XMarkIcon,
@@ -38,10 +39,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [workspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
   const [settingsDropdownOpen, setSettingsDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [dockSettingsOpen, setDockSettingsOpen] = useState(false); // New state for dock settings submenu
   const dropdownRefMobile = useRef<HTMLDivElement>(null);
   const dropdownRefDesktop = useRef<HTMLDivElement>(null);
   const profileDropdownRefMobile = useRef<HTMLDivElement>(null);
   const profileDropdownRefDesktop = useRef<HTMLDivElement>(null);
+  const dockSettingsRef = useRef<HTMLDivElement>(null); // New ref for dock settings
   const location = useLocation();
   const navigate = useNavigate();
   const { logout, user } = useAuth();
@@ -84,16 +87,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       ) {
         setProfileDropdownOpen(false);
       }
+
+      if (dockSettingsRef.current && !dockSettingsRef.current.contains(event.target as Node)) {
+        setDockSettingsOpen(false);
+      }
     };
 
-    if (workspaceDropdownOpen || profileDropdownOpen) {
+    if (workspaceDropdownOpen || profileDropdownOpen || dockSettingsOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [workspaceDropdownOpen, profileDropdownOpen]);
+  }, [workspaceDropdownOpen, profileDropdownOpen, dockSettingsOpen]);
 
   // Keep settings dropdown open if on settings page
   useEffect(() => {
@@ -155,12 +162,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex-1 h-0 pt-6 pb-4 overflow-y-auto sidebar-scroll">
             {/* Mobile Logo */}
             <div className="flex-shrink-0 flex items-center px-6 mb-8">
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                  <span className="text-white font-black text-lg">B</span>
-                </div>
-                <h1 className="text-2xl font-black text-gradient">Budgetly</h1>
-              </div>
+              <Logo size="md" />
             </div>
             
             {/* Mobile workspace selector */}
@@ -307,12 +309,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="flex-1 flex flex-col pt-6 pb-4 overflow-y-auto sidebar-scroll">
                 {/* Desktop Logo */}
                 <div className="flex items-center flex-shrink-0 px-6 mb-8">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-                      <span className="text-white font-black text-lg">B</span>
-                    </div>
-                    <h1 className="ml-3 text-2xl font-black text-gradient animate-fade-in">Budgetly</h1>
-                  </div>
+                  <Logo size="md" />
                 </div>
 
                 {/* Desktop workspace selector */}
@@ -477,26 +474,56 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       <button
                         key={item.name}
                         onClick={() => handleNavigation(item.href)}
-                        className={`nav-item w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                        className={`nav-item w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
                           isActive ? 'nav-item-active shadow-lg' : 'nav-item-inactive hover:bg-white/20 dark:hover:bg-white/10'
                         }`}
                         title={item.name}
                       >
-                        <item.icon className="flex-shrink-0 h-6 w-6" />
+                        <item.icon className="flex-shrink-0 h-5 w-5" />
                       </button>
                     );
                   })}
 
-                  {/* Settings icon in dock */}
-                  <button
-                    onClick={() => handleNavigation('/settings/categories')}
-                    className={`nav-item w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                      location.pathname.startsWith('/settings') ? 'nav-item-active shadow-lg' : 'nav-item-inactive hover:bg-white/20 dark:hover:bg-white/10'
-                    }`}
-                    title="Configurações"
-                  >
-                    <CogIcon className="flex-shrink-0 h-6 w-6" />
-                  </button>
+                  {/* Settings submenu in dock */}
+                  <div className="relative" ref={dockSettingsRef}>
+                    <button
+                      onClick={() => setDockSettingsOpen(!dockSettingsOpen)}
+                      className={`nav-item w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                        location.pathname.startsWith('/settings') ? 'nav-item-active shadow-lg' : 'nav-item-inactive hover:bg-white/20 dark:hover:bg-white/10'
+                      }`}
+                      title="Configurações"
+                    >
+                      <CogIcon className="flex-shrink-0 h-5 w-5" />
+                    </button>
+
+                    {/* Dock settings dropdown */}
+                    {dockSettingsOpen && (
+                      <div className="absolute left-full top-0 ml-2 w-48 glass-card py-2 z-50 animate-slide-in">
+                        {settingsNavigation.map((item) => {
+                          const isActive = location.pathname === item.href;
+                          return (
+                            <button
+                              key={item.name}
+                              onClick={() => {
+                                setDockSettingsOpen(false);
+                                handleNavigation(item.href);
+                              }}
+                              className={`w-full flex items-center px-4 py-3 text-sm text-left transition-colors ${
+                                isActive
+                                  ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                                  : 'text-gray-700 dark:text-gray-300 hover:bg-white/30 dark:hover:bg-white/10'
+                              }`}
+                            >
+                              <item.icon className={`h-4 w-4 mr-3 ${
+                                isActive ? 'text-primary-500 dark:text-primary-400' : 'text-gray-400'
+                              }`} />
+                              {item.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 {/* Bottom spacer and expand button */}
@@ -504,10 +531,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <div className="px-4 pb-6">
                     <button
                       onClick={() => setSidebarExpanded(!sidebarExpanded)}
-                      className="w-12 h-12 rounded-xl flex items-center justify-center hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300 mx-auto"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300 mx-auto"
                       title="Expandir menu"
                     >
-                      <ChevronRightIcon className="h-5 w-5 text-gray-500 dark:text-gray-400 transition-transform duration-300" />
+                      <ChevronRightIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform duration-300" />
                     </button>
                   </div>
                 </div>

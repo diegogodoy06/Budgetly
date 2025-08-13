@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLoginRedirect } from '@/hooks/useAuth';
 import { EyeIcon, EyeSlashIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline';
+import Logo from '../components/Logo';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('admin@budgetly.com');
@@ -82,8 +83,8 @@ const Login: React.FC = () => {
       <div className="relative w-full max-w-md p-8 glass-card float-card z-10">
         {/* Logo and title */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <span className="text-white font-black text-2xl">B</span>
+          <div className="flex justify-center mb-4">
+            <Logo variant="icon" size="lg" />
           </div>
           <h1 className="text-3xl font-black text-gradient mb-2">Budgetly</h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
