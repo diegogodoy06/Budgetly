@@ -463,6 +463,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             ) : (
               /* Collapsed mode - dock-like centered layout */
               <div className="flex flex-col h-full">
+                {/* Logo at top */}
+                <div className="flex justify-center pt-6 pb-4">
+                  <Logo variant="icon" size="md" />
+                </div>
+                
                 {/* Top spacer */}
                 <div className="flex-1"></div>
                 

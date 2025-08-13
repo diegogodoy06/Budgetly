@@ -1,4 +1,6 @@
 import React from 'react';
+import logoIcon from '../assets/images/logo.webp';
+import logoFull from '../assets/images/Logo completo.webp';
 
 interface LogoProps {
   variant?: 'full' | 'icon';
@@ -13,35 +15,22 @@ const Logo: React.FC<LogoProps> = ({ variant = 'full', size = 'md', className = 
     lg: variant === 'icon' ? 'w-16 h-16' : 'h-16',
   };
 
-  const iconSize = {
-    sm: 'text-sm',
-    md: 'text-lg',
-    lg: 'text-2xl',
-  };
-
-  const textSize = {
-    sm: 'text-lg',
-    md: 'text-2xl',
-    lg: 'text-3xl',
-  };
-
   if (variant === 'icon') {
     return (
-      <div className={`bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg ${sizeClasses[size]} ${className}`}>
-        <span className={`text-white font-black ${iconSize[size]}`}>B</span>
-      </div>
+      <img
+        src={logoIcon}
+        alt="Budgetly"
+        className={`${sizeClasses[size]} ${className} object-contain`}
+      />
     );
   }
 
   return (
-    <div className={`flex items-center ${className}`}>
-      <div className={`bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg ${sizeClasses[size]}`}>
-        <span className={`text-white font-black ${iconSize[size]}`}>B</span>
-      </div>
-      <h1 className={`ml-3 font-black text-gradient ${textSize[size]}`}>
-        Budgetly
-      </h1>
-    </div>
+    <img
+      src={logoFull}
+      alt="Budgetly"
+      className={`${sizeClasses[size]} ${className} object-contain`}
+    />
   );
 };
 
