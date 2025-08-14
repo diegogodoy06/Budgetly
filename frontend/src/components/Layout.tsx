@@ -74,29 +74,41 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      
+      // Close workspace dropdown
       if (
-        (dropdownRefMobile.current && !dropdownRefMobile.current.contains(event.target as Node)) &&
-        (dropdownRefDesktop.current && !dropdownRefDesktop.current.contains(event.target as Node))
+        workspaceDropdownOpen &&
+        dropdownRefMobile.current && 
+        dropdownRefDesktop.current &&
+        !dropdownRefMobile.current.contains(target) &&
+        !dropdownRefDesktop.current.contains(target)
       ) {
         setWorkspaceDropdownOpen(false);
       }
       
+      // Close profile dropdown
       if (
-        (profileDropdownRefMobile.current && !profileDropdownRefMobile.current.contains(event.target as Node)) &&
-        (profileDropdownRefDesktop.current && !profileDropdownRefDesktop.current.contains(event.target as Node))
+        profileDropdownOpen &&
+        profileDropdownRefMobile.current &&
+        profileDropdownRefDesktop.current &&
+        !profileDropdownRefMobile.current.contains(target) &&
+        !profileDropdownRefDesktop.current.contains(target)
       ) {
         setProfileDropdownOpen(false);
       }
 
-      if (dockSettingsRef.current && !dockSettingsRef.current.contains(event.target as Node)) {
+      // Close dock settings dropdown
+      if (
+        dockSettingsOpen &&
+        dockSettingsRef.current && 
+        !dockSettingsRef.current.contains(target)
+      ) {
         setDockSettingsOpen(false);
       }
     };
 
-    if (workspaceDropdownOpen || profileDropdownOpen || dockSettingsOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -309,7 +321,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="flex-1 flex flex-col pt-6 pb-4 overflow-y-auto sidebar-scroll">
                 {/* Desktop Logo */}
                 <div className="flex items-center flex-shrink-0 px-6 mb-8">
-                  <Logo size="md" />
+                  <Logo size="lg" />
                 </div>
 
                 {/* Desktop workspace selector */}
@@ -462,14 +474,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </div>
             ) : (
               /* Collapsed mode - dock-like centered layout */
-              <div className="flex flex-col h-full">
+              <div className="flex flex-col h-full justify-center">
                 {/* Logo at top */}
-                <div className="flex justify-center pt-6 pb-4">
+                <div className="absolute top-6 left-1/2 transform -translate-x-1/2">
                   <Logo variant="icon" size="md" />
                 </div>
-                
-                {/* Top spacer */}
-                <div className="flex-1"></div>
                 
                 {/* Centered dock navigation */}
                 <div className="flex flex-col items-center space-y-3 px-4">
@@ -501,9 +510,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       <CogIcon className="flex-shrink-0 h-5 w-5" />
                     </button>
 
-                    {/* Dock settings dropdown */}
+                    {/* Dock settings dropdown - positioned to avoid cutoff */}
                     {dockSettingsOpen && (
-                      <div className="absolute left-full top-0 ml-2 w-48 glass-card py-2 z-50 animate-slide-in">
+                      <div className="absolute left-full bottom-0 ml-2 w-48 glass-card py-2 z-50 animate-slide-in">
                         {settingsNavigation.map((item) => {
                           const isActive = location.pathname === item.href;
                           return (
@@ -531,17 +540,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </div>
                 </div>
                 
-                {/* Bottom spacer and expand button */}
-                <div className="flex-1 flex flex-col justify-end">
-                  <div className="px-4 pb-6">
-                    <button
-                      onClick={() => setSidebarExpanded(!sidebarExpanded)}
-                      className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300 mx-auto"
-                      title="Expandir menu"
-                    >
-                      <ChevronRightIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform duration-300" />
-                    </button>
-                  </div>
+                {/* Expand button at bottom */}
+                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
+                  <button
+                    onClick={() => setSidebarExpanded(!sidebarExpanded)}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300"
+                    title="Expandir menu"
+                  >
+                    <ChevronRightIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform duration-300" />
+                  </button>
                 </div>
               </div>
             )}
@@ -568,13 +575,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Center - Search bar */}
             <div className="flex-1 max-w-lg mx-8">
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <MagnifyingGlassIcon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                 </div>
                 <input
                   type="text"
                   placeholder="Buscar transações, contas..."
-                  className="search-input pl-12"
+                  className="w-full px-3 pl-10 py-2 glass-card border-0 rounded-button placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 text-gray-900 dark:text-gray-100 transition-all duration-300 backdrop-blur-xl text-sm"
                 />
               </div>
             </div>
