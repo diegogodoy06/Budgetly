@@ -473,15 +473,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
               </div>
             ) : (
-              /* Collapsed mode - dock-like centered layout */
-              <div className="flex flex-col h-full justify-center">
-                {/* Logo at top */}
-                <div className="absolute top-6 left-1/2 transform -translate-x-1/2">
+              /* Collapsed mode - dock-like centered layout with proper structure */
+              <div className="flex flex-col h-full relative">
+                {/* Logo at top - fixed positioning */}
+                <div className="flex justify-center pt-6 pb-2">
                   <Logo variant="icon" size="md" />
                 </div>
                 
-                {/* Centered dock navigation */}
-                <div className="flex flex-col items-center space-y-3 px-4">
+                {/* Centered dock navigation - using flex-1 to center in available space */}
+                <div className="flex-1 flex flex-col justify-center items-center space-y-3 px-2">
                   {navigation.map((item) => {
                     const isActive = location.pathname === item.href;
                     return (
@@ -540,8 +540,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </div>
                 </div>
                 
-                {/* Expand button at bottom */}
-                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
+                {/* Expand button at bottom - using flex structure instead of absolute */}
+                <div className="flex justify-center pb-6 pt-2">
                   <button
                     onClick={() => setSidebarExpanded(!sidebarExpanded)}
                     className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300"
@@ -575,13 +575,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Center - Search bar */}
             <div className="flex-1 max-w-lg mx-8">
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                   <MagnifyingGlassIcon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                 </div>
                 <input
                   type="text"
                   placeholder="Buscar transações, contas..."
-                  className="w-full px-3 pl-10 py-2 glass-card border-0 rounded-button placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 text-gray-900 dark:text-gray-100 transition-all duration-300 backdrop-blur-xl text-sm"
+                  className="w-full px-3 pl-10 py-2 glass-card border-0 rounded-button placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 text-gray-900 dark:text-gray-100 transition-all duration-300 backdrop-blur-xl text-sm relative"
                 />
               </div>
             </div>
