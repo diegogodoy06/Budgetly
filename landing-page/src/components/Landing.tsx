@@ -522,6 +522,270 @@ const Landing: React.FC = () => {
         </div>
       </section>
 
+      {/* Workspace Sharing Section */}
+      <section className="py-20 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-blue-500/20 to-indigo-500/20 backdrop-blur-xl border border-blue-200/50 text-sm font-medium text-blue-700 mb-8 shadow-xl">
+              <UserGroupIcon className="h-5 w-5 mr-2 text-blue-600" />
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-semibold">Budgetly Workspaces Seguros</span>
+            </div>
+            
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+              Mantenha Suas Finanças Seguras{' '}
+              <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                Sempre
+              </span>
+            </h2>
+            
+            <p className="text-xl text-blue-700 max-w-4xl mx-auto leading-relaxed">
+              O Budgetly protege suas informações com um sistema de segurança de nível mundial que ajuda a detectar 
+              fraudes e prevenir invasões. Compartilhe workspaces com amigos, familiares ou colegas com total controle 
+              de acesso e permissões granulares.
+            </p>
+          </div>
+
+          <div className="relative max-w-6xl mx-auto">
+            {/* Floating User Avatars */}
+            <div className="absolute -top-8 left-16 z-10">
+              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl">
+                <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  M
+                </div>
+                <div className="ml-3">
+                  <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                    +R$ 540,00
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute -top-4 right-20 z-10">
+              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl">
+                <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  A
+                </div>
+                <div className="ml-3">
+                  <div className="bg-gradient-to-r from-rose-500 to-pink-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                    +R$ 240,00
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute top-1/3 -left-8 z-10">
+              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl">
+                <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  J
+                </div>
+                <div className="ml-3">
+                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                    +R$ 140,00
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute bottom-1/3 -right-8 z-10">
+              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-violet-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  C
+                </div>
+                <div className="ml-3">
+                  <div className="bg-gradient-to-r from-purple-500 to-violet-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                    +R$ 340,00
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute bottom-8 left-24 z-10">
+              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl">
+                <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  L
+                </div>
+                <div className="ml-3">
+                  <div className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                    +R$ 640,00
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Central Workspace Interface */}
+            <div className="relative bg-white/40 backdrop-blur-2xl rounded-3xl p-8 border border-white/60 shadow-3xl">
+              {/* Header with User Info */}
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center bg-white/50 backdrop-blur-lg rounded-2xl px-6 py-4 border border-white/60 shadow-xl">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
+                    JS
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-bold text-blue-900">João Santos</h3>
+                    <div className="flex items-center space-x-2">
+                      <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full"></span>
+                      <span className="text-sm text-blue-600 font-medium">Admin do Workspace</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Badges */}
+                <div className="flex items-center space-x-3">
+                  <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                    <ShieldCheckIcon className="h-3 w-3 inline mr-1" />
+                    Seguro
+                  </div>
+                  <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                    <UserGroupIcon className="h-3 w-3 inline mr-1" />
+                    Compartilhado
+                  </div>
+                  <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                    <ClockIcon className="h-3 w-3 inline mr-1" />
+                    Tempo Real
+                  </div>
+                </div>
+              </div>
+
+              {/* Main Balance Display */}
+              <div className="text-center mb-10">
+                <div className="text-sm text-blue-600 font-medium mb-2">Meu Balanço</div>
+                <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-3">
+                  R$ 8.450,00
+                </div>
+                <div className="text-blue-600 font-medium text-lg">BRL</div>
+              </div>
+
+              {/* Income and Expenses */}
+              <div className="grid grid-cols-2 gap-6 mb-8">
+                <div className="bg-gradient-to-br from-emerald-50 to-green-50 backdrop-blur-lg rounded-2xl p-6 border border-emerald-200/50 shadow-xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <div className="bg-gradient-to-br from-emerald-500 to-green-500 p-2 rounded-full">
+                        <TrophyIcon className="h-5 w-5 text-white" />
+                      </div>
+                      <span className="ml-3 text-emerald-700 font-semibold">Receitas</span>
+                    </div>
+                    <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      +24%
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-emerald-800">R$ 2.680,50</div>
+                  <div className="text-sm text-emerald-600 font-medium">BRL</div>
+                </div>
+
+                <div className="bg-gradient-to-br from-rose-50 to-pink-50 backdrop-blur-lg rounded-2xl p-6 border border-rose-200/50 shadow-xl">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <div className="bg-gradient-to-br from-rose-500 to-pink-500 p-2 rounded-full">
+                        <BanknotesIcon className="h-5 w-5 text-white" />
+                      </div>
+                      <span className="ml-3 text-rose-700 font-semibold">Gastos</span>
+                    </div>
+                    <div className="bg-gradient-to-r from-rose-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      -8%
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-rose-800">R$ 540,00</div>
+                  <div className="text-sm text-rose-600 font-medium">BRL</div>
+                </div>
+              </div>
+
+              {/* Workspace Members */}
+              <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 backdrop-blur-lg rounded-2xl p-6 border border-blue-200/50 shadow-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-blue-900 font-bold text-lg">Membros do Workspace</h4>
+                  <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                    6 Ativos
+                  </div>
+                </div>
+                
+                <div className="flex items-center -space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full border-3 border-white shadow-lg flex items-center justify-center text-white font-bold text-sm">
+                    JS
+                  </div>
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full border-3 border-white shadow-lg flex items-center justify-center text-white font-bold text-sm">
+                    M
+                  </div>
+                  <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full border-3 border-white shadow-lg flex items-center justify-center text-white font-bold text-sm">
+                    A
+                  </div>
+                  <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full border-3 border-white shadow-lg flex items-center justify-center text-white font-bold text-sm">
+                    J
+                  </div>
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-violet-500 rounded-full border-3 border-white shadow-lg flex items-center justify-center text-white font-bold text-sm">
+                    C
+                  </div>
+                  <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-full border-3 border-white shadow-lg flex items-center justify-center text-white font-bold text-sm">
+                    L
+                  </div>
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-blue-500 rounded-full border-3 border-white shadow-lg flex items-center justify-center text-slate-200 font-bold text-sm">
+                    +3
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center space-x-4">
+                  <button className="flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-full font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg text-sm">
+                    <UserGroupIcon className="h-4 w-4 mr-2" />
+                    Convidar Amigos
+                  </button>
+                  <button className="flex items-center bg-white/60 backdrop-blur-lg text-blue-700 px-4 py-2 rounded-full font-semibold hover:bg-white/80 transition-all duration-200 shadow-lg text-sm border border-white/50">
+                    <ShieldCheckIcon className="h-4 w-4 mr-2" />
+                    Gerenciar Permissões
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Feature Pills */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
+            <div className="bg-white/50 backdrop-blur-xl rounded-2xl p-6 text-center border border-white/60 shadow-2xl hover:scale-105 transition-transform duration-300">
+              <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <LockClosedIcon className="h-7 w-7 text-white" />
+              </div>
+              <h4 className="font-bold text-blue-900 mb-2">Criptografia Avançada</h4>
+              <p className="text-sm text-blue-700">AES-256 + 2FA</p>
+              <div className="mt-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block">
+                Nível Bancário
+              </div>
+            </div>
+
+            <div className="bg-white/50 backdrop-blur-xl rounded-2xl p-6 text-center border border-white/60 shadow-2xl hover:scale-105 transition-transform duration-300">
+              <div className="bg-gradient-to-br from-emerald-500 to-green-600 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <UserGroupIcon className="h-7 w-7 text-white" />
+              </div>
+              <h4 className="font-bold text-blue-900 mb-2">Compartilhamento Seguro</h4>
+              <p className="text-sm text-blue-700">Convites por Link</p>
+              <div className="mt-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block">
+                Controle Total
+              </div>
+            </div>
+
+            <div className="bg-white/50 backdrop-blur-xl rounded-2xl p-6 text-center border border-white/60 shadow-2xl hover:scale-105 transition-transform duration-300">
+              <div className="bg-gradient-to-br from-purple-500 to-violet-600 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <ClockIcon className="h-7 w-7 text-white" />
+              </div>
+              <h4 className="font-bold text-blue-900 mb-2">Sincronização Real-time</h4>
+              <p className="text-sm text-blue-700">Atualizações Instantâneas</p>
+              <div className="mt-3 bg-gradient-to-r from-purple-500 to-violet-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block">
+                WebSocket
+              </div>
+            </div>
+
+            <div className="bg-white/50 backdrop-blur-xl rounded-2xl p-6 text-center border border-white/60 shadow-2xl hover:scale-105 transition-transform duration-300">
+              <div className="bg-gradient-to-br from-amber-500 to-orange-600 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <TrophyIcon className="h-7 w-7 text-white" />
+              </div>
+              <h4 className="font-bold text-blue-900 mb-2">Roles & Permissões</h4>
+              <p className="text-sm text-blue-700">Admin, Editor, Viewer</p>
+              <div className="mt-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block">
+                Granular
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* About Section */}
       <section id="about" className="py-20 bg-gradient-to-r from-blue-900 via-indigo-900 to-sky-900 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/30 to-indigo-900/30 backdrop-blur-sm"></div>
