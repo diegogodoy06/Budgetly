@@ -19,6 +19,17 @@ export default {
           800: '#1e40af',
           900: '#1e3a8a',
         },
+        // Adicionando cores com transparência
+        glass: {
+          'white-10': 'rgba(255, 255, 255, 0.1)',
+          'white-20': 'rgba(255, 255, 255, 0.2)',
+          'white-30': 'rgba(255, 255, 255, 0.3)',
+          'white-40': 'rgba(255, 255, 255, 0.4)',
+          'white-50': 'rgba(255, 255, 255, 0.5)',
+          'black-10': 'rgba(0, 0, 0, 0.1)',
+          'black-20': 'rgba(0, 0, 0, 0.2)',
+          'black-30': 'rgba(0, 0, 0, 0.3)',
+        }
       },
       animation: {
         'float': 'float 6s ease-in-out infinite',
