@@ -167,11 +167,11 @@ const Landing: React.FC = () => {
     },
     {
       question: 'Qual o custo da plataforma?',
-      answer: 'Oferecemos uma versão gratuita com funcionalidades essenciais e planos premium a partir de R$ 19,90/mês com recursos avançados de IA e relatórios ilimitados.'
+      answer: 'O Budgetly custa R$ 18/mês com acesso completo a todas as funcionalidades, workspaces ilimitados e suporte. Você pode cancelar a qualquer momento sem multas ou taxas.'
     },
     {
-      question: 'Posso usar em equipe ou família?',
-      answer: 'Absolutamente! Os Workspaces permitem compartilhar finanças com controle granular de permissões, ideal para casais, famílias ou pequenas empresas.'
+      question: 'É adequado para empresas?',
+      answer: 'O Budgetly é focado em gestão financeira pessoal e de grupos pequenos. Não oferecemos recursos empresariais complexos, mas é perfeito para workspaces familiares, grupos de amigos ou pequenos projetos colaborativos.'
     },
     {
       question: 'Há integração com aplicativos de bancos?',
@@ -226,11 +226,11 @@ const Landing: React.FC = () => {
 
       {/* Header */}
       <header className="relative z-50">
-        <div className="absolute inset-0 bg-white/30 backdrop-blur-xl border-b border-white/40"></div>
+        <div className="absolute inset-0 bg-white/40 backdrop-blur-2xl border-b border-white/60"></div>
         <nav className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <div className="p-1 bg-white/20 backdrop-blur-lg rounded-xl border border-white/30 shadow-lg">
+              <div className="p-2 bg-white/30 backdrop-blur-2xl rounded-xl border border-white/50 shadow-2xl">
                 <img src={logo} alt="Budgetly Logo" className="h-10 w-10 object-contain" />
               </div>
               <div>
@@ -262,7 +262,7 @@ const Landing: React.FC = () => {
       <section className="relative py-20 lg:py-32 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/50 backdrop-blur-xl border border-white/40 text-sm font-medium text-blue-700 mb-8 shadow-xl">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/60 backdrop-blur-2xl border border-white/60 text-sm font-medium text-blue-700 mb-8 shadow-2xl">
               <SparklesIcon className="h-4 w-4 mr-2 text-blue-600" />
               Já são {stats.users.toLocaleString()}+ usuários ativos
             </div>
@@ -275,9 +275,9 @@ const Landing: React.FC = () => {
             </h1>
 
             <p className="text-xl sm:text-2xl text-blue-700 max-w-4xl mx-auto mb-12 leading-relaxed">
-              A única plataforma que você precisa para dominar suas finanças.
+              A única plataforma que você precisa para organizar suas finanças pessoais e em grupo.
               <span className="font-semibold text-blue-800"> IA avançada, automações inteligentes</span> e
-              insights que transformam dados em decisões inteligentes.
+              workspaces colaborativos para uma gestão financeira completa.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
@@ -298,22 +298,22 @@ const Landing: React.FC = () => {
 
             {/* Real-time Stats with enhanced animations */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
-              <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-6 text-center hover:scale-105 hover:rotate-1 transition-all duration-300 border border-white/50 shadow-2xl group hover:shadow-3xl animate-float-slow">
+              <div className="bg-white/50 backdrop-blur-2xl rounded-2xl p-6 text-center hover:scale-105 hover:rotate-1 transition-all duration-300 border border-white/70 shadow-2xl group hover:shadow-3xl animate-float-slow">
                 <UserGroupIcon className="h-8 w-8 text-blue-600 mx-auto mb-2 group-hover:scale-110 transition-transform duration-200" />
                 <div className="text-2xl font-bold text-blue-900 group-hover:text-blue-700 transition-colors duration-200">{stats.users.toLocaleString()}+</div>
                 <div className="text-sm text-blue-700">Usuários Ativos</div>
               </div>
-              <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-6 text-center hover:scale-105 hover:rotate-1 transition-all duration-300 border border-white/50 shadow-2xl group hover:shadow-3xl animate-float-delayed">
+              <div className="bg-white/50 backdrop-blur-2xl rounded-2xl p-6 text-center hover:scale-105 hover:rotate-1 transition-all duration-300 border border-white/70 shadow-2xl group hover:shadow-3xl animate-float-delayed">
                 <CurrencyDollarIcon className="h-8 w-8 text-emerald-600 mx-auto mb-2 group-hover:scale-110 transition-transform duration-200" />
                 <div className="text-2xl font-bold text-blue-900 group-hover:text-emerald-700 transition-colors duration-200">{stats.transactions.toLocaleString()}+</div>
                 <div className="text-sm text-blue-700">Transações</div>
               </div>
-              <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-6 text-center hover:scale-105 hover:rotate-1 transition-all duration-300 border border-white/50 shadow-2xl group hover:shadow-3xl animate-float">
+              <div className="bg-white/50 backdrop-blur-2xl rounded-2xl p-6 text-center hover:scale-105 hover:rotate-1 transition-all duration-300 border border-white/70 shadow-2xl group hover:shadow-3xl animate-float">
                 <ClockIcon className="h-8 w-8 text-indigo-600 mx-auto mb-2 group-hover:scale-110 transition-transform duration-200" />
                 <div className="text-2xl font-bold text-blue-900 group-hover:text-indigo-700 transition-colors duration-200">{stats.uptime}%</div>
                 <div className="text-sm text-blue-700">Uptime</div>
               </div>
-              <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-6 text-center hover:scale-105 hover:rotate-1 transition-all duration-300 border border-white/50 shadow-2xl group hover:shadow-3xl animate-bounce-slow">
+              <div className="bg-white/50 backdrop-blur-2xl rounded-2xl p-6 text-center hover:scale-105 hover:rotate-1 transition-all duration-300 border border-white/70 shadow-2xl group hover:shadow-3xl animate-bounce-slow">
                 <StarIcon className="h-8 w-8 text-amber-500 mx-auto mb-2 group-hover:scale-110 transition-transform duration-200" />
                 <div className="text-2xl font-bold text-blue-900 group-hover:text-amber-600 transition-colors duration-200">{stats.rating}/5</div>
                 <div className="text-sm text-blue-700">Avaliação</div>
@@ -327,95 +327,99 @@ const Landing: React.FC = () => {
       <section className="py-20 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100/60 backdrop-blur-xl border border-blue-200/40 text-sm font-medium text-blue-700 mb-8 shadow-xl">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100/80 backdrop-blur-2xl border border-blue-200/60 text-sm font-medium text-blue-700 mb-8 shadow-2xl">
               <TrophyIcon className="h-4 w-4 mr-2 text-blue-600" />
-              Budgetly Fácil de Usar
+              Budgetly para Todos
             </div>
 
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Obtenha a Mais Poderosa e{' '}
+              Controle Financeiro{' '}
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 bg-clip-text text-transparent">
-                Fácil de Usar
-              </span>{' '}
-              Plataforma Financeira
+                Pessoal e em Grupo
+              </span>
             </h2>
+            
+            <p className="text-xl text-blue-700 max-w-3xl mx-auto mb-12">
+              Por apenas <span className="font-bold text-blue-800">R$ 18/mês</span> você tem acesso completo. 
+              <span className="font-semibold"> Cancele quando quiser</span>, sem compromisso.
+            </p>
           </div>
 
           {/* Category Tabs */}
           <div className="flex justify-center mb-12">
-            <div className="flex items-center space-x-8 bg-white/40 backdrop-blur-xl rounded-full px-8 py-4 border border-white/50 shadow-2xl">
+            <div className="flex items-center space-x-8 bg-white/60 backdrop-blur-2xl rounded-full px-8 py-4 border border-white/70 shadow-2xl">
               <div className="flex items-center text-blue-700 font-medium">
                 <UserGroupIcon className="h-5 w-5 mr-2" />
-                Pessoas
+                Pessoal
               </div>
               <div className="flex items-center bg-blue-600 text-white px-6 py-2 rounded-full font-medium shadow-lg">
                 <BanknotesIcon className="h-5 w-5 mr-2" />
-                Freelancers
+                Workspaces
               </div>
               <div className="flex items-center text-blue-700 font-medium">
                 <ChartBarIcon className="h-5 w-5 mr-2" />
-                Empresas
+                Grupos
               </div>
             </div>
           </div>
 
-          {/* Cards Grid with enhanced animations */}
+          {/* Cards Grid without animations */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Pessoas Card */}
-            <div className="bg-white/40 backdrop-blur-xl rounded-3xl p-8 border border-white/50 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 hover:rotate-1 animate-float group">
+            {/* Pessoal Card */}
+            <div className="bg-white/60 backdrop-blur-2xl rounded-3xl p-8 border border-white/70 shadow-2xl">
               <div className="text-center">
-                <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:bg-blue-200 transition-all duration-300">
-                  <UserGroupIcon className="h-8 w-8 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
+                <div className="bg-blue-100/80 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-lg">
+                  <UserGroupIcon className="h-8 w-8 text-blue-600" />
                 </div>
-                <h3 className="text-2xl font-bold text-blue-900 mb-4 group-hover:text-blue-700 transition-colors duration-300">Pessoas</h3>
+                <h3 className="text-2xl font-bold text-blue-900 mb-4">Controle Pessoal</h3>
                 <p className="text-blue-700 mb-8 leading-relaxed">
-                  Crie e compartilhe orçamentos profissionais para sua vida pessoal. Envie lembretes para metas financeiras facilmente
+                  Organize suas finanças pessoais com categorização automática, metas e relatórios detalhados para alcançar seus objetivos
                 </p>
-                <div className="flex items-center justify-center text-blue-600 mb-6 group-hover:text-blue-800 transition-colors duration-300">
+                <div className="flex items-center justify-center text-blue-600 mb-6">
                   <UserGroupIcon className="h-5 w-5 mr-2" />
-                  <span className="font-semibold">15k+ Usuários pelo Brasil</span>
+                  <span className="font-semibold">Ideal para Uso Individual</span>
                 </div>
-                <button className="flex items-center justify-center mx-auto bg-white/60 backdrop-blur-lg text-blue-700 px-6 py-3 rounded-full font-semibold hover:bg-white/80 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                  <span>Saiba Mais</span>
+                <button className="flex items-center justify-center mx-auto bg-white/80 backdrop-blur-lg text-blue-700 px-6 py-3 rounded-full font-semibold shadow-lg border border-white/60">
+                  <span>Começar Agora</span>
                 </button>
               </div>
             </div>
 
-            {/* Freelancers Card - Highlighted with enhanced animations */}
-            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-3xl p-8 shadow-3xl transform scale-105 hover:scale-110 transition-all duration-500 animate-scale-pulse group">
+            {/* Workspaces Card - Highlighted */}
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-3xl p-8 shadow-3xl transform scale-105">
               <div className="text-center">
-                <div className="bg-white/20 backdrop-blur-lg w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:bg-white/30 transition-all duration-300">
-                  <BanknotesIcon className="h-8 w-8 text-white group-hover:scale-110 transition-transform duration-300" />
+                <div className="bg-white/30 backdrop-blur-lg w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <BanknotesIcon className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-4 group-hover:scale-105 transition-transform duration-300">Freelancers</h3>
+                <h3 className="text-2xl font-bold mb-4">Workspaces</h3>
                 <p className="text-blue-100 mb-8 leading-relaxed">
-                  Comece a coletar pagamentos de clientes em todo o mundo. Crie um negócio e comece a vender online rapidamente
+                  Crie espaços separados para diferentes propósitos: casa, viagem, projetos. Compartilhe com quem quiser
                 </p>
                 <div className="flex items-center justify-center text-white mb-6">
                   <BanknotesIcon className="h-5 w-5 mr-2" />
-                  <span className="font-semibold">8k+ Usuários pelo Brasil</span>
+                  <span className="font-semibold">Funcionalidade Exclusiva</span>
                 </div>
-                <button className="flex items-center justify-center mx-auto bg-white/20 backdrop-blur-lg text-white px-6 py-3 rounded-full font-semibold hover:bg-white/30 hover:scale-105 transition-all duration-300 shadow-lg border border-white/30 hover:shadow-xl transform hover:-translate-y-1">
-                  <span>Saiba Mais</span>
+                <button className="flex items-center justify-center mx-auto bg-white/30 backdrop-blur-lg text-white px-6 py-3 rounded-full font-semibold shadow-lg border border-white/40">
+                  <span>Explorar</span>
                 </button>
               </div>
             </div>
 
-            {/* Empresas Card */}
-            <div className="bg-white/40 backdrop-blur-xl rounded-3xl p-8 border border-white/50 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 hover:rotate-1 animate-float-delayed group">
+            {/* Grupos Card */}
+            <div className="bg-white/60 backdrop-blur-2xl rounded-3xl p-8 border border-white/70 shadow-2xl">
               <div className="text-center">
-                <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:bg-blue-200 transition-all duration-300">
-                  <ChartBarIcon className="h-8 w-8 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
+                <div className="bg-blue-100/80 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-lg">
+                  <ChartBarIcon className="h-8 w-8 text-blue-600" />
                 </div>
-                <h3 className="text-2xl font-bold text-blue-900 mb-4 group-hover:text-blue-700 transition-colors duration-300">Empresas</h3>
+                <h3 className="text-2xl font-bold text-blue-900 mb-4">Gestão em Grupo</h3>
                 <p className="text-blue-700 mb-8 leading-relaxed">
-                  Crie e compartilhe relatórios profissionais para seus clientes. Envie lembretes para pagamentos recorrentes facilmente
+                  Gerencie finanças com amigos, família ou grupos. Compartilhe despesas, divida contas e acompanhe contribuições
                 </p>
-                <div className="flex items-center justify-center text-blue-600 mb-6 group-hover:text-blue-800 transition-colors duration-300">
+                <div className="flex items-center justify-center text-blue-600 mb-6">
                   <ChartBarIcon className="h-5 w-5 mr-2" />
-                  <span className="font-semibold">3k+ Empresas pelo Brasil</span>
+                  <span className="font-semibold">Perfeito para Grupos</span>
                 </div>
-                <button className="flex items-center justify-center mx-auto bg-white/60 backdrop-blur-lg text-blue-700 px-6 py-3 rounded-full font-semibold hover:bg-white/80 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                <button className="flex items-center justify-center mx-auto bg-white/80 backdrop-blur-lg text-blue-700 px-6 py-3 rounded-full font-semibold shadow-lg border border-white/60">
                   <span>Saiba Mais</span>
                 </button>
               </div>
@@ -430,13 +434,13 @@ const Landing: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Left Content */}
             <div>
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100/60 backdrop-blur-xl border border-blue-200/40 text-sm font-medium text-blue-700 mb-8 shadow-xl">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100/80 backdrop-blur-2xl border border-blue-200/60 text-sm font-medium text-blue-700 mb-8 shadow-2xl">
                 <RocketLaunchIcon className="h-4 w-4 mr-2 text-blue-600" />
-                Budgetly Velocidade de Controle
+                Budgetly Organização Rápida
               </div>
 
               <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-                Colete Todas as Informações
+                Organize Todas as Informações
                 Financeiras em{' '}
                 <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 bg-clip-text text-transparent">
                   Minutos
@@ -444,44 +448,43 @@ const Landing: React.FC = () => {
               </h2>
 
               <p className="text-xl text-blue-700 mb-12 leading-relaxed">
-                Integre o Budgetly facilmente em seu site ou aplicativo com nossas APIs
-                amigáveis para desenvolvedores e plugins. Deixe seus usuários controlarem
-                suas finanças da forma que quiserem.
+                O Budgetly facilita a organização das suas finanças pessoais e em grupo com
+                workspaces inteligentes e categorização automática. Tudo por apenas R$ 18/mês.
               </p>
 
               {/* Feature Pills */}
               <div className="grid grid-cols-2 gap-4 mb-12">
-                <div className="flex items-center bg-white/40 backdrop-blur-xl rounded-full px-6 py-3 border border-white/50 shadow-xl">
+                <div className="flex items-center bg-white/60 backdrop-blur-2xl rounded-full px-6 py-3 border border-white/70 shadow-2xl">
                   <div className="bg-blue-100 p-2 rounded-full mr-3">
                     <ChartBarIcon className="h-5 w-5 text-blue-600" />
                   </div>
-                  <span className="text-blue-800 font-medium">Otimize controles</span>
+                  <span className="text-blue-800 font-medium">Controle total</span>
                 </div>
-                <div className="flex items-center bg-white/40 backdrop-blur-xl rounded-full px-6 py-3 border border-white/50 shadow-xl">
+                <div className="flex items-center bg-white/60 backdrop-blur-2xl rounded-full px-6 py-3 border border-white/70 shadow-2xl">
                   <div className="bg-blue-100 p-2 rounded-full mr-3">
                     <TrophyIcon className="h-5 w-5 text-blue-600" />
                   </div>
-                  <span className="text-blue-800 font-medium">Aumente seu patrimônio</span>
+                  <span className="text-blue-800 font-medium">Metas financeiras</span>
                 </div>
-                <div className="flex items-center bg-white/40 backdrop-blur-xl rounded-full px-6 py-3 border border-white/50 shadow-xl">
+                <div className="flex items-center bg-white/60 backdrop-blur-2xl rounded-full px-6 py-3 border border-white/70 shadow-2xl">
                   <div className="bg-blue-100 p-2 rounded-full mr-3">
-                    <DevicePhoneMobileIcon className="h-5 w-5 text-blue-600" />
+                    <UserGroupIcon className="h-5 w-5 text-blue-600" />
                   </div>
-                  <span className="text-blue-800 font-medium">Trabalhe em movimento</span>
+                  <span className="text-blue-800 font-medium">Workspaces</span>
                 </div>
-                <div className="flex items-center bg-white/40 backdrop-blur-xl rounded-full px-6 py-3 border border-white/50 shadow-xl">
+                <div className="flex items-center bg-white/60 backdrop-blur-2xl rounded-full px-6 py-3 border border-white/70 shadow-2xl">
                   <div className="bg-blue-100 p-2 rounded-full mr-3">
                     <ShieldCheckIcon className="h-5 w-5 text-blue-600" />
                   </div>
-                  <span className="text-blue-800 font-medium">Segurança em primeiro lugar</span>
+                  <span className="text-blue-800 font-medium">100% seguro</span>
                 </div>
               </div>
             </div>
 
-            {/* Right Content - Payment Interface Mockup */}
+            {/* Right Content - Financial Interface Mockup */}
             <div className="relative">
-              {/* Main Payment Card */}
-              <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-8 border border-white/50 shadow-3xl">
+              {/* Main Financial Card */}
+              <div className="bg-white/70 backdrop-blur-2xl rounded-3xl p-8 border border-white/70 shadow-3xl">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center">
@@ -506,21 +509,21 @@ const Landing: React.FC = () => {
 
                 {/* Method Selection */}
                 <div className="mb-8">
-                  <h4 className="text-blue-900 font-semibold mb-4">Método de Controle</h4>
+                  <h4 className="text-blue-900 font-semibold mb-4">Categorias</h4>
 
-                  {/* Payment Method Icons */}
-                  <div className="flex items-center justify-between bg-blue-50/60 backdrop-blur-lg rounded-2xl p-4 mb-4">
+                  {/* Category Icons */}
+                  <div className="flex items-center justify-between bg-blue-50/80 backdrop-blur-lg rounded-2xl p-4 mb-4 border border-blue-100">
                     <div className="grid grid-cols-4 gap-4 flex-1">
-                      <div className="bg-white/80 rounded-lg p-3 flex items-center justify-center">
+                      <div className="bg-white/90 rounded-lg p-3 flex items-center justify-center shadow-lg">
                         <CreditCardIcon className="h-6 w-6 text-blue-600" />
                       </div>
-                      <div className="bg-white/80 rounded-lg p-3 flex items-center justify-center">
+                      <div className="bg-white/90 rounded-lg p-3 flex items-center justify-center shadow-lg">
                         <BanknotesIcon className="h-6 w-6 text-green-600" />
                       </div>
-                      <div className="bg-white/80 rounded-lg p-3 flex items-center justify-center">
+                      <div className="bg-white/90 rounded-lg p-3 flex items-center justify-center shadow-lg">
                         <ChartBarIcon className="h-6 w-6 text-purple-600" />
                       </div>
-                      <div className="bg-white/80 rounded-lg p-3 flex items-center justify-center">
+                      <div className="bg-white/90 rounded-lg p-3 flex items-center justify-center shadow-lg">
                         <GlobeAltIcon className="h-6 w-6 text-blue-600" />
                       </div>
                     </div>
@@ -540,7 +543,7 @@ const Landing: React.FC = () => {
               </div>
 
               {/* Success Notification */}
-              <div className="absolute -bottom-4 -right-4 bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50 shadow-2xl">
+              <div className="absolute -bottom-4 -right-4 bg-white/90 backdrop-blur-2xl rounded-2xl p-6 border border-white/70 shadow-2xl">
                 <div className="flex items-center">
                   <div className="bg-emerald-100 p-2 rounded-full mr-3">
                     <SparklesIcon className="h-5 w-5 text-emerald-600" />
@@ -568,18 +571,23 @@ const Landing: React.FC = () => {
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
               Crie e gerencie espaços{' '}
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                compartilhados
+                colaborativos
               </span>
             </h2>
 
             <p className="text-xl text-blue-700 max-w-4xl mx-auto leading-relaxed">
-              O Workspace é um espaço colaborativo onde você pode criar ambientes separados para cada projeto ou objetivo: suas contas pessoais, o grupo da igreja, o time de futebol… Você pode adicione outros membros para acompanhar ou registrar movimentações, tudo organizado e com relatórios claros.            </p>
+              O Workspace é seu espaço colaborativo onde você organiza finanças por contexto: suas contas pessoais, o orçamento da viagem, gastos do apartamento compartilhado, mesada dos filhos... Adicione membros para acompanhar ou registrar movimentações, tudo separado e com controle total.
+            </p>
+            
+            <div className="mt-8 text-lg text-blue-600 font-semibold">
+              ✓ R$ 18/mês • ✓ Cancele quando quiser • ✓ Workspaces ilimitados
+            </div>
           </div>
 
           <div className="relative max-w-6xl mx-auto">
             {/* Floating User Avatars with enhanced animations */}
             <div className="absolute -top-8 left-16 z-10 animate-float">
-              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300 group">
+              <div className="flex items-center bg-white/70 backdrop-blur-2xl rounded-full px-4 py-3 border border-white/70 shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300 group">
                 <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm group-hover:scale-110 transition-transform duration-300">
                   M
                 </div>
@@ -644,7 +652,7 @@ const Landing: React.FC = () => {
             </div>
 
             {/* Central Workspace Interface */}
-            <div className="relative bg-white/40 backdrop-blur-2xl rounded-3xl p-8 border border-white/60 shadow-3xl">
+            <div className="relative bg-white/50 backdrop-blur-3xl rounded-3xl p-8 border border-white/80 shadow-3xl">
               {/* Header with User Info */}
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center bg-white/50 backdrop-blur-lg rounded-2xl px-6 py-4 border border-white/60 shadow-xl">
@@ -840,7 +848,7 @@ const Landing: React.FC = () => {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="group bg-white/40 backdrop-blur-xl rounded-3xl p-8 border border-white/50 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:-translate-y-3 relative overflow-hidden"
+                className="group bg-white/50 backdrop-blur-2xl rounded-3xl p-8 border border-white/70 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:-translate-y-3 relative overflow-hidden"
               >
                 {feature.highlight && (
                   <div className="absolute top-4 right-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-full">
@@ -880,7 +888,7 @@ const Landing: React.FC = () => {
             {benefits.map((benefit, index) => (
               <div
                 key={index}
-                className="flex items-start space-x-6 bg-white/40 backdrop-blur-xl rounded-2xl p-8 border border-white/50 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105"
+                className="flex items-start space-x-6 bg-white/50 backdrop-blur-2xl rounded-2xl p-8 border border-white/70 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105"
               >
                 <div className="bg-gradient-to-br from-emerald-100 to-green-100 p-3 rounded-xl flex-shrink-0">
                   <benefit.icon className="h-6 w-6 text-emerald-600" />
@@ -908,7 +916,7 @@ const Landing: React.FC = () => {
             {faqs.map((faq, index) => (
               <div
                 key={index}
-                className="bg-white/40 backdrop-blur-xl rounded-3xl p-8 border border-white/50 shadow-2xl hover:shadow-3xl transition-all duration-300"
+                className="bg-white/50 backdrop-blur-2xl rounded-3xl p-8 border border-white/70 shadow-2xl hover:shadow-3xl transition-all duration-300"
               >
                 <div className="flex items-start space-x-4">
                   <div className="bg-gradient-to-br from-blue-100 to-indigo-100 p-2 rounded-xl flex-shrink-0">
@@ -933,8 +941,8 @@ const Landing: React.FC = () => {
             Comece Sua Jornada Hoje
           </h2>
           <p className="text-xl text-blue-200 mb-12 leading-relaxed">
-            Junte-se a milhares de usuários que já transformaram sua relação com o dinheiro.
-            <span className="font-semibold"> Primeiros 30 dias gratuitos.</span>
+            Junte-se a milhares de usuários que já transformaram sua gestão financeira.
+            <span className="font-semibold"> Por apenas R$ 18/mês, cancele quando quiser.</span>
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
@@ -942,7 +950,7 @@ const Landing: React.FC = () => {
               href="http://localhost:3000/register"
               className="group bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white px-10 py-4 rounded-full font-semibold text-xl hover:from-blue-700 hover:via-indigo-700 hover:to-sky-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 flex items-center backdrop-blur-lg"
             >
-              Criar Conta Gratuita
+              Começar por R$ 18/mês
               <ArrowRightIcon className="h-6 w-6 ml-3 group-hover:translate-x-1 transition-transform duration-200" />
             </a>
             <a
@@ -954,7 +962,7 @@ const Landing: React.FC = () => {
           </div>
 
           <div className="text-sm text-blue-300">
-            ✓ Sem compromisso • ✓ Cancele quando quiser • ✓ Suporte 24/7
+            ✓ R$ 18/mês • ✓ Cancele quando quiser • ✓ Suporte 24/7
           </div>
         </div>
       </section>
