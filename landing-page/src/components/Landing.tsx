@@ -22,7 +22,9 @@ import {
   GlobeAltIcon,
   ChevronUpIcon,
   EnvelopeIcon,
-  PlayIcon
+  PlayIcon,
+  PlusIcon,
+  MinusIcon
 } from '@heroicons/react/24/outline';
 import logoCompleto from '../assets/Logo completo.webp';
 import logo from '../assets/logo.webp';
@@ -37,6 +39,7 @@ const Landing: React.FC = () => {
 
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [email, setEmail] = useState('');
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
   // Handle scroll for back to top button
   useEffect(() => {
@@ -154,28 +157,44 @@ const Landing: React.FC = () => {
 
   const faqs = [
     {
-      question: 'Como o Budgetly protege meus dados financeiros?',
-      answer: 'Utilizamos criptografia de nível bancário (AES-256), autenticação multi-fator e seguimos rigorosamente as normas LGPD. Seus dados são armazenados em servidores certificados no Brasil.'
+      question: 'Como criar uma conta aqui?',
+      answer: 'Basta clicar em "Começar por R$ 18/mês" e seguir o processo de cadastro. Você terá acesso imediato a todas as funcionalidades, workspaces ilimitados e poderá começar a organizar suas finanças em minutos.'
     },
     {
-      question: 'Posso conectar minha conta bancária?',
-      answer: 'Sim! Estamos integrados com as principais instituições via Open Banking, permitindo sincronização automática e segura de extratos e saldos em tempo real.'
+      question: 'Para que serve esta plataforma?',
+      answer: 'O Budgetly é uma plataforma de gestão financeira pessoal e colaborativa. Permite organizar finanças individuais, criar workspaces para diferentes contextos (casa, viagem, projetos) e gerenciar finanças em grupo com amigos e familiares.'
     },
     {
-      question: 'Como funciona a IA para categorização?',
-      answer: 'Nossa IA analisa descrições de transações, valores, datas e padrões para classificar automaticamente seus gastos. A precisão melhora com o uso, chegando a 95% de acurácia.'
+      question: 'Posso acompanhar gastos e receitas facilmente?',
+      answer: 'Sim! Adicione suas receitas e despesas a qualquer momento para manter seu orçamento atualizado e organizado. A categorização automática com IA e os relatórios detalhados tornam o controle financeiro simples e eficiente.'
     },
     {
-      question: 'Qual o custo da plataforma?',
-      answer: 'O Budgetly custa R$ 18/mês com acesso completo a todas as funcionalidades, workspaces ilimitados e suporte. Você pode cancelar a qualquer momento sem multas ou taxas.'
+      question: 'Meus dados financeiros estão seguros aqui?',
+      answer: 'Sim! Seus dados são protegidos com criptografia avançada AES-256 e medidas de segurança para manter suas informações financeiras seguras o tempo todo. Seguimos rigorosamente as normas LGPD e você pode vincular múltiplas contas bancárias para visualização.'
     },
     {
-      question: 'É adequado para empresas?',
-      answer: 'O Budgetly é focado em gestão financeira pessoal e de grupos pequenos. Não oferecemos recursos empresariais complexos, mas é perfeito para workspaces familiares, grupos de amigos ou pequenos projetos colaborativos.'
+      question: 'Existe uma taxa de assinatura ou mensalidade?',
+      answer: 'Sim, o Budgetly custa R$ 18 por mês com acesso completo a todas as funcionalidades, workspaces ilimitados e suporte prioritário. Você pode cancelar a qualquer momento sem multas ou taxas adicionais.'
     },
     {
-      question: 'Há integração com aplicativos de bancos?',
-      answer: 'Sim, temos integração via API com os principais bancos brasileiros (Nubank, Inter, Itaú, Bradesco, Santander) e expandimos constantemente nossa rede.'
+      question: 'Posso conectar múltiplas contas bancárias?',
+      answer: 'Sim! Estamos integrados com os principais bancos brasileiros via Open Banking, permitindo conexão segura de múltiplas contas para sincronização automática de extratos e saldos em tempo real.'
+    },
+    {
+      question: 'Posso definir limites de gastos mensais aqui?',
+      answer: 'Sim! Você pode estabelecer orçamentos por categoria, definir metas de economia e receber alertas quando estiver próximo dos limites. Nossa IA aprende seus padrões e sugere ajustes personalizados.'
+    },
+    {
+      question: 'Funciona para pequenas empresas?',
+      answer: 'O Budgetly é focado em gestão financeira pessoal e de grupos pequenos. Não oferecemos recursos empresariais complexos, mas é perfeito para workspaces familiares, grupos de amigos, projetos colaborativos e pequenas iniciativas pessoais.'
+    },
+    {
+      question: 'Posso conectar minhas contas bancárias com segurança?',
+      answer: 'Sim! Utilizamos conexões seguras certificadas com os principais bancos brasileiros através do Open Banking. Todas as informações são criptografadas e você mantém controle total sobre quais dados compartilhar.'
+    },
+    {
+      question: 'Quanto tempo leva para começar?',
+      answer: 'Você pode começar a usar o Budgetly em apenas 4 minutos! Após o cadastro simples, já pode criar workspaces, adicionar transações e convidar membros para colaborar em seus espaços financeiros.'
     }
   ];
 
@@ -268,16 +287,16 @@ const Landing: React.FC = () => {
             </div>
 
             <h1 className="text-4xl sm:text-6xl lg:text-8xl font-bold text-gray-900 mb-6 leading-tight">
-              Seu controle
+              Organize suas finanças
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 bg-clip-text text-transparent block">
-                financeiro inteligente
+                de forma inteligente
               </span>
             </h1>
 
             <p className="text-xl sm:text-2xl text-blue-700 max-w-4xl mx-auto mb-12 leading-relaxed">
-              A única plataforma que você precisa para organizar suas finanças pessoais e em grupo.
-              <span className="font-semibold text-blue-800"> IA avançada, automações inteligentes</span> e
-              workspaces colaborativos para uma gestão financeira completa.
+              A única plataforma que você precisa para controlar suas finanças pessoais e colaborativas.
+              <span className="font-semibold text-blue-800"> Por R$ 18/mês</span>, organize tudo em workspaces inteligentes
+              e tenha controle total do seu dinheiro.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
@@ -285,14 +304,14 @@ const Landing: React.FC = () => {
                 href="http://localhost:3000/register"
                 className="group bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:from-blue-700 hover:via-indigo-700 hover:to-sky-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105 flex items-center backdrop-blur-lg animate-pulse"
               >
-                Começar Gratuitamente
+                Começar por R$ 18/mês
                 <ArrowRightIcon className="h-5 w-5 ml-2 group-hover:translate-x-2 group-hover:scale-110 transition-all duration-300" />
               </a>
               <a
                 href="#features"
                 className="text-blue-700 px-8 py-4 rounded-full font-semibold text-lg hover:bg-white/60 transition-all duration-300 backdrop-blur-xl border border-white/40 shadow-xl hover:shadow-2xl hover:scale-105 transform hover:-translate-y-1"
               >
-                Ver Demonstração
+                Ver Como Funciona
               </a>
             </div>
 
@@ -333,16 +352,18 @@ const Landing: React.FC = () => {
             </div>
 
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Controle Financeiro{' '}
+              Gestão Financeira{' '}
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 bg-clip-text text-transparent">
-                Pessoal e em Grupo
+                Pessoal e Colaborativa
               </span>
             </h2>
             
-            <p className="text-xl text-blue-700 max-w-3xl mx-auto mb-12">
-              Por apenas <span className="font-bold text-blue-800">R$ 18/mês</span> você tem acesso completo. 
-              <span className="font-semibold"> Cancele quando quiser</span>, sem compromisso.
+            <p className="text-xl text-blue-700 max-w-3xl mx-auto mb-8">
+              Organize suas finanças de forma inteligente por apenas <span className="font-bold text-blue-800">R$ 18/mês</span>.
             </p>
+            <div className="text-lg text-blue-600 font-semibold mb-12">
+              ✓ Cancele quando quiser • ✓ Workspaces ilimitados • ✓ Sem taxa de setup
+            </div>
           </div>
 
           {/* Category Tabs */}
@@ -440,16 +461,17 @@ const Landing: React.FC = () => {
               </div>
 
               <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-                Organize Todas as Informações
-                Financeiras em{' '}
+                Organize Suas Finanças
+                Inteligentemente em{' '}
                 <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 bg-clip-text text-transparent">
                   Minutos
                 </span>
               </h2>
 
               <p className="text-xl text-blue-700 mb-12 leading-relaxed">
-                O Budgetly facilita a organização das suas finanças pessoais e em grupo com
-                workspaces inteligentes e categorização automática. Tudo por apenas R$ 18/mês.
+                O Budgetly utiliza inteligência artificial para organizar automaticamente suas finanças
+                pessoais e colaborativas, com workspaces inteligentes e categorização automática.
+                <span className="font-semibold text-blue-800"> Tudo por apenas R$ 18/mês</span>.
               </p>
 
               {/* Feature Pills */}
@@ -569,14 +591,16 @@ const Landing: React.FC = () => {
             </div>
 
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Crie e gerencie espaços{' '}
+              Workspaces Inteligentes{' '}
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                colaborativos
+                e Colaborativos
               </span>
             </h2>
 
-            <p className="text-xl text-blue-700 max-w-4xl mx-auto leading-relaxed">
-              O Workspace é seu espaço colaborativo onde você organiza finanças por contexto: suas contas pessoais, o orçamento da viagem, gastos do apartamento compartilhado, mesada dos filhos... Adicione membros para acompanhar ou registrar movimentações, tudo separado e com controle total.
+            <p className="text-xl text-blue-700 max-w-4xl mx-auto leading-relaxed mb-6">
+              Organize suas finanças por contexto: contas pessoais, orçamento da viagem, gastos do apartamento compartilhado, 
+              mesada dos filhos. Cada workspace é um ambiente isolado onde você adiciona membros para acompanhar 
+              ou registrar movimentações, tudo separado e com controle total.
             </p>
             
             <div className="mt-8 text-lg text-blue-600 font-semibold">
@@ -901,34 +925,80 @@ const Landing: React.FC = () => {
       </section>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="faq" className="py-20 bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-full backdrop-blur-lg animate-float-slow"></div>
+          <div className="absolute bottom-32 right-16 w-24 h-24 bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-full backdrop-blur-lg animate-float-delayed"></div>
+          <div className="absolute top-1/2 right-1/3 w-20 h-20 bg-gradient-to-br from-sky-500/10 to-cyan-500/10 rounded-full backdrop-blur-lg animate-bounce-slow"></div>
+        </div>
+
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-blue-900 mb-6">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-sm font-medium text-blue-300 mb-8 shadow-2xl">
+              <QuestionMarkCircleIcon className="h-4 w-4 mr-2 text-blue-400" />
+              FAQ
+            </div>
+
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
               Perguntas Frequentes
             </h2>
-            <p className="text-xl text-blue-700">
-              Esclarecemos suas principais dúvidas sobre o Budgetly.
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              Ajudamos a acompanhar suas despesas e receitas. Mostra o fluxo de registros
+              ao longo de um período específico de tempo. Como semanal, mensal ou anual.
             </p>
           </div>
 
-          <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {faqs.map((faq, index) => (
               <div
                 key={index}
-                className="bg-white/50 backdrop-blur-2xl rounded-3xl p-8 border border-white/70 shadow-2xl hover:shadow-3xl transition-all duration-300"
+                className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl hover:border-white/20 transition-all duration-300 overflow-hidden"
               >
-                <div className="flex items-start space-x-4">
-                  <div className="bg-gradient-to-br from-blue-100 to-indigo-100 p-2 rounded-xl flex-shrink-0">
-                    <QuestionMarkCircleIcon className="h-6 w-6 text-blue-600" />
+                <button
+                  onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
+                  className="w-full p-6 text-left flex items-center justify-between hover:bg-white/5 transition-colors duration-200"
+                >
+                  <h3 className="text-lg font-semibold text-white pr-4 leading-tight">
+                    {faq.question}
+                  </h3>
+                  <div className="flex-shrink-0 ml-4">
+                    {openFaqIndex === index ? (
+                      <MinusIcon className="h-6 w-6 text-blue-400 transform transition-transform duration-300" />
+                    ) : (
+                      <PlusIcon className="h-6 w-6 text-gray-400 transform transition-transform duration-300" />
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-blue-900 mb-4">{faq.question}</h3>
-                    <p className="text-blue-700 leading-relaxed text-lg">{faq.answer}</p>
+                </button>
+                
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  openFaqIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                }`}>
+                  <div className="px-6 pb-6">
+                    <div className="border-t border-white/10 pt-4">
+                      <p className="text-gray-300 leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Contact Section */}
+          <div className="mt-16 text-center">
+            <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl">
+              <h3 className="text-2xl font-bold text-white mb-4">
+                Você tem outras perguntas?
+              </h3>
+              <p className="text-gray-300 mb-6 leading-relaxed">
+                Nossa equipe responderá todas as suas perguntas. Garantimos uma resposta rápida.
+              </p>
+              <button className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-full font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105">
+                FALE CONOSCO
+              </button>
+            </div>
           </div>
         </div>
       </section>
