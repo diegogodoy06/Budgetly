@@ -18,18 +18,18 @@ const BeneficiaryCard: React.FC<{
   onToggleActive: (id: number, is_active: boolean) => void;
 }> = ({ beneficiary, onEdit, onDelete, onToggleActive }) => {
   return (
-    <div className={`bg-white rounded-lg shadow-sm border p-4 ${!beneficiary.is_active ? 'opacity-60' : ''}`}>
+    <div className={`glass-card p-4 float-card ${!beneficiary.is_active ? 'opacity-60' : ''}`}>
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <h3 className="font-medium text-gray-900">
+          <h3 className="font-medium text-gray-900 dark:text-gray-100">
             {beneficiary.nome}
             {beneficiary.is_system && (
-              <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-400">
                 Sistema
               </span>
             )}
           </h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Criado em {new Date(beneficiary.created_at).toLocaleDateString('pt-BR')}
           </p>
         </div>
@@ -39,8 +39,8 @@ const BeneficiaryCard: React.FC<{
             onClick={() => onToggleActive(beneficiary.id, !beneficiary.is_active)}
             className={`p-2 rounded-lg transition-colors ${
               beneficiary.is_active 
-                ? 'text-green-600 hover:bg-green-50' 
-                : 'text-gray-400 hover:bg-gray-50'
+                ? 'text-success-600 hover:bg-success-50 dark:hover:bg-success-900/20' 
+                : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'
             }`}
             title={beneficiary.is_active ? 'Desativar' : 'Ativar'}
           >
@@ -53,7 +53,7 @@ const BeneficiaryCard: React.FC<{
           
           <button
             onClick={() => onEdit(beneficiary)}
-            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            className="p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
             title="Editar"
           >
             <PencilIcon className="h-5 w-5" />
@@ -62,7 +62,7 @@ const BeneficiaryCard: React.FC<{
           {!beneficiary.is_system && (
             <button
               onClick={() => onDelete(beneficiary.id)}
-              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="p-2 text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-900/20 rounded-lg transition-colors"
               title="Excluir"
             >
               <TrashIcon className="h-5 w-5" />
@@ -222,39 +222,41 @@ export const BeneficiariesPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
-          <UserGroupIcon className="h-8 w-8 text-blue-600" />
+          <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
+            <UserGroupIcon className="h-6 w-6 text-white" />
+          </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Beneficiários</h1>
-            <p className="text-gray-600">Gerencie os beneficiários das suas transações</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Beneficiários</h1>
+            <p className="text-gray-600 dark:text-gray-400">Gerencie os beneficiários das suas transações</p>
           </div>
         </div>
         
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="btn-primary"
         >
-          <PlusIcon className="h-5 w-5" />
-          <span>Novo Beneficiário</span>
+          <PlusIcon className="h-5 w-5 mr-2" />
+          Novo Beneficiário
         </button>
       </div>
 
       {/* Filters and Search */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="flex-1 relative">
-          <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             placeholder="Buscar beneficiários..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="form-input pl-10"
           />
         </div>
         
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value as 'all' | 'active' | 'inactive')}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="form-select"
         >
           <option value="all">Todos</option>
           <option value="active">Ativos</option>
@@ -264,15 +266,15 @@ export const BeneficiariesPage: React.FC = () => {
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-800">{error}</p>
+        <div className="glass-card p-4 mb-6 border border-danger-200/50 dark:border-danger-800/50">
+          <p className="text-danger-800 dark:text-danger-400">{error}</p>
         </div>
       )}
 
       {/* Loading State */}
       {loading && (
         <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
         </div>
       )}
 

@@ -340,17 +340,17 @@ const Categories: React.FC = () => {
       {/* Header */}
       <div className="md:flex md:items-center md:justify-between mb-8">
         <div className="flex-1 min-w-0">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+          <h2 className="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:text-3xl sm:truncate">
             Gerenciamento de Categorias
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Organize suas transações com categorias principais e subcategorias em cards visuais
           </p>
         </div>
         <div className="mt-4 flex md:mt-0 md:ml-4">
           <button
             onClick={() => abrirModal()}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="btn-primary"
           >
             <PlusIcon className="h-4 w-4 mr-2" />
             Nova Categoria Principal
@@ -362,15 +362,17 @@ const Categories: React.FC = () => {
       <div className="space-y-6">
         {categories.length === 0 ? (
           <div className="text-center py-12">
-            <FolderIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhuma categoria encontrada</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <FolderIcon className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+            </div>
+            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">Nenhuma categoria encontrada</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Comece criando sua primeira categoria principal.
             </p>
             <div className="mt-6">
               <button
                 onClick={() => abrirModal()}
-                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="btn-primary"
               >
                 <PlusIcon className="h-4 w-4 mr-2" />
                 Nova Categoria
@@ -386,10 +388,10 @@ const Categories: React.FC = () => {
 
       {/* Modal de Criação/Edição */}
       {showModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 w-96 glass-card animate-slide-in">
             <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
                 {editingCategory ? 'Editar Categoria' : 
                  formData.parent ? 'Nova Subcategoria' : 'Nova Categoria Principal'}
               </h3>
@@ -397,7 +399,7 @@ const Categories: React.FC = () => {
               <div className="space-y-4">
                 {/* Nome */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="form-label">
                     Nome
                   </label>
                   <input

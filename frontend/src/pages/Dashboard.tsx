@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useWorkspace } from '../contexts/WorkspaceContext';
-import { transactionsAPI, accountsAPI } from '@/services/api';
+import { transactionsAPI, accountsAPI, creditCardsAPI } from '@/services/api';
 import { 
   EyeIcon, 
   EyeSlashIcon, 
@@ -11,8 +11,11 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
   CurrencyDollarIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  CreditCardIcon,
+  ClockIcon
 } from '@heroicons/react/24/outline';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -42,13 +45,6 @@ const Dashboard: React.FC = () => {
   const [showValues, setShowValues] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [showDateFilter, setShowDateFilter] = useState(false);
-  const [dateRange, setDateRange] = useState({ start: '', end: '' });
-
-  // Estados para o gráfico de categorias
-  const [categoriesData, setCategoriesData] = useState<any[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
-  const [transactionTypeFilter, setTransactionTypeFilter] = useState<'todas' | 'bancos' | 'cartoes'>('todas');
 
   // Estados para dados do dashboard
   const [dashboardData, setDashboardData] = useState<any>({
@@ -56,15 +52,25 @@ const Dashboard: React.FC = () => {
     totalEntradas: 0,
     totalSaidas: 0,
     previsaoEntradas: 0,
-    previsaoSaidas: 0
+    previsaoSaidas: 0,
+    saldoInicial: 0,
+    saldoAtual: 0
   });
-  const [contasPagar, setContasPagar] = useState<any[]>([]);
-  const [contasReceber, setContasReceber] = useState<any[]>([]);
+  
+  // Estados para gráficos
+  const [balanceChartData, setBalanceChartData] = useState<any[]>([]);
+  const [categoriesData, setCategoriesData] = useState<any[]>([]);
+  
+  // Estados para cartões e transações
+  const [creditCards, setCreditCards] = useState<any[]>([]);
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  
+  // Loading states
   const [loadingDashboard, setLoadingDashboard] = useState(false);
-
-  // Filtros para contas
-  const [filtroContasPagar, setFiltroContasPagar] = useState('todas');
-  const [filtroContasReceber, setFiltroContasReceber] = useState('todas');
+  const [loadingCharts, setLoadingCharts] = useState(false);
+  const [loadingCards, setLoadingCards] = useState(false);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
 
   const formatCurrency = (value: number) => {
     if (!showValues) return '••••••';
@@ -106,61 +112,52 @@ const Dashboard: React.FC = () => {
     setCurrentYear(year);
   };
 
-  // Função para carregar dados das categorias
-  const loadCategoriesData = async () => {
-    if (!currentWorkspace) return;
-    
-    setLoadingCategories(true);
+  // Função para calcular o saldo de fechamento de um mês específico
+  const calculateMonthClosingBalance = async (month: number, year: number, depth = 0): Promise<number> => {
+    // Limite de recursão para evitar loops infinitos - máximo 12 meses para trás
+    if (depth > 12) {
+      console.warn('Limite de recursão atingido ao calcular saldo inicial. Usando valor padrão.');
+      return 5000; // Valor base quando não conseguimos calcular mais
+    }
+
     try {
-      const startDate = new Date(currentYear, currentMonth, 1);
-      const endDate = new Date(currentYear, currentMonth + 1, 0);
+      const startDate = new Date(year, month, 1);
+      const endDate = new Date(year, month + 1, 0);
       
-      let params: any = {
+      const params = {
         start_date: startDate.toISOString().split('T')[0],
         end_date: endDate.toISOString().split('T')[0],
       };
 
-      // Aplicar filtro por tipo de transação
-      if (transactionTypeFilter === 'bancos') {
-        // Buscar contas bancárias (excluir cartões)
-        const accounts = await accountsAPI.getAll();
-        const bankAccountIds = accounts.map(acc => acc.id);
-        params.account__in = bankAccountIds.join(',');
-        params.credit_card__isnull = true; // Excluir transações de cartão
-      } else if (transactionTypeFilter === 'cartoes') {
-        // Buscar apenas transações de cartão de crédito
-        params.account__isnull = true; // Excluir transações de conta
-        // Não precisamos filtrar por cartão específico, apenas garantir que tem credit_card
+      const transactions = await transactionsAPI.getAll(params);
+      const confirmedTransactions = transactions.filter(t => t.confirmada);
+      
+      const entradas = confirmedTransactions
+        .filter(t => t.tipo === 'entrada')
+        .reduce((sum, t) => sum + Math.abs(parseFloat(t.valor)), 0);
+      const saidas = confirmedTransactions
+        .filter(t => t.tipo === 'saida')
+        .reduce((sum, t) => sum + Math.abs(parseFloat(t.valor)), 0);
+
+      // Para calcular o saldo inicial do mês, precisamos do saldo de fechamento do mês anterior
+      let saldoInicialMes = 0;
+      if (month === 0) {
+        // Janeiro - usar dezembro do ano anterior
+        saldoInicialMes = await calculateMonthClosingBalance(11, year - 1, depth + 1);
+      } else {
+        // Mês anterior do mesmo ano
+        saldoInicialMes = await calculateMonthClosingBalance(month - 1, year, depth + 1);
       }
 
-      const data = await transactionsAPI.byCategory(params);
-      
-      // Processar dados e ordenar por valor (maior para menor)
-      const processedData = Object.entries(data || {})
-        .map(([categoryName, value]) => ({
-          category: categoryName,
-          value: Math.abs(Number(value)),
-          originalValue: Number(value)
-        }))
-        .filter(item => item.value > 0)
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 10); // Mostrar apenas top 10
-
-      setCategoriesData(processedData);
+      return saldoInicialMes + entradas - saidas;
     } catch (error) {
-      console.error('Erro ao carregar dados das categorias:', error);
-      setCategoriesData([]);
-    } finally {
-      setLoadingCategories(false);
+      console.error(`Erro ao calcular saldo do mês ${month}/${year}:`, error);
+      // Base case: se não conseguir calcular, usar um valor padrão
+      return 5000;
     }
   };
 
-  // Efeito para recarregar dados quando mês ou filtro mudar
-  useEffect(() => {
-    loadCategoriesData();
-  }, [currentMonth, currentYear, transactionTypeFilter, currentWorkspace]);
-
-  // Função para carregar dados do dashboard
+  // Função para carregar dados principais do dashboard
   const loadDashboardData = async () => {
     if (!currentWorkspace) return;
     
@@ -180,7 +177,6 @@ const Dashboard: React.FC = () => {
       const transactions = await transactionsAPI.getAll(params);
       
       console.log(`📊 Dashboard: ${transactions.length} transações encontradas para ${startDate.toISOString().split('T')[0]} - ${endDate.toISOString().split('T')[0]}`);
-      console.log('📊 Dashboard: Primeiras 3 transações:', transactions.slice(0, 3));
       
       // Processar dados realizados (transações confirmadas)
       const confirmedTransactions = transactions.filter(t => t.confirmada);
@@ -204,14 +200,26 @@ const Dashboard: React.FC = () => {
         .filter(t => t.tipo === 'saida')
         .reduce((sum, t) => sum + Math.abs(parseFloat(t.valor)), 0);
 
-      // Calcular saldo previsto
-      const saldoPrevisto = totalEntradas - totalSaidas + previsaoEntradas - previsaoSaidas;
+      // Calcular saldo inicial como fechamento do mês anterior
+      let saldoInicial = 0;
+      if (currentMonth === 0) {
+        // Janeiro - buscar fechamento de dezembro do ano anterior
+        saldoInicial = await calculateMonthClosingBalance(11, currentYear - 1);
+      } else {
+        // Mês anterior do mesmo ano
+        saldoInicial = await calculateMonthClosingBalance(currentMonth - 1, currentYear);
+      }
+      
+      const saldoAtual = saldoInicial + totalEntradas - totalSaidas;
+      const saldoPrevisto = saldoAtual + previsaoEntradas - previsaoSaidas;
 
       console.log('💰 Dashboard: Dados calculados:', {
         totalEntradas,
         totalSaidas,
         previsaoEntradas,
         previsaoSaidas,
+        saldoInicial,
+        saldoAtual,
         saldoPrevisto
       });
 
@@ -220,42 +228,10 @@ const Dashboard: React.FC = () => {
         totalEntradas,
         totalSaidas,
         previsaoEntradas,
-        previsaoSaidas
+        previsaoSaidas,
+        saldoInicial,
+        saldoAtual
       });
-
-      // Processar contas a pagar e receber
-      const hoje = new Date();
-      const amanha = new Date(hoje);
-      amanha.setDate(hoje.getDate() + 1);
-
-      const processarContas = (transacoes: any[], tipo: 'saida' | 'entrada') => {
-        return transacoes
-          .filter(t => t.tipo === tipo && !t.confirmada)
-          .map(t => {
-            const vencimento = new Date(t.data);
-            let status = 'mes';
-            
-            if (vencimento < hoje) {
-              status = 'atrasada';
-            } else if (vencimento.toDateString() === hoje.toDateString()) {
-              status = 'hoje';
-            } else if (vencimento.toDateString() === amanha.toDateString()) {
-              status = 'amanha';
-            }
-            
-            return {
-              id: t.id,
-              descricao: t.descricao,
-              vencimento: t.data,
-              valor: Math.abs(parseFloat(t.valor)),
-              status
-            };
-          })
-          .sort((a, b) => new Date(a.vencimento).getTime() - new Date(b.vencimento).getTime());
-      };
-
-      setContasPagar(processarContas(transactions, 'saida'));
-      setContasReceber(processarContas(transactions, 'entrada'));
 
     } catch (error) {
       console.error('Erro ao carregar dados do dashboard:', error);
@@ -264,511 +240,662 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Efeito para recarregar dados do dashboard quando mês mudar
+  // Função para carregar dados dos gráficos
+  const loadChartsData = async () => {
+    if (!currentWorkspace) return;
+    
+    setLoadingCharts(true);
+    try {
+      // Carregar dados do gráfico de linha (últimos 6 meses)
+      const balanceData = [];
+      for (let i = 5; i >= 0; i--) {
+        let month = currentMonth - i;
+        let year = currentYear;
+        
+        if (month < 0) {
+          month = 12 + month;
+          year = currentYear - 1;
+        }
+        
+        const startDate = new Date(year, month, 1);
+        const endDate = new Date(year, month + 1, 0);
+        
+        const params = {
+          start_date: startDate.toISOString().split('T')[0],
+          end_date: endDate.toISOString().split('T')[0],
+        };
+
+        const transactions = await transactionsAPI.getAll(params);
+        const confirmedTransactions = transactions.filter(t => t.confirmada);
+        
+        const entradas = confirmedTransactions
+          .filter(t => t.tipo === 'entrada')
+          .reduce((sum, t) => sum + Math.abs(parseFloat(t.valor)), 0);
+        const saidas = confirmedTransactions
+          .filter(t => t.tipo === 'saida')
+          .reduce((sum, t) => sum + Math.abs(parseFloat(t.valor)), 0);
+        
+        // Simular saldo (em um app real, você teria o saldo inicial de cada mês)
+        const saldo = 5000 + entradas - saidas + (i * 500); // Simulação
+        
+        balanceData.push({
+          month: getMonthName(month),
+          saldo: saldo,
+          entradas: entradas,
+          saidas: saidas
+        });
+      }
+      
+      setBalanceChartData(balanceData);
+
+      // Carregar dados do gráfico de categorias (pizza)
+      const startDate = new Date(currentYear, currentMonth, 1);
+      const endDate = new Date(currentYear, currentMonth + 1, 0);
+      
+      const categoryParams = {
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
+      };
+
+      const categoryData = await transactionsAPI.byCategory(categoryParams);
+      
+      const processedCategoryData = Object.entries(categoryData || {})
+        .map(([categoryName, value]) => ({
+          name: categoryName,
+          value: Math.abs(Number(value)),
+          originalValue: Number(value)
+        }))
+        .filter(item => item.value > 0)
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 8); // Top 8 categorias
+
+      setCategoriesData(processedCategoryData);
+
+    } catch (error) {
+      console.error('Erro ao carregar dados dos gráficos:', error);
+    } finally {
+      setLoadingCharts(false);
+    }
+  };
+
+  // Função para carregar cartões de crédito
+  const loadCreditCards = async () => {
+    if (!currentWorkspace) return;
+    
+    setLoadingCards(true);
+    try {
+      const cards = await creditCardsAPI.getAll();
+      setCreditCards(cards); // Carregar todos os cartões para o carousel
+      setCurrentCardIndex(0); // Reset carousel position
+    } catch (error) {
+      console.error('Erro ao carregar cartões:', error);
+    } finally {
+      setLoadingCards(false);
+    }
+  };
+
+  // Funções para navegação no carousel de cartões
+  const handlePreviousCard = () => {
+    setCurrentCardIndex((prev) => (prev > 0 ? prev - 1 : creditCards.length - 1));
+  };
+
+  const handleNextCard = () => {
+    setCurrentCardIndex((prev) => (prev < creditCards.length - 1 ? prev + 1 : 0));
+  };
+
+  // Paginação para transações recentes
+  const [transactionsPage, setTransactionsPage] = useState(1);
+  const transactionsPerPage = 5;
+  const [allRecentTransactions, setAllRecentTransactions] = useState<any[] | null>(null); // null = API paginada, array = paginação local
+
+  // Função para carregar transações recentes paginadas
+  const loadRecentTransactions = async (page = 1) => {
+    if (!currentWorkspace) return;
+    setLoadingTransactions(true);
+    try {
+      const params = { limit: transactionsPerPage, offset: (page - 1) * transactionsPerPage };
+      const response = await transactionsAPI.getAll(params);
+      // Se a API retorna array grande, paginar no frontend
+      if (Array.isArray(response) && response.length > transactionsPerPage) {
+        setAllRecentTransactions(response);
+        setRecentTransactions(response.slice((page - 1) * transactionsPerPage, page * transactionsPerPage));
+      } else if (Array.isArray(response)) {
+        setAllRecentTransactions(null);
+        setRecentTransactions(response);
+      } else if (response && typeof response === 'object' && 'results' in response) {
+        setAllRecentTransactions(null);
+        setRecentTransactions((response as any).results || []);
+      } else {
+        setAllRecentTransactions(null);
+        setRecentTransactions([]);
+      }
+    } catch (error) {
+      setAllRecentTransactions(null);
+      console.error('Erro ao carregar transações recentes:', error);
+    } finally {
+      setLoadingTransactions(false);
+    }
+  };
+
+  // Efeito para recarregar dados quando mês mudar
   useEffect(() => {
     loadDashboardData();
+    loadChartsData();
+    loadCreditCards();
+    setTransactionsPage(1); // Sempre volta para a primeira página ao trocar mês/workspace
   }, [currentMonth, currentYear, currentWorkspace]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'hoje': return 'bg-blue-100 text-blue-800';
-      case 'amanha': return 'bg-yellow-100 text-yellow-800';
-      case 'mes': return 'bg-green-100 text-green-800';
-      case 'atrasada': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+  useEffect(() => {
+    if (allRecentTransactions) {
+      setRecentTransactions(allRecentTransactions.slice((transactionsPage - 1) * transactionsPerPage, transactionsPage * transactionsPerPage));
+    } else {
+      loadRecentTransactions(transactionsPage);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactionsPage, currentMonth, currentYear, currentWorkspace, allRecentTransactions]);
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'hoje': return 'Hoje';
-      case 'amanha': return 'Amanhã';
-      case 'mes': return 'Este mês';
-      case 'atrasada': return 'Atrasada';
-      default: return 'Outras';
+  // Cores para o gráfico de pizza
+  const COLORS = ['#8B5CF6', '#A78BFA', '#C4B5FD', '#DDD6FE', '#EDE9FE', '#F3F4F6', '#E5E7EB', '#D1D5DB'];
+
+  // Função para formatar valor no tooltip do gráfico
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="glass-card p-3 border border-white/20">
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{`${label}: ${formatCurrency(payload[0].value)}`}</p>
+        </div>
+      );
     }
-  };
-
-  const filtrarContas = (contas: any[], filtro: string) => {
-    if (filtro === 'todas') return contas;
-    return contas.filter(conta => conta.status === filtro);
+    return null;
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header com Saudação e Workspace */}
-      <div className="p-6">
-        <div className="flex justify-between items-center">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary-50/30 via-purple-50/20 to-pink-50/30 dark:from-primary-900/10 dark:via-purple-900/5 dark:to-pink-900/10 pointer-events-none" />
+      
+      <div className="relative z-10 space-y-8">
+        {/* Header com Saudação e Filtro Global de Mês */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="text-left">
-            <span className="text-3xl text-gray-700 font-light">Olá, </span>
-            <span className="text-3xl text-gray-700 font-bold">{user?.first_name || 'Usuário'}</span>
+            <span className="text-4xl text-gray-700 dark:text-gray-300 font-extralight">Olá, </span>
+            <span className="text-4xl text-gradient font-black">
+              {user?.first_name && user?.last_name 
+                ? `${user.first_name} ${user.last_name}`
+                : user?.first_name || 'Usuário'
+              }
+            </span>
           </div>
-          {currentWorkspace && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-blue-600 text-sm font-bold">W</span>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-blue-900">{currentWorkspace.nome}</p>
-                  <p className="text-xs text-blue-600">Workspace Ativo</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* Seção Principal - Financeiro + Notícias */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Coluna Esquerda - Dados Financeiros (2/3) */}
-        <div className="xl:col-span-2 space-y-6">
-          {/* Filtros de Período */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-medium text-gray-700">Filtragem por Mês</h2>
+          {/* Filtro Global de Mês - Clean e Elegante */}
+          <div className="glass-card p-4 float-card">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <CalendarIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Período:</span>
+              </div>
+              
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => setShowValues(!showValues)}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                  title={showValues ? 'Ocultar valores' : 'Mostrar valores'}
+                  onClick={() => {
+                    if (currentMonth === 0) {
+                      setCurrentMonth(11);
+                      setCurrentYear(currentYear - 1);
+                    } else {
+                      setCurrentMonth(currentMonth - 1);
+                    }
+                  }}
+                  className="p-1.5 rounded-lg hover:bg-white/30 dark:hover:bg-white/10 transition-colors"
                 >
-                  {showValues ? (
-                    <EyeIcon className="h-4 w-4 text-gray-500" />
-                  ) : (
-                    <EyeSlashIcon className="h-4 w-4 text-gray-500" />
-                  )}
+                  <ChevronLeftIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                 </button>
+
+                <div className="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-sm font-bold shadow-lg">
+                  {getMonthName(currentMonth)} {currentYear}
+                </div>
+
                 <button
-                  onClick={() => setShowDateFilter(!showDateFilter)}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                  title="Filtro personalizado"
+                  onClick={() => {
+                    if (currentMonth === 11) {
+                      setCurrentMonth(0);
+                      setCurrentYear(currentYear + 1);
+                    } else {
+                      setCurrentMonth(currentMonth + 1);
+                    }
+                  }}
+                  className="p-1.5 rounded-lg hover:bg-white/30 dark:hover:bg-white/10 transition-colors"
                 >
-                  <CalendarIcon className="h-4 w-4 text-gray-500" />
+                  <ChevronRightIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                 </button>
               </div>
-            </div>
-
-            {/* Navegação de Meses */}
-            <div className="flex items-center justify-center space-x-2">
-              <button
-                onClick={() => {
-                  if (currentMonth === 0) {
-                    setCurrentMonth(11);
-                    setCurrentYear(currentYear - 1);
-                  } else {
-                    setCurrentMonth(currentMonth - 1);
-                  }
-                }}
-                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <ChevronLeftIcon className="h-4 w-4 text-gray-500" />
-              </button>
-
-              <div className="flex space-x-1">
-                {getVisibleMonths().map(({ month, year, offset }) => (
-                  <button
-                    key={`${month}-${year}`}
-                    onClick={() => handleMonthSelect(month, year)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      offset === 0
-                        ? 'bg-gray-800 text-white shadow-sm'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {getMonthName(month)} {year}
-                  </button>
-                ))}
-              </div>
 
               <button
-                onClick={() => {
-                  if (currentMonth === 11) {
-                    setCurrentMonth(0);
-                    setCurrentYear(currentYear + 1);
-                  } else {
-                    setCurrentMonth(currentMonth + 1);
-                  }
-                }}
-                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                onClick={() => setShowValues(!showValues)}
+                className="p-2 rounded-lg hover:bg-white/30 dark:hover:bg-white/10 transition-colors"
+                title={showValues ? 'Ocultar valores' : 'Mostrar valores'}
               >
-                <ChevronRightIcon className="h-4 w-4 text-gray-500" />
+                {showValues ? (
+                  <EyeIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                ) : (
+                  <EyeSlashIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                )}
               </button>
             </div>
-
-            {/* Filtro de Data Personalizado */}
-            {showDateFilter && (
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                <h3 className="text-xs font-medium text-gray-700 mb-2">Período Personalizado</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Data Início</label>
-                    <input
-                      type="date"
-                      value={dateRange.start}
-                      onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Data Fim</label>
-                    <input
-                      type="date"
-                      value={dateRange.end}
-                      onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                      className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-                <div className="mt-3 flex justify-end space-x-2">
-                  <button
-                    onClick={() => setShowDateFilter(false)}
-                    className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={() => setShowDateFilter(false)}
-                    className="px-3 py-1.5 text-xs font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-900"
-                  >
-                    Aplicar
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
+        </div>
 
-          {/* Saldo Previsto */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-sm border border-blue-200 p-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-sm">
-                <CurrencyDollarIcon className="h-6 w-6 text-white" />
+        {/* Primeira Linha: Cards Financeiros */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          {/* Entradas */}
+          <div className="glass-card p-6 float-card border border-green-200/50 dark:border-green-700/50">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                <ArrowUpIcon className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="text-base font-medium text-gray-700 mb-1">Saldo Previsto</h3>
+                <h3 className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Entradas</h3>
                 {loadingDashboard ? (
                   <div className="animate-pulse">
-                    <div className="h-8 bg-gray-200 rounded w-32 mb-1"></div>
-                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
                   </div>
                 ) : (
-                  <>
-                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(dashboardData.saldoPrevisto)}</p>
-                    <p className="text-xs text-gray-600 mt-1">{getMonthName(currentMonth)} {currentYear}</p>
-                  </>
+                  <p className="text-lg font-black text-green-600 dark:text-green-400">{formatCurrency(dashboardData.totalEntradas)}</p>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Grid de Entradas e Saídas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Entradas Realizadas */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-                  <ArrowUpIcon className="h-5 w-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium text-gray-600">Entradas</h3>
-                  {loadingDashboard ? (
-                    <div className="animate-pulse">
-                      <div className="h-6 bg-gray-200 rounded w-24 mb-1"></div>
-                      <div className="h-3 bg-gray-200 rounded w-16"></div>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-xl font-bold text-green-600">{formatCurrency(dashboardData.totalEntradas)}</p>
-                      <p className="text-xs text-gray-500">Realizadas</p>
-                    </>
-                  )}
-                </div>
+          {/* Entradas Previstas */}
+          <div className="glass-card p-6 float-card border border-green-200/50 dark:border-green-700/50 border-dashed">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-700 rounded-xl flex items-center justify-center border-2 border-dashed border-green-300 dark:border-green-600">
+                <ArrowUpIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
-            </div>
-
-            {/* Saídas Realizadas */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
-                  <ArrowDownIcon className="h-5 w-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium text-gray-600">Saídas</h3>
-                  {loadingDashboard ? (
-                    <div className="animate-pulse">
-                      <div className="h-6 bg-gray-200 rounded w-24 mb-1"></div>
-                      <div className="h-3 bg-gray-200 rounded w-16"></div>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-xl font-bold text-red-600">{formatCurrency(dashboardData.totalSaidas)}</p>
-                      <p className="text-xs text-gray-500">Realizadas</p>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Entradas Previstas */}
-            <div className="bg-white rounded-xl shadow-sm border-2 border-dashed border-green-200 p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center border-2 border-dashed border-green-300">
-                  <ArrowUpIcon className="h-5 w-5 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium text-gray-600">Entradas Previstas</h3>
-                  {loadingDashboard ? (
-                    <div className="animate-pulse">
-                      <div className="h-6 bg-gray-200 rounded w-24 mb-1"></div>
-                      <div className="h-3 bg-gray-200 rounded w-16"></div>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-xl font-bold text-green-600">{formatCurrency(dashboardData.previsaoEntradas)}</p>
-                      <p className="text-xs text-gray-500">A receber</p>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Saídas Previstas */}
-            <div className="bg-white rounded-xl shadow-sm border-2 border-dashed border-red-200 p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-red-100 to-red-200 rounded-lg flex items-center justify-center border-2 border-dashed border-red-300">
-                  <ArrowDownIcon className="h-5 w-5 text-red-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium text-gray-600">Saídas Previstas</h3>
-                  {loadingDashboard ? (
-                    <div className="animate-pulse">
-                      <div className="h-6 bg-gray-200 rounded w-24 mb-1"></div>
-                      <div className="h-3 bg-gray-200 rounded w-16"></div>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-xl font-bold text-red-600">{formatCurrency(dashboardData.previsaoSaidas)}</p>
-                      <p className="text-xs text-gray-500">A pagar</p>
-                    </>
-                  )}
-                </div>
+              <div>
+                <h3 className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Entr. P.</h3>
+                {loadingDashboard ? (
+                  <div className="animate-pulse">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+                  </div>
+                ) : (
+                  <p className="text-lg font-black text-green-600 dark:text-green-400">{formatCurrency(dashboardData.previsaoEntradas)}</p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Gráfico de Categorias */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <ChartBarIcon className="h-5 w-5 text-white" />
+          {/* Saídas */}
+          <div className="glass-card p-6 float-card border border-red-200/50 dark:border-red-700/50">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                <ArrowDownIcon className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Saídas</h3>
+                {loadingDashboard ? (
+                  <div className="animate-pulse">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+                  </div>
+                ) : (
+                  <p className="text-lg font-black text-red-600 dark:text-red-400">{formatCurrency(dashboardData.totalSaidas)}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Saídas Previstas */}
+          <div className="glass-card p-6 float-card border border-red-200/50 dark:border-red-700/50 border-dashed">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-800 dark:to-red-700 rounded-xl flex items-center justify-center border-2 border-dashed border-red-300 dark:border-red-600">
+                <ArrowDownIcon className="h-5 w-5 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Saídas P.</h3>
+                {loadingDashboard ? (
+                  <div className="animate-pulse">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+                  </div>
+                ) : (
+                  <p className="text-lg font-black text-red-600 dark:text-red-400">{formatCurrency(dashboardData.previsaoSaidas)}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Segunda Linha: Money Flow + Meus Cartões */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          {/* Gráfico de Linha - Money Flow (2/3) */}
+          <div className="xl:col-span-2">
+            <div className="glass-card p-8 float-card">
+              {/* Cabeçalho do Gráfico com Informações de Saldo */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <ChartBarIcon className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-xl font-black text-gray-900 dark:text-gray-100">Money Flow</h3>
+                  </div>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">{getMonthName(currentMonth)} {currentYear}</span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">Gastos por Categoria</h3>
+                {/* Informações de Saldo no Cabeçalho */}
+                <div className="grid grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <p className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Saldo Inicial</p>
+                    <p className="text-lg font-black text-gray-900 dark:text-gray-100">{formatCurrency(dashboardData.saldoInicial)}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Saldo Atual</p>
+                    <p className="text-lg font-black text-blue-600 dark:text-blue-400">{formatCurrency(dashboardData.saldoAtual)}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Saldo Previsto</p>
+                    <p className="text-lg font-black text-purple-600 dark:text-purple-400">{formatCurrency(dashboardData.saldoPrevisto)}</p>
+                  </div>
+                </div>
+              </div>
+              {/* Gráfico de Linha */}
+              <div className="h-80">
+                {loadingCharts ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={balanceChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis 
+                        dataKey="month" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                      />
+                      <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: '#6b7280' }}
+                        tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Line 
+                        type="monotone" 
+                        dataKey="saldo" 
+                        stroke="#8B5CF6" 
+                        strokeWidth={3}
+                        dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 6 }}
+                        activeDot={{ r: 8, fill: '#8B5CF6' }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Meus Cartões (1/3) */}
+          <div className="xl:col-span-1">
+            <div className="glass-card p-6 float-card h-full">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <CreditCardIcon className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Meus Cartões</h3>
+                </div>
+                
+                {/* Navegação do Carousel - só aparece se houver mais de 1 cartão */}
+                {creditCards.length > 1 && (
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={handlePreviousCard}
+                      className="p-1.5 rounded-lg hover:bg-white/30 dark:hover:bg-white/10 transition-colors"
+                      disabled={loadingCards}
+                    >
+                      <ChevronLeftIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    </button>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                      {currentCardIndex + 1}/{creditCards.length}
+                    </span>
+                    <button
+                      onClick={handleNextCard}
+                      className="p-1.5 rounded-lg hover:bg-white/30 dark:hover:bg-white/10 transition-colors"
+                      disabled={loadingCards}
+                    >
+                      <ChevronRightIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    </button>
+                  </div>
+                )}
               </div>
               
-              {/* Filtro por tipo de transação */}
-              <div className="flex items-center space-x-2">
-                <select
-                  value={transactionTypeFilter}
-                  onChange={(e) => setTransactionTypeFilter(e.target.value as 'todas' | 'bancos' | 'cartoes')}
-                  className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                >
-                  <option value="todas">Todas</option>
-                  <option value="bancos">Bancos</option>
-                  <option value="cartoes">Cartões</option>
-                </select>
+              <div className="relative">
+                {loadingCards ? (
+                  <div className="animate-pulse">
+                    <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                  </div>
+                ) : creditCards.length > 0 ? (
+                  <div className="relative overflow-hidden">
+                    {/* Carousel Container */}
+                    <div 
+                      className="flex transition-transform duration-300 ease-in-out"
+                      style={{ transform: `translateX(-${currentCardIndex * 100}%)` }}
+                    >
+                      {creditCards.map((card, index) => (
+                        <div key={card.id} className="w-full flex-shrink-0 px-1">
+                          {/* Card estilo similar ao da página de cartões */}
+                          <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-4 text-white shadow-lg relative overflow-hidden">
+                            {/* Background Pattern */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent"></div>
+                            <div className="absolute -top-4 -right-4 w-20 h-20 bg-white/10 rounded-full"></div>
+                            <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-white/10 rounded-full"></div>
+                            
+                            <div className="relative z-10">
+                              {/* Card Header */}
+                              <div className="flex items-center justify-between mb-4">
+                                <div>
+                                  <h4 className="text-sm font-bold text-white">{card.nome}</h4>
+                                  <p className="text-xs text-blue-100">**** {card.numero?.slice(-4) || '****'}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xs text-blue-100">Limite</p>
+                                  <p className="text-sm font-black text-white">{formatCurrency(card.limite || 0)}</p>
+                                </div>
+                              </div>
+                              
+                              {/* Card Bottom */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-8 h-6 bg-white/20 rounded backdrop-blur-sm flex items-center justify-center">
+                                    <span className="text-xs font-bold text-white">💳</span>
+                                  </div>
+                                  <span className="text-xs text-blue-100">{card.bandeira || 'Visa'}</span>
+                                </div>
+                                <div className="text-xs text-blue-100">
+                                  {card.vencimento || '12/28'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Indicadores de pontos (dots) */}
+                    {creditCards.length > 1 && (
+                      <div className="flex justify-center space-x-2 mt-4">
+                        {creditCards.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setCurrentCardIndex(index)}
+                            className={`w-2 h-2 rounded-full transition-colors ${
+                              index === currentCardIndex 
+                                ? 'bg-blue-600 dark:bg-blue-400' 
+                                : 'bg-gray-300 dark:bg-gray-600'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <CreditCardIcon className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">Nenhum cartão cadastrado</p>
+                  </div>
+                )}
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Gráfico de barras horizontais */}
-            <div className="space-y-3">
-              {loadingCategories ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        {/* Terceira Linha: Gráfico de Pizza + Últimas Transações */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          {/* Gráfico de Pizza - Despesas por Categoria (2/3) */}
+          <div className="xl:col-span-2">
+            <div className="glass-card p-8 float-card">
+              <div className="flex items-center space-x-3 mb-8">
+                <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <ChartBarIcon className="h-5 w-5 text-white" />
                 </div>
-              ) : categoriesData.length > 0 ? (
-                categoriesData.map((item, index) => {
-                  const maxValue = categoriesData[0]?.value || 1;
-                  const percentage = (item.value / maxValue) * 100;
-                  
-                  return (
-                    <div key={item.category} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700 truncate flex-1">
-                          {item.category}
-                        </span>
-                        <span className="text-sm font-bold text-gray-900 ml-2">
-                          {formatCurrency(item.value)}
-                        </span>
+                <h3 className="text-xl font-black text-gray-900 dark:text-gray-100">Despesas por Categoria</h3>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Gráfico de Pizza */}
+                <div className="h-80">
+                  {loadingCharts ? (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
+                    </div>
+                  ) : categoriesData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={categoriesData}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={120}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={false}
+                        >
+                          {categoriesData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center">
+                        <ChartBarIcon className="h-16 w-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                        <p className="text-gray-600 dark:text-gray-400">Nenhuma despesa encontrada</p>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full transition-all duration-500 ${
-                            index === 0 ? 'bg-purple-600' :
-                            index === 1 ? 'bg-purple-500' :
-                            index === 2 ? 'bg-purple-400' :
-                            'bg-purple-300'
-                          }`}
-                          style={{ width: `${percentage}%` }}
+                    </div>
+                  )}
+                </div>
+
+                {/* Legenda do Gráfico */}
+                <div className="space-y-3">
+                  {categoriesData.map((item, index) => (
+                    <div key={item.name} className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div 
+                          className="w-4 h-4 rounded-full" 
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
                         ></div>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+                          {item.name}
+                        </span>
                       </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="text-center py-8">
-                  <ChartBarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">Nenhuma movimentação encontrada para este período</p>
-                  <p className="text-sm text-gray-500">
-                    {getMonthName(currentMonth)} {currentYear}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Coluna Direita - Notícias (1/3) */}
-        <div className="xl:col-span-1">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-              Notícias & Dicas
-            </h3>
-            
-            <div className="space-y-4">
-              {/* Card de Notícia 1 */}
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-blue-900 mb-2">Nova ferramenta de análise</h4>
-                <p className="text-xs text-blue-700 mb-3">Descubra insights sobre seus gastos mensais com nossa nova funcionalidade de categorização automática.</p>
-                <span className="text-xs text-blue-600 font-medium">Há 2 horas</span>
-              </div>
-
-              {/* Card de Notícia 2 */}
-              <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-green-900 mb-2">Dica: Economia doméstica</h4>
-                <p className="text-xs text-green-700 mb-3">5 estratégias simples para reduzir gastos fixos e aumentar sua reserva de emergência.</p>
-                <span className="text-xs text-green-600 font-medium">Há 5 horas</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Seção de Resumo - Contas a Pagar e Receber */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Resumo</h2>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Contas a Pagar */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-800">Contas a Pagar</h3>
-              <select
-                value={filtroContasPagar}
-                onChange={(e) => setFiltroContasPagar(e.target.value)}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              >
-                <option value="todas">Todas</option>
-                <option value="hoje">Hoje</option>
-                <option value="amanha">Amanhã</option>
-                <option value="mes">Este mês</option>
-                <option value="atrasada">Atrasadas</option>
-              </select>
-            </div>
-
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {loadingDashboard ? (
-                <div className="space-y-2">
-                  {[...Array(3)].map((_, index) => (
-                    <div key={index} className="animate-pulse bg-gray-50 border border-gray-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="h-4 bg-gray-200 rounded w-32 mb-1"></div>
-                          <div className="h-3 bg-gray-200 rounded w-20"></div>
-                        </div>
-                        <div className="text-right">
-                          <div className="h-4 bg-gray-200 rounded w-20 mb-1"></div>
-                          <div className="h-5 bg-gray-200 rounded w-16"></div>
-                        </div>
-                      </div>
+                      <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                        {formatCurrency(item.value)}
+                      </span>
                     </div>
                   ))}
                 </div>
-              ) : (
-                filtrarContas(contasPagar, filtroContasPagar).map((conta) => (
-                  <div key={conta.id} className="bg-red-50 border border-red-200 rounded-lg p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{conta.descricao}</p>
-                        <p className="text-xs text-gray-600">{new Date(conta.vencimento).toLocaleDateString('pt-BR')}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-red-600">{formatCurrency(conta.valor)}</p>
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(conta.status)}`}>
-                          {getStatusLabel(conta.status)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
+              </div>
             </div>
           </div>
 
-          {/* Contas a Receber */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-800">Contas a Receber</h3>
-              <select
-                value={filtroContasReceber}
-                onChange={(e) => setFiltroContasReceber(e.target.value)}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-1 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              >
-                <option value="todas">Todas</option>
-                <option value="hoje">Hoje</option>
-                <option value="amanha">Amanhã</option>
-                <option value="mes">Este mês</option>
-                <option value="atrasada">Atrasadas</option>
-              </select>
-            </div>
-
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {loadingDashboard ? (
-                <div className="space-y-2">
-                  {[...Array(3)].map((_, index) => (
-                    <div key={index} className="animate-pulse bg-gray-50 border border-gray-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="h-4 bg-gray-200 rounded w-32 mb-1"></div>
-                          <div className="h-3 bg-gray-200 rounded w-20"></div>
-                        </div>
-                        <div className="text-right">
-                          <div className="h-4 bg-gray-200 rounded w-20 mb-1"></div>
-                          <div className="h-5 bg-gray-200 rounded w-16"></div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+          {/* Últimas Transações (1/3) */}
+          <div className="xl:col-span-1">
+            <div className="glass-card p-6 float-card h-full">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <ClockIcon className="h-5 w-5 text-white" />
                 </div>
-              ) : (
-                filtrarContas(contasReceber, filtroContasReceber).map((conta) => (
-                  <div key={conta.id} className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{conta.descricao}</p>
-                        <p className="text-xs text-gray-600">{new Date(conta.vencimento).toLocaleDateString('pt-BR')}</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Últimas Transações</h3>
+              </div>
+              
+              <div className="space-y-3">
+                {loadingTransactions ? (
+                  <div className="space-y-3">
+                    {[...Array(transactionsPerPage)].map((_, index) => (
+                      <div key={index} className="animate-pulse glass-card p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-2"></div>
+                            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+                          </div>
+                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-green-600">{formatCurrency(conta.valor)}</p>
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(conta.status)}`}>
-                          {getStatusLabel(conta.status)}
-                        </span>
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                ))
-              )}
+                ) : recentTransactions.length > 0 ? (
+                  <>
+                    {recentTransactions.map((transaction) => (
+                      <div key={transaction.id} className="glass-card p-3 hover:bg-white/50 dark:hover:bg-white/10 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                              {transaction.descricao}
+                            </p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                              {new Date(transaction.data).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                          <div className="text-right ml-3">
+                            <p className={`text-sm font-bold ${transaction.tipo === 'entrada' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                              {transaction.tipo === 'entrada' ? '+' : '-'}{formatCurrency(Math.abs(parseFloat(transaction.valor)))}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {/* Paginação */}
+                    <div className="flex justify-between items-center mt-4">
+                      <button
+                        className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-xs font-bold disabled:opacity-50"
+                        onClick={() => setTransactionsPage((p) => Math.max(1, p - 1))}
+                        disabled={transactionsPage === 1 || loadingTransactions}
+                      >Anterior</button>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        Página {transactionsPage}
+                      </span>
+                      <button
+                        className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-xs font-bold disabled:opacity-50"
+                        onClick={() => setTransactionsPage((p) => p + 1)}
+                        disabled={
+                          loadingTransactions ||
+                          (
+                            allRecentTransactions
+                              ? (transactionsPage * transactionsPerPage >= allRecentTransactions.length)
+                              : (recentTransactions.length < transactionsPerPage)
+                          )
+                        }
+                      >Próxima</button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <ClockIcon className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">Nenhuma transação recente</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

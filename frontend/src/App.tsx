@@ -19,7 +19,7 @@ import CreditCards from './pages/CreditCards';
 import Transactions from './pages/Transactions';
 import Budgets from './pages/Budgets';
 import Reports from './pages/Reports';
-import UserProfile from './pages/UserProfile';
+import Profile from './pages/Profile';
 import AppSettings from './pages/AppSettings';
 import CategoriesManagement from './pages/CategoriesManagement';
 import BeneficiariesPage from './pages/BeneficiariesPage';
@@ -107,7 +107,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/profile" element={
         <ProtectedRouteComponent>
           <Layout>
-            <UserProfile />
+            <Profile />
           </Layout>
         </ProtectedRouteComponent>
       } />

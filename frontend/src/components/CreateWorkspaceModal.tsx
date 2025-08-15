@@ -44,20 +44,20 @@ export const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({ isOp
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" 
+        className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm z-50" 
         onClick={onClose}
       />
       
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="glass-card w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden animate-slide-in">
           
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
-            <h2 className="text-xl font-semibold text-gray-900">Novo Workspace</h2>
+          <div className="flex items-center justify-between p-6 border-b border-gray-200/50 dark:border-gray-700/50 flex-shrink-0">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Novo Workspace</h2>
             <button 
               onClick={onClose} 
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors"
             >
               <XMarkIcon className="h-6 w-6" />
             </button>
@@ -69,7 +69,7 @@ export const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({ isOp
               <div className="space-y-4">
                 {/* Nome */}
                 <div>
-                  <label htmlFor="nome" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="nome" className="form-label">
                     Nome do Workspace *
                   </label>
                   <input
@@ -79,14 +79,14 @@ export const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({ isOp
                     value={formData.nome}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="form-input"
                     placeholder="Ex: Minha Casa, Empresa, Pessoal"
                   />
                 </div>
 
                 {/* Descrição */}
                 <div>
-                  <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="descricao" className="form-label">
                     Descrição
                   </label>
                   <textarea
@@ -95,7 +95,7 @@ export const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({ isOp
                     value={formData.descricao}
                     onChange={handleChange}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="form-input resize-none"
                     placeholder="Descreva o propósito deste workspace..."
                   />
                 </div>
@@ -111,11 +111,11 @@ export const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({ isOp
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+          <div className="flex justify-end space-x-3 p-6 border-t border-gray-200/50 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50 backdrop-blur-sm flex-shrink-0">
             <button 
               type="button" 
               onClick={onClose} 
-              className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+              className="btn-secondary"
             >
               Cancelar
             </button>
@@ -123,7 +123,7 @@ export const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({ isOp
               type="submit" 
               form="create-workspace-form"
               disabled={loading || !formData.nome.trim()}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Criando...' : 'Criar Workspace'}
             </button>

@@ -113,19 +113,19 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
       {mostrarPopup && (
         <>
           {/* Backdrop com blur */}
-          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50" onClick={fecharPopup} />
+          <div className="modal-overlay modal-backdrop" onClick={fecharPopup} />
           
           {/* Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+            <div className="modal-content-glass w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
-                <h3 className="text-xl font-semibold text-gray-900">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200/50 dark:border-gray-700/50 flex-shrink-0">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   {transactionEditando ? 'Editar Transação' : 'Nova Transação'}
                 </h3>
                 <button
                   onClick={fecharPopup}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors"
                 >
                   <XMarkIcon className="h-6 w-6" />
                 </button>
@@ -137,14 +137,14 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
                 <div className="space-y-4">
                   {/* Descrição */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="form-label">
                       Descrição
                     </label>
                     <input
                       type="text"
                       value={formData.descricao}
                       onChange={(e) => setFormData(prev => ({ ...prev, descricao: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="form-input"
                       placeholder="Ex: Supermercado, Salário, etc."
                       required
                     />
@@ -154,13 +154,13 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
                   <div className="grid grid-cols-2 gap-4">
                     {/* Tipo */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="form-label">
                         Tipo
                       </label>
                       <select
                         value={formData.tipo}
                         onChange={(e) => setFormData(prev => ({ ...prev, tipo: e.target.value as 'entrada' | 'saida' | 'transferencia' }))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="form-select"
                         required
                       >
                         <option value="saida">Saída</option>
@@ -171,14 +171,14 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
 
                     {/* Valor */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="form-label">
                         Valor (R$)
                       </label>
                       <input
                         type="text"
                         value={formatarValorDisplay(formData.valor)}
                         onChange={handleValorChangeLocal}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="form-input"
                         placeholder="0,00"
                         required
                       />
@@ -189,14 +189,14 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
                   <div className="grid grid-cols-2 gap-4">
                     {/* Data */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="form-label">
                         Data
                       </label>
                       <input
                         type="date"
                         value={formData.data}
                         onChange={(e) => setFormData(prev => ({ ...prev, data: e.target.value }))}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="form-input"
                         required
                       />
                     </div>
@@ -373,18 +373,18 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
               </div>
 
               {/* Botões - Fixos na parte inferior */}
-              <div className="flex justify-end space-x-3 p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0 rounded-b-xl">
+              <div className="flex justify-end space-x-3 p-6 border-t border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-dark-400/50 backdrop-blur-md flex-shrink-0 rounded-b-glass">
                 <button
                   type="button"
                   onClick={fecharPopup}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+                  className="btn-secondary"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   form="transaction-form"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                  className="btn-primary"
                 >
                   {transactionEditando ? 'Salvar' : 'Adicionar'}
                 </button>
@@ -397,11 +397,11 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
       {/* Bulk Edit Modal */}
       {showBulkEditModal && (
         <>
-          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40" onClick={closeBulkEditModal} />
-          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+          <div className="modal-overlay modal-backdrop" onClick={closeBulkEditModal} />
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4 modal-backdrop">
+            <div className="modal-content-glass max-w-md w-full">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">
                   Editar {bulkEditField === 'descricao' ? 'Descrição' : 
                           bulkEditField === 'valor' ? 'Valor' :
                           bulkEditField === 'data' ? 'Data' :
@@ -409,18 +409,18 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
                           bulkEditField === 'account' ? 'Conta' : 'Campo'} em Lote
                 </h3>
                 
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Esta ação irá alterar {selectedTransactions.size} transação(ões) selecionada(s).
                 </p>
 
-                <div className="mb-4">
+                <div className="mb-6">
                   {bulkEditField === 'descricao' && (
                     <input
                       type="text"
                       value={bulkEditValue}
                       onChange={(e) => setBulkEditValue(e.target.value)}
                       placeholder="Nova descrição"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="form-input"
                     />
                   )}
                   
@@ -435,7 +435,7 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
                         setBulkEditValue(cleanValue);
                       }}
                       placeholder="Novo valor (ex: 150,00)"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="form-input"
                     />
                   )}
                   
@@ -444,7 +444,7 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
                       type="date"
                       value={bulkEditValue}
                       onChange={(e) => setBulkEditValue(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="form-input"
                     />
                   )}
                   
@@ -452,7 +452,7 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
                     <select
                       value={bulkEditValue}
                       onChange={(e) => setBulkEditValue(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="form-select"
                     >
                       <option value="">Selecione uma categoria...</option>
                       {categories.map(cat => (
@@ -467,7 +467,7 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
                     <select
                       value={bulkEditValue}
                       onChange={(e) => setBulkEditValue(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="form-select"
                     >
                       <option value="">Selecione uma conta...</option>
                       {accounts.map(acc => (
@@ -482,14 +482,14 @@ const TransactionModals: React.FC<TransactionModalsProps> = ({
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={closeBulkEditModal}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="btn-secondary"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={bulkEditTransactions}
                     disabled={!bulkEditValue}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Aplicar
                   </button>
