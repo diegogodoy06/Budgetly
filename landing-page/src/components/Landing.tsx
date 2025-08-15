@@ -19,7 +19,8 @@ import {
   BeakerIcon,
   RocketLaunchIcon,
   HeartIcon,
-  GlobeAltIcon
+  GlobeAltIcon,
+  ChevronUpIcon
 } from '@heroicons/react/24/outline';
 import logoCompleto from '../assets/Logo completo.webp';
 import logo from '../assets/logo.webp';
@@ -31,6 +32,25 @@ const Landing: React.FC = () => {
     uptime: 99.9,
     rating: 4.8
   });
+
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  // Handle scroll for back to top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
 
   // Animated counter effect
   useEffect(() => {
@@ -181,13 +201,24 @@ const Landing: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100 relative overflow-hidden">
-      {/* Animated background elements */}
+      {/* Enhanced animated background elements with more motion */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full backdrop-blur-lg border border-white/30 animate-float"></div>
         <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-sky-400/20 to-blue-400/20 rounded-full backdrop-blur-lg border border-white/30 animate-float-delayed"></div>
         <div className="absolute bottom-40 left-1/4 w-20 h-20 bg-gradient-to-br from-indigo-400/20 to-blue-400/20 rounded-full backdrop-blur-lg border border-white/30 animate-float-slow"></div>
         <div className="absolute top-1/3 right-1/3 w-16 h-16 bg-gradient-to-br from-cyan-400/20 to-sky-400/20 rounded-full backdrop-blur-lg border border-white/30 animate-float"></div>
         <div className="absolute bottom-20 right-10 w-28 h-28 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-full backdrop-blur-lg border border-white/30 animate-float-delayed"></div>
+        
+        {/* Additional motion elements */}
+        <div className="absolute top-60 left-1/3 w-14 h-14 bg-gradient-to-br from-purple-400/15 to-indigo-400/15 rounded-full backdrop-blur-lg border border-white/20 animate-bounce-slow"></div>
+        <div className="absolute bottom-60 right-1/4 w-18 h-18 bg-gradient-to-br from-emerald-400/15 to-teal-400/15 rounded-full backdrop-blur-lg border border-white/20 animate-pulse"></div>
+        <div className="absolute top-80 right-40 w-12 h-12 bg-gradient-to-br from-rose-400/15 to-pink-400/15 rounded-full backdrop-blur-lg border border-white/20 animate-float-delayed"></div>
+        <div className="absolute bottom-80 left-40 w-22 h-22 bg-gradient-to-br from-amber-400/15 to-yellow-400/15 rounded-full backdrop-blur-lg border border-white/20 animate-spin-slow"></div>
+        <div className="absolute top-1/2 left-20 w-10 h-10 bg-gradient-to-br from-violet-400/15 to-purple-400/15 rounded-full backdrop-blur-lg border border-white/20 animate-float"></div>
+        
+        {/* Floating geometric shapes */}
+        <div className="absolute top-32 right-1/2 w-8 h-8 bg-gradient-to-br from-blue-400/20 to-sky-400/20 rotate-45 backdrop-blur-lg border border-white/30 animate-float-slow"></div>
+        <div className="absolute bottom-32 left-1/2 w-6 h-6 bg-gradient-to-br from-indigo-400/20 to-blue-400/20 rounded backdrop-blur-lg border border-white/30 animate-bounce-slow"></div>
       </div>
 
       {/* Header */}
@@ -249,39 +280,39 @@ const Landing: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
               <a
                 href="http://localhost:3000/register"
-                className="group bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:from-blue-700 hover:via-indigo-700 hover:to-sky-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 flex items-center backdrop-blur-lg"
+                className="group bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:from-blue-700 hover:via-indigo-700 hover:to-sky-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105 flex items-center backdrop-blur-lg animate-pulse"
               >
                 Começar Gratuitamente
-                <ArrowRightIcon className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+                <ArrowRightIcon className="h-5 w-5 ml-2 group-hover:translate-x-2 group-hover:scale-110 transition-all duration-300" />
               </a>
               <a
                 href="#features"
-                className="text-blue-700 px-8 py-4 rounded-full font-semibold text-lg hover:bg-white/60 transition-all duration-200 backdrop-blur-xl border border-white/40 shadow-xl"
+                className="text-blue-700 px-8 py-4 rounded-full font-semibold text-lg hover:bg-white/60 transition-all duration-300 backdrop-blur-xl border border-white/40 shadow-xl hover:shadow-2xl hover:scale-105 transform hover:-translate-y-1"
               >
                 Ver Demonstração
               </a>
             </div>
 
-            {/* Real-time Stats */}
+            {/* Real-time Stats with enhanced animations */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
-              <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-6 text-center hover:scale-105 transition-transform duration-300 border border-white/50 shadow-2xl">
-                <UserGroupIcon className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-blue-900">{stats.users.toLocaleString()}+</div>
+              <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-6 text-center hover:scale-105 hover:rotate-1 transition-all duration-300 border border-white/50 shadow-2xl group hover:shadow-3xl animate-float-slow">
+                <UserGroupIcon className="h-8 w-8 text-blue-600 mx-auto mb-2 group-hover:scale-110 transition-transform duration-200" />
+                <div className="text-2xl font-bold text-blue-900 group-hover:text-blue-700 transition-colors duration-200">{stats.users.toLocaleString()}+</div>
                 <div className="text-sm text-blue-700">Usuários Ativos</div>
               </div>
-              <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-6 text-center hover:scale-105 transition-transform duration-300 border border-white/50 shadow-2xl">
-                <CurrencyDollarIcon className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-blue-900">{stats.transactions.toLocaleString()}+</div>
+              <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-6 text-center hover:scale-105 hover:rotate-1 transition-all duration-300 border border-white/50 shadow-2xl group hover:shadow-3xl animate-float-delayed">
+                <CurrencyDollarIcon className="h-8 w-8 text-emerald-600 mx-auto mb-2 group-hover:scale-110 transition-transform duration-200" />
+                <div className="text-2xl font-bold text-blue-900 group-hover:text-emerald-700 transition-colors duration-200">{stats.transactions.toLocaleString()}+</div>
                 <div className="text-sm text-blue-700">Transações</div>
               </div>
-              <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-6 text-center hover:scale-105 transition-transform duration-300 border border-white/50 shadow-2xl">
-                <ClockIcon className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-blue-900">{stats.uptime}%</div>
+              <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-6 text-center hover:scale-105 hover:rotate-1 transition-all duration-300 border border-white/50 shadow-2xl group hover:shadow-3xl animate-float">
+                <ClockIcon className="h-8 w-8 text-indigo-600 mx-auto mb-2 group-hover:scale-110 transition-transform duration-200" />
+                <div className="text-2xl font-bold text-blue-900 group-hover:text-indigo-700 transition-colors duration-200">{stats.uptime}%</div>
                 <div className="text-sm text-blue-700">Uptime</div>
               </div>
-              <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-6 text-center hover:scale-105 transition-transform duration-300 border border-white/50 shadow-2xl">
-                <StarIcon className="h-8 w-8 text-amber-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-blue-900">{stats.rating}/5</div>
+              <div className="bg-white/40 backdrop-blur-xl rounded-2xl p-6 text-center hover:scale-105 hover:rotate-1 transition-all duration-300 border border-white/50 shadow-2xl group hover:shadow-3xl animate-bounce-slow">
+                <StarIcon className="h-8 w-8 text-amber-500 mx-auto mb-2 group-hover:scale-110 transition-transform duration-200" />
+                <div className="text-2xl font-bold text-blue-900 group-hover:text-amber-600 transition-colors duration-200">{stats.rating}/5</div>
                 <div className="text-sm text-blue-700">Avaliação</div>
               </div>
             </div>
@@ -325,35 +356,35 @@ const Landing: React.FC = () => {
             </div>
           </div>
 
-          {/* Cards Grid */}
+          {/* Cards Grid with enhanced animations */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Pessoas Card */}
-            <div className="bg-white/40 backdrop-blur-xl rounded-3xl p-8 border border-white/50 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105">
+            <div className="bg-white/40 backdrop-blur-xl rounded-3xl p-8 border border-white/50 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 hover:rotate-1 animate-float group">
               <div className="text-center">
-                <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <UserGroupIcon className="h-8 w-8 text-blue-600" />
+                <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:bg-blue-200 transition-all duration-300">
+                  <UserGroupIcon className="h-8 w-8 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 </div>
-                <h3 className="text-2xl font-bold text-blue-900 mb-4">Pessoas</h3>
+                <h3 className="text-2xl font-bold text-blue-900 mb-4 group-hover:text-blue-700 transition-colors duration-300">Pessoas</h3>
                 <p className="text-blue-700 mb-8 leading-relaxed">
                   Crie e compartilhe orçamentos profissionais para sua vida pessoal. Envie lembretes para metas financeiras facilmente
                 </p>
-                <div className="flex items-center justify-center text-blue-600 mb-6">
+                <div className="flex items-center justify-center text-blue-600 mb-6 group-hover:text-blue-800 transition-colors duration-300">
                   <UserGroupIcon className="h-5 w-5 mr-2" />
                   <span className="font-semibold">15k+ Usuários pelo Brasil</span>
                 </div>
-                <button className="flex items-center justify-center mx-auto bg-white/60 backdrop-blur-lg text-blue-700 px-6 py-3 rounded-full font-semibold hover:bg-white/80 transition-all duration-200 shadow-lg">
+                <button className="flex items-center justify-center mx-auto bg-white/60 backdrop-blur-lg text-blue-700 px-6 py-3 rounded-full font-semibold hover:bg-white/80 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                   <span>Saiba Mais</span>
                 </button>
               </div>
             </div>
 
-            {/* Freelancers Card - Highlighted */}
-            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-3xl p-8 shadow-3xl transform scale-105 hover:scale-110 transition-all duration-300">
+            {/* Freelancers Card - Highlighted with enhanced animations */}
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-3xl p-8 shadow-3xl transform scale-105 hover:scale-110 transition-all duration-500 animate-scale-pulse group">
               <div className="text-center">
-                <div className="bg-white/20 backdrop-blur-lg w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <BanknotesIcon className="h-8 w-8 text-white" />
+                <div className="bg-white/20 backdrop-blur-lg w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:bg-white/30 transition-all duration-300">
+                  <BanknotesIcon className="h-8 w-8 text-white group-hover:scale-110 transition-transform duration-300" />
                 </div>
-                <h3 className="text-2xl font-bold mb-4">Freelancers</h3>
+                <h3 className="text-2xl font-bold mb-4 group-hover:scale-105 transition-transform duration-300">Freelancers</h3>
                 <p className="text-blue-100 mb-8 leading-relaxed">
                   Comece a coletar pagamentos de clientes em todo o mundo. Crie um negócio e comece a vender online rapidamente
                 </p>
@@ -361,27 +392,27 @@ const Landing: React.FC = () => {
                   <BanknotesIcon className="h-5 w-5 mr-2" />
                   <span className="font-semibold">8k+ Usuários pelo Brasil</span>
                 </div>
-                <button className="flex items-center justify-center mx-auto bg-white/20 backdrop-blur-lg text-white px-6 py-3 rounded-full font-semibold hover:bg-white/30 transition-all duration-200 shadow-lg border border-white/30">
+                <button className="flex items-center justify-center mx-auto bg-white/20 backdrop-blur-lg text-white px-6 py-3 rounded-full font-semibold hover:bg-white/30 hover:scale-105 transition-all duration-300 shadow-lg border border-white/30 hover:shadow-xl transform hover:-translate-y-1">
                   <span>Saiba Mais</span>
                 </button>
               </div>
             </div>
 
             {/* Empresas Card */}
-            <div className="bg-white/40 backdrop-blur-xl rounded-3xl p-8 border border-white/50 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105">
+            <div className="bg-white/40 backdrop-blur-xl rounded-3xl p-8 border border-white/50 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 hover:rotate-1 animate-float-delayed group">
               <div className="text-center">
-                <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <ChartBarIcon className="h-8 w-8 text-blue-600" />
+                <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:bg-blue-200 transition-all duration-300">
+                  <ChartBarIcon className="h-8 w-8 text-blue-600 group-hover:scale-110 transition-transform duration-300" />
                 </div>
-                <h3 className="text-2xl font-bold text-blue-900 mb-4">Empresas</h3>
+                <h3 className="text-2xl font-bold text-blue-900 mb-4 group-hover:text-blue-700 transition-colors duration-300">Empresas</h3>
                 <p className="text-blue-700 mb-8 leading-relaxed">
                   Crie e compartilhe relatórios profissionais para seus clientes. Envie lembretes para pagamentos recorrentes facilmente
                 </p>
-                <div className="flex items-center justify-center text-blue-600 mb-6">
+                <div className="flex items-center justify-center text-blue-600 mb-6 group-hover:text-blue-800 transition-colors duration-300">
                   <ChartBarIcon className="h-5 w-5 mr-2" />
                   <span className="font-semibold">3k+ Empresas pelo Brasil</span>
                 </div>
-                <button className="flex items-center justify-center mx-auto bg-white/60 backdrop-blur-lg text-blue-700 px-6 py-3 rounded-full font-semibold hover:bg-white/80 transition-all duration-200 shadow-lg">
+                <button className="flex items-center justify-center mx-auto bg-white/60 backdrop-blur-lg text-blue-700 px-6 py-3 rounded-full font-semibold hover:bg-white/80 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                   <span>Saiba Mais</span>
                 </button>
               </div>
@@ -543,66 +574,66 @@ const Landing: React.FC = () => {
           </div>
 
           <div className="relative max-w-6xl mx-auto">
-            {/* Floating User Avatars */}
-            <div className="absolute -top-8 left-16 z-10">
-              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl">
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+            {/* Floating User Avatars with enhanced animations */}
+            <div className="absolute -top-8 left-16 z-10 animate-float">
+              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300 group">
+                <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm group-hover:scale-110 transition-transform duration-300">
                   M
                 </div>
                 <div className="ml-3">
-                  <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                  <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white text-sm font-bold px-3 py-1 rounded-full animate-pulse">
                     +R$ 540,00
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="absolute -top-4 right-20 z-10">
-              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl">
-                <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+            <div className="absolute -top-4 right-20 z-10 animate-float-delayed">
+              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300 group">
+                <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold text-sm group-hover:scale-110 transition-transform duration-300">
                   A
                 </div>
                 <div className="ml-3">
-                  <div className="bg-gradient-to-r from-rose-500 to-pink-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                  <div className="bg-gradient-to-r from-rose-500 to-pink-500 text-white text-sm font-bold px-3 py-1 rounded-full animate-pulse">
                     +R$ 240,00
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="absolute top-1/3 -left-8 z-10">
-              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl">
-                <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+            <div className="absolute top-1/3 -left-8 z-10 animate-bounce-slow">
+              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300 group">
+                <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm group-hover:scale-110 transition-transform duration-300">
                   J
                 </div>
                 <div className="ml-3">
-                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold px-3 py-1 rounded-full animate-pulse">
                     +R$ 140,00
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="absolute bottom-1/3 -right-8 z-10">
-              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-violet-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+            <div className="absolute bottom-1/3 -right-8 z-10 animate-float">
+              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300 group">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-violet-500 rounded-full flex items-center justify-center text-white font-bold text-sm group-hover:scale-110 transition-transform duration-300">
                   C
                 </div>
                 <div className="ml-3">
-                  <div className="bg-gradient-to-r from-purple-500 to-violet-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                  <div className="bg-gradient-to-r from-purple-500 to-violet-500 text-white text-sm font-bold px-3 py-1 rounded-full animate-pulse">
                     +R$ 340,00
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="absolute bottom-8 left-24 z-10">
-              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl">
-                <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+            <div className="absolute bottom-8 left-24 z-10 animate-float-slow">
+              <div className="flex items-center bg-white/60 backdrop-blur-xl rounded-full px-4 py-3 border border-white/50 shadow-2xl hover:shadow-3xl hover:scale-110 transition-all duration-300 group">
+                <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-sm group-hover:scale-110 transition-transform duration-300">
                   L
                 </div>
                 <div className="ml-3">
-                  <div className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                  <div className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-sm font-bold px-3 py-1 rounded-full animate-pulse">
                     +R$ 640,00
                   </div>
                 </div>
@@ -947,6 +978,18 @@ const Landing: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* Back to Top Button */}
+      <button
+        onClick={scrollToTop}
+        className={`fixed right-6 bottom-6 z-50 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-full shadow-2xl hover:shadow-3xl transform hover:scale-110 transition-all duration-300 backdrop-blur-xl border border-white/20 ${
+          showBackToTop ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'
+        }`}
+        style={{ transition: 'transform 0.3s ease, opacity 0.3s ease' }}
+        aria-label="Voltar ao topo"
+      >
+        <ChevronUpIcon className="h-6 w-6" />
+      </button>
     </div>
   );
 };
