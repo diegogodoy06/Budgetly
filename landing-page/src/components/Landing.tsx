@@ -39,19 +39,19 @@ const Landing: React.FC = () => {
       const duration = 2000;
       const steps = 60;
       const stepDuration = duration / steps;
-      
+
       let currentStep = 0;
       const interval = setInterval(() => {
         currentStep++;
         const progress = currentStep / steps;
-        
+
         setStats({
           users: Math.floor(targetStats.users * progress),
           transactions: Math.floor(targetStats.transactions * progress),
           uptime: Number((targetStats.uptime * progress).toFixed(1)),
           rating: Number((targetStats.rating * progress).toFixed(1))
         });
-        
+
         if (currentStep >= steps) {
           clearInterval(interval);
           setStats(targetStats);
@@ -201,7 +201,7 @@ const Landing: React.FC = () => {
               </div>
               <div>
                 <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  Budgetly
+                  budgetly
                 </span>
                 <div className="text-xs text-blue-600 font-medium">Controle Financeiro Inteligente</div>
               </div>
@@ -232,20 +232,20 @@ const Landing: React.FC = () => {
               <SparklesIcon className="h-4 w-4 mr-2 text-blue-600" />
               Já são {stats.users.toLocaleString()}+ usuários ativos
             </div>
-            
+
             <h1 className="text-4xl sm:text-6xl lg:text-8xl font-bold text-gray-900 mb-6 leading-tight">
               Seu controle
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 bg-clip-text text-transparent block">
                 financeiro inteligente
               </span>
             </h1>
-            
+
             <p className="text-xl sm:text-2xl text-blue-700 max-w-4xl mx-auto mb-12 leading-relaxed">
-              A única plataforma que você precisa para dominar suas finanças. 
-              <span className="font-semibold text-blue-800"> IA avançada, automações inteligentes</span> e 
+              A única plataforma que você precisa para dominar suas finanças.
+              <span className="font-semibold text-blue-800"> IA avançada, automações inteligentes</span> e
               insights que transformam dados em decisões inteligentes.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
               <a
                 href="http://localhost:3000/register"
@@ -297,7 +297,7 @@ const Landing: React.FC = () => {
               <TrophyIcon className="h-4 w-4 mr-2 text-blue-600" />
               Budgetly Fácil de Usar
             </div>
-            
+
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
               Obtenha a Mais Poderosa e{' '}
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 bg-clip-text text-transparent">
@@ -400,7 +400,7 @@ const Landing: React.FC = () => {
                 <RocketLaunchIcon className="h-4 w-4 mr-2 text-blue-600" />
                 Budgetly Velocidade de Controle
               </div>
-              
+
               <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
                 Colete Todas as Informações
                 Financeiras em{' '}
@@ -408,7 +408,7 @@ const Landing: React.FC = () => {
                   Minutos
                 </span>
               </h2>
-              
+
               <p className="text-xl text-blue-700 mb-12 leading-relaxed">
                 Integre o Budgetly facilmente em seu site ou aplicativo com nossas APIs
                 amigáveis para desenvolvedores e plugins. Deixe seus usuários controlarem
@@ -473,7 +473,7 @@ const Landing: React.FC = () => {
                 {/* Method Selection */}
                 <div className="mb-8">
                   <h4 className="text-blue-900 font-semibold mb-4">Método de Controle</h4>
-                  
+
                   {/* Payment Method Icons */}
                   <div className="flex items-center justify-between bg-blue-50/60 backdrop-blur-lg rounded-2xl p-4 mb-4">
                     <div className="grid grid-cols-4 gap-4 flex-1">
@@ -530,19 +530,16 @@ const Landing: React.FC = () => {
               <UserGroupIcon className="h-5 w-5 mr-2 text-blue-600" />
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-semibold">Budgetly Workspaces Seguros</span>
             </div>
-            
+
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-              Mantenha Suas Finanças Seguras{' '}
+              Crie e gerencie espaços{' '}
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Sempre
+                compartilhados
               </span>
             </h2>
-            
+
             <p className="text-xl text-blue-700 max-w-4xl mx-auto leading-relaxed">
-              O Budgetly protege suas informações com um sistema de segurança de nível mundial que ajuda a detectar 
-              fraudes e prevenir invasões. Compartilhe workspaces com amigos, familiares ou colegas com total controle 
-              de acesso e permissões granulares.
-            </p>
+              O Workspace é um espaço colaborativo onde você pode criar ambientes separados para cada projeto ou objetivo: suas contas pessoais, o grupo da igreja, o time de futebol… Você pode adicione outros membros para acompanhar ou registrar movimentações, tudo organizado e com relatórios claros.            </p>
           </div>
 
           <div className="relative max-w-6xl mx-auto">
@@ -698,7 +695,7 @@ const Landing: React.FC = () => {
                     6 Ativos
                   </div>
                 </div>
-                
+
                 <div className="flex items-center -space-x-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full border-3 border-white shadow-lg flex items-center justify-center text-white font-bold text-sm">
                     JS
@@ -737,52 +734,6 @@ const Landing: React.FC = () => {
             </div>
           </div>
 
-          {/* Feature Pills */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
-            <div className="bg-white/50 backdrop-blur-xl rounded-2xl p-6 text-center border border-white/60 shadow-2xl hover:scale-105 transition-transform duration-300">
-              <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <LockClosedIcon className="h-7 w-7 text-white" />
-              </div>
-              <h4 className="font-bold text-blue-900 mb-2">Criptografia Avançada</h4>
-              <p className="text-sm text-blue-700">AES-256 + 2FA</p>
-              <div className="mt-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block">
-                Nível Bancário
-              </div>
-            </div>
-
-            <div className="bg-white/50 backdrop-blur-xl rounded-2xl p-6 text-center border border-white/60 shadow-2xl hover:scale-105 transition-transform duration-300">
-              <div className="bg-gradient-to-br from-emerald-500 to-green-600 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <UserGroupIcon className="h-7 w-7 text-white" />
-              </div>
-              <h4 className="font-bold text-blue-900 mb-2">Compartilhamento Seguro</h4>
-              <p className="text-sm text-blue-700">Convites por Link</p>
-              <div className="mt-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block">
-                Controle Total
-              </div>
-            </div>
-
-            <div className="bg-white/50 backdrop-blur-xl rounded-2xl p-6 text-center border border-white/60 shadow-2xl hover:scale-105 transition-transform duration-300">
-              <div className="bg-gradient-to-br from-purple-500 to-violet-600 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <ClockIcon className="h-7 w-7 text-white" />
-              </div>
-              <h4 className="font-bold text-blue-900 mb-2">Sincronização Real-time</h4>
-              <p className="text-sm text-blue-700">Atualizações Instantâneas</p>
-              <div className="mt-3 bg-gradient-to-r from-purple-500 to-violet-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block">
-                WebSocket
-              </div>
-            </div>
-
-            <div className="bg-white/50 backdrop-blur-xl rounded-2xl p-6 text-center border border-white/60 shadow-2xl hover:scale-105 transition-transform duration-300">
-              <div className="bg-gradient-to-br from-amber-500 to-orange-600 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <TrophyIcon className="h-7 w-7 text-white" />
-              </div>
-              <h4 className="font-bold text-blue-900 mb-2">Roles & Permissões</h4>
-              <p className="text-sm text-blue-700">Admin, Editor, Viewer</p>
-              <div className="mt-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block">
-                Granular
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -798,7 +749,7 @@ const Landing: React.FC = () => {
               Mais que uma ferramenta, uma inteligência artificial dedicada ao seu sucesso financeiro.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
             <div className="space-y-8">
               <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 hover:border-white/30 transition-all duration-300 shadow-2xl">
@@ -807,25 +758,25 @@ const Landing: React.FC = () => {
                   <h3 className="text-2xl font-bold">Nossa Missão</h3>
                 </div>
                 <p className="text-blue-200 leading-relaxed text-lg">
-                  Democratizar o acesso a ferramentas financeiras de alta qualidade, 
-                  empoderando pessoas e empresas a tomarem decisões mais inteligentes e alcançarem 
+                  Democratizar o acesso a ferramentas financeiras de alta qualidade,
+                  empoderando pessoas e empresas a tomarem decisões mais inteligentes e alcançarem
                   a liberdade financeira através de tecnologia de ponta.
                 </p>
               </div>
-              
+
               <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 hover:border-white/30 transition-all duration-300 shadow-2xl">
                 <div className="flex items-center mb-4">
                   <TrophyIcon className="h-8 w-8 text-amber-400 mr-3" />
                   <h3 className="text-2xl font-bold">Nossa Visão</h3>
                 </div>
                 <p className="text-blue-200 leading-relaxed text-lg">
-                  Ser a plataforma de referência global em inteligência financeira, 
-                  oferecendo uma experiência única que combina segurança, inovação e 
+                  Ser a plataforma de referência global em inteligência financeira,
+                  oferecendo uma experiência única que combina segurança, inovação e
                   simplicidade para transformar a relação das pessoas com o dinheiro.
                 </p>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-6">
               {systemFeatures.map((feature, index) => (
                 <div key={index} className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 text-center border border-white/20 hover:border-white/30 transition-all duration-300 hover:scale-105 shadow-2xl">
@@ -850,7 +801,7 @@ const Landing: React.FC = () => {
               Cada recurso foi pensado para resolver problemas reais do seu dia a dia financeiro.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <div
@@ -862,14 +813,14 @@ const Landing: React.FC = () => {
                     {feature.highlight}
                   </div>
                 )}
-                
+
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                   <feature.icon className="h-8 w-8 text-blue-600" />
                 </div>
-                
+
                 <h3 className="text-xl font-bold text-blue-900 mb-4">{feature.title}</h3>
                 <p className="text-blue-700 leading-relaxed">{feature.description}</p>
-                
+
                 <div className="mt-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <ArrowRightIcon className="h-5 w-5 text-blue-600" />
                 </div>
@@ -890,7 +841,7 @@ const Landing: React.FC = () => {
               Resultados reais que nossos usuários experimentam desde o primeiro dia.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
             {benefits.map((benefit, index) => (
               <div
@@ -918,7 +869,7 @@ const Landing: React.FC = () => {
               Esclarecemos suas principais dúvidas sobre o Budgetly.
             </p>
           </div>
-          
+
           <div className="space-y-8">
             {faqs.map((faq, index) => (
               <div
@@ -948,10 +899,10 @@ const Landing: React.FC = () => {
             Comece Sua Jornada Hoje
           </h2>
           <p className="text-xl text-blue-200 mb-12 leading-relaxed">
-            Junte-se a milhares de usuários que já transformaram sua relação com o dinheiro. 
+            Junte-se a milhares de usuários que já transformaram sua relação com o dinheiro.
             <span className="font-semibold"> Primeiros 30 dias gratuitos.</span>
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
             <a
               href="http://localhost:3000/register"
