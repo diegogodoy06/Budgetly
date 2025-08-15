@@ -157,9 +157,9 @@ const AppRoutes: React.FC = () => {
         </ProtectedRouteComponent>
       } />
 
-      {/* Default redirect */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      {/* Default redirect to login for unauthenticated users or dashboard for authenticated */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 };
