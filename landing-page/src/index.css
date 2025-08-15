@@ -2,18 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom glassmorphism utilities */
+/* Enhanced glassmorphism utilities with blue focus */
 @layer utilities {
   .glass {
-    @apply bg-white/20 backdrop-blur-lg border border-white/30;
+    @apply bg-white/25 backdrop-blur-xl border border-white/40 shadow-2xl;
   }
   
   .glass-dark {
-    @apply bg-black/20 backdrop-blur-lg border border-white/10;
+    @apply bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl;
   }
   
   .glass-card {
-    @apply bg-white/30 backdrop-blur-xl border border-white/20 shadow-xl;
+    @apply bg-white/40 backdrop-blur-xl border border-white/50 shadow-2xl;
+  }
+  
+  .glass-blue {
+    @apply bg-blue-500/10 backdrop-blur-xl border border-blue-300/30 shadow-2xl;
   }
   
   .animate-float {
@@ -39,21 +43,30 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Custom gradient backgrounds */
+/* Enhanced blue-focused gradient backgrounds */
 .gradient-bg {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
 }
 
 .gradient-bg-hero {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 25%, #4facfe 50%, #00f2fe 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 25%, #1e40af 50%, #1e3a8a 100%);
 }
 
-/* Enhanced glassmorphism effects */
+/* Superior glassmorphism effects with better blur and shadows */
 .glass-effect {
-  background: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 12px 40px 0 rgba(59, 130, 246, 0.15), 0 2px 16px 0 rgba(59, 130, 246, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-effect-dark {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 40px 0 rgba(30, 64, 175, 0.25), 0 2px 16px 0 rgba(30, 64, 175, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
