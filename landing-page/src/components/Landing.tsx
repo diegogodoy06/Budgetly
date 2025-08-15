@@ -289,6 +289,239 @@ const Landing: React.FC = () => {
         </div>
       </section>
 
+      {/* Target Audience Section */}
+      <section className="py-20 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100/60 backdrop-blur-xl border border-blue-200/40 text-sm font-medium text-blue-700 mb-8 shadow-xl">
+              <TrophyIcon className="h-4 w-4 mr-2 text-blue-600" />
+              Budgetly Fácil de Usar
+            </div>
+            
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+              Obtenha a Mais Poderosa e{' '}
+              <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 bg-clip-text text-transparent">
+                Fácil de Usar
+              </span>{' '}
+              Plataforma Financeira
+            </h2>
+          </div>
+
+          {/* Category Tabs */}
+          <div className="flex justify-center mb-12">
+            <div className="flex items-center space-x-8 bg-white/40 backdrop-blur-xl rounded-full px-8 py-4 border border-white/50 shadow-2xl">
+              <div className="flex items-center text-blue-700 font-medium">
+                <UserGroupIcon className="h-5 w-5 mr-2" />
+                Pessoas
+              </div>
+              <div className="flex items-center bg-blue-600 text-white px-6 py-2 rounded-full font-medium shadow-lg">
+                <BanknotesIcon className="h-5 w-5 mr-2" />
+                Freelancers
+              </div>
+              <div className="flex items-center text-blue-700 font-medium">
+                <ChartBarIcon className="h-5 w-5 mr-2" />
+                Empresas
+              </div>
+            </div>
+          </div>
+
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Pessoas Card */}
+            <div className="bg-white/40 backdrop-blur-xl rounded-3xl p-8 border border-white/50 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105">
+              <div className="text-center">
+                <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <UserGroupIcon className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-blue-900 mb-4">Pessoas</h3>
+                <p className="text-blue-700 mb-8 leading-relaxed">
+                  Crie e compartilhe orçamentos profissionais para sua vida pessoal. Envie lembretes para metas financeiras facilmente
+                </p>
+                <div className="flex items-center justify-center text-blue-600 mb-6">
+                  <UserGroupIcon className="h-5 w-5 mr-2" />
+                  <span className="font-semibold">15k+ Usuários pelo Brasil</span>
+                </div>
+                <button className="flex items-center justify-center mx-auto bg-white/60 backdrop-blur-lg text-blue-700 px-6 py-3 rounded-full font-semibold hover:bg-white/80 transition-all duration-200 shadow-lg">
+                  <span>Saiba Mais</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Freelancers Card - Highlighted */}
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-3xl p-8 shadow-3xl transform scale-105 hover:scale-110 transition-all duration-300">
+              <div className="text-center">
+                <div className="bg-white/20 backdrop-blur-lg w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <BanknotesIcon className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold mb-4">Freelancers</h3>
+                <p className="text-blue-100 mb-8 leading-relaxed">
+                  Comece a coletar pagamentos de clientes em todo o mundo. Crie um negócio e comece a vender online rapidamente
+                </p>
+                <div className="flex items-center justify-center text-white mb-6">
+                  <BanknotesIcon className="h-5 w-5 mr-2" />
+                  <span className="font-semibold">8k+ Usuários pelo Brasil</span>
+                </div>
+                <button className="flex items-center justify-center mx-auto bg-white/20 backdrop-blur-lg text-white px-6 py-3 rounded-full font-semibold hover:bg-white/30 transition-all duration-200 shadow-lg border border-white/30">
+                  <span>Saiba Mais</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Empresas Card */}
+            <div className="bg-white/40 backdrop-blur-xl rounded-3xl p-8 border border-white/50 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105">
+              <div className="text-center">
+                <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <ChartBarIcon className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-blue-900 mb-4">Empresas</h3>
+                <p className="text-blue-700 mb-8 leading-relaxed">
+                  Crie e compartilhe relatórios profissionais para seus clientes. Envie lembretes para pagamentos recorrentes facilmente
+                </p>
+                <div className="flex items-center justify-center text-blue-600 mb-6">
+                  <ChartBarIcon className="h-5 w-5 mr-2" />
+                  <span className="font-semibold">3k+ Empresas pelo Brasil</span>
+                </div>
+                <button className="flex items-center justify-center mx-auto bg-white/60 backdrop-blur-lg text-blue-700 px-6 py-3 rounded-full font-semibold hover:bg-white/80 transition-all duration-200 shadow-lg">
+                  <span>Saiba Mais</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Payment Integration Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            {/* Left Content */}
+            <div>
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100/60 backdrop-blur-xl border border-blue-200/40 text-sm font-medium text-blue-700 mb-8 shadow-xl">
+                <RocketLaunchIcon className="h-4 w-4 mr-2 text-blue-600" />
+                Budgetly Velocidade de Controle
+              </div>
+              
+              <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+                Colete Todas as Informações
+                Financeiras em{' '}
+                <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 bg-clip-text text-transparent">
+                  Minutos
+                </span>
+              </h2>
+              
+              <p className="text-xl text-blue-700 mb-12 leading-relaxed">
+                Integre o Budgetly facilmente em seu site ou aplicativo com nossas APIs
+                amigáveis para desenvolvedores e plugins. Deixe seus usuários controlarem
+                suas finanças da forma que quiserem.
+              </p>
+
+              {/* Feature Pills */}
+              <div className="grid grid-cols-2 gap-4 mb-12">
+                <div className="flex items-center bg-white/40 backdrop-blur-xl rounded-full px-6 py-3 border border-white/50 shadow-xl">
+                  <div className="bg-blue-100 p-2 rounded-full mr-3">
+                    <ChartBarIcon className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <span className="text-blue-800 font-medium">Otimize controles</span>
+                </div>
+                <div className="flex items-center bg-white/40 backdrop-blur-xl rounded-full px-6 py-3 border border-white/50 shadow-xl">
+                  <div className="bg-blue-100 p-2 rounded-full mr-3">
+                    <TrophyIcon className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <span className="text-blue-800 font-medium">Aumente seu patrimônio</span>
+                </div>
+                <div className="flex items-center bg-white/40 backdrop-blur-xl rounded-full px-6 py-3 border border-white/50 shadow-xl">
+                  <div className="bg-blue-100 p-2 rounded-full mr-3">
+                    <DevicePhoneMobileIcon className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <span className="text-blue-800 font-medium">Trabalhe em movimento</span>
+                </div>
+                <div className="flex items-center bg-white/40 backdrop-blur-xl rounded-full px-6 py-3 border border-white/50 shadow-xl">
+                  <div className="bg-blue-100 p-2 rounded-full mr-3">
+                    <ShieldCheckIcon className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <span className="text-blue-800 font-medium">Segurança em primeiro lugar</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Content - Payment Interface Mockup */}
+            <div className="relative">
+              {/* Main Payment Card */}
+              <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-8 border border-white/50 shadow-3xl">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center">
+                    <div className="bg-blue-600 p-3 rounded-full mr-4">
+                      <BanknotesIcon className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-blue-900">Controle Financeiro</h3>
+                      <p className="text-sm text-blue-600">Budgetly</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Amount Display */}
+                <div className="text-center mb-8">
+                  <div className="text-4xl font-bold text-blue-900 mb-2">R$ 12.350,00</div>
+                  <div className="text-blue-600 font-medium">BRL</div>
+                  <div className="inline-block bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full mt-2">
+                    +18%
+                  </div>
+                </div>
+
+                {/* Method Selection */}
+                <div className="mb-8">
+                  <h4 className="text-blue-900 font-semibold mb-4">Método de Controle</h4>
+                  
+                  {/* Payment Method Icons */}
+                  <div className="flex items-center justify-between bg-blue-50/60 backdrop-blur-lg rounded-2xl p-4 mb-4">
+                    <div className="grid grid-cols-4 gap-4 flex-1">
+                      <div className="bg-white/80 rounded-lg p-3 flex items-center justify-center">
+                        <CreditCardIcon className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <div className="bg-white/80 rounded-lg p-3 flex items-center justify-center">
+                        <BanknotesIcon className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div className="bg-white/80 rounded-lg p-3 flex items-center justify-center">
+                        <ChartBarIcon className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div className="bg-white/80 rounded-lg p-3 flex items-center justify-center">
+                        <GlobeAltIcon className="h-6 w-6 text-blue-600" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Details Mockup */}
+                  <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl p-6 mb-6">
+                    <div className="text-lg font-mono mb-4">**** **** **** 3507</div>
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <div className="text-xs text-blue-200 mb-1">João Santos</div>
+                      </div>
+                      <div className="text-xs text-blue-200">02/30</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Success Notification */}
+              <div className="absolute -bottom-4 -right-4 bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/50 shadow-2xl">
+                <div className="flex items-center">
+                  <div className="bg-emerald-100 p-2 rounded-full mr-3">
+                    <SparklesIcon className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <div className="text-emerald-700 font-semibold">Controle Atualizado</div>
+                    <div className="text-sm text-blue-600">Com Sucesso</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* About Section */}
       <section id="about" className="py-20 bg-gradient-to-r from-blue-900 via-indigo-900 to-sky-900 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/30 to-indigo-900/30 backdrop-blur-sm"></div>
